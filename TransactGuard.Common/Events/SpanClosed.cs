@@ -2,7 +2,5 @@
 
 public class SpanClosed : Span
 {
-   public void Commit () 
-   { 
-   };
+  public bool Committed { get; set; }
 }
