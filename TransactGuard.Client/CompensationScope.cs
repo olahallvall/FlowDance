@@ -21,6 +21,10 @@ public class CompensationScope : IDisposable
         RabbitMQUtil.StoreEvent(SpanOpened);
     }
 
+    public void Commit () 
+    { 
+    }
+    
     protected virtual void Dispose(bool disposing)
     {
         if (!disposedValue)
