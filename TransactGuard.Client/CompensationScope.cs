@@ -5,8 +5,9 @@ public class CompensationScope : IDisposable
 {
     private bool disposedValue;
 
-    private Common.Events.SpanOpened ?SpanOpened { get; set; }
-    private Common.Events.SpanClosed ?SpanClosed { get; set; }
+    private Common.Events.SpanOpened _spanOpened = null!;
+    private Common.Events.SpanClosed _spanClosed = null!;
+    private bool _committed = false;
 
     private CompensationScope()
     {
@@ -15,14 +16,15 @@ public class CompensationScope : IDisposable
     public CompensationScope(string url, Guid traceId) 
     {
         // Create the event - SpanOpened
-        SpanOpened = new Common.Events.SpanOpened() { TraceId = traceId, SpanId = Guid.NewGuid(), SpanCompensationUrl = url };
+        _spanOpened = new Common.Events.SpanOpened() { TraceId = traceId, SpanId = Guid.NewGuid(), SpanCompensationUrl = url };
 
         // Store the SpanOpended event
-        RabbitMQUtil.StoreEvent(SpanOpened);
+        RabbitMQUtil.StoreEvent(_spanOpened);
     }
 
-    public void Commit () 
-    { 
+    public void Commit() 
+    {
+        _committed = true;
     }
     
     protected virtual void Dispose(bool disposing)
@@ -32,12 +34,12 @@ public class CompensationScope : IDisposable
             if (disposing)
             {
                 // Create the event - SpanClosed
-                SpanClosed = new Common.Events.SpanClosed() { TraceId = SpanOpened!.TraceId, SpanId = SpanOpened.SpanId };
+                _spanClosed = new Common.Events.SpanClosed() { TraceId = _spanOpened.TraceId, SpanId = _spanOpened.SpanId, MarkedAsCommitted = _committed };
 
                 // Store the SpanClosed event
-                RabbitMQUtil.StoreEvent(SpanClosed);
+                RabbitMQUtil.StoreEvent(_spanClosed);
 
-                if(SpanOpened.isRootSpan)
+                if(_spanOpened.IsRootSpan)
                 {
                     var determineCompensation = new Common.Commands.DetermineCompensation();
                     // Check if this is a RootSpan, if so determine compensation.

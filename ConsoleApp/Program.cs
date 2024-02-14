@@ -1,4 +1,7 @@
-﻿using TransactGuard.Client;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Json;
+
+using TransactGuard.Client;
 
 namespace MyApp // Note: actual namespace depends on the project name.
 {
@@ -6,14 +9,14 @@ namespace MyApp // Note: actual namespace depends on the project name.
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            var config = new ConfigurationBuilder().AddJsonFile($"appsettings.json").Build();
+            string HotelServiceCompensationUrl = config.GetSection("MySettings").GetSection("CompensationUrls").GetSection("HotelService").Value;
 
-            using (CompensationScope compScope = new CompensationScope("", Guid.NewGuid())) 
-            { 
-            
-            
+            using (CompensationScope compScope = new CompensationScope(HotelServiceCompensationUrl, Guid.NewGuid())) 
+            {
+
+                compScope.Commit();
             } 
-
         }
     }
 }

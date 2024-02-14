@@ -2,5 +2,5 @@
 
 public class SpanClosed : Span
 {
-  public bool Committed { get; set; }
+    public bool MarkedAsCommitted { get; set; }
 }
