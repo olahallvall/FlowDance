@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Json;
 
-using TransactGuard.Client;
+using FlowDance.Client;
 
 namespace MyApp // Note: actual namespace depends on the project name.
 {

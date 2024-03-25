@@ -5,16 +5,16 @@ VisualStudioVersion = 17.8.34525.116
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleApp", "ConsoleApp\ConsoleApp.csproj", "{FE14E916-7989-4F39-9DFB-681A8FA5763C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransactGuard.Client", "TransactGuard.Client\TransactGuard.Client.csproj", "{D50B54D4-7CB8-438D-92F5-C7C87DD820E7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowDance.Client", "FlowDance.Client\FlowDance.Client.csproj", "{D50B54D4-7CB8-438D-92F5-C7C87DD820E7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransactGuard.Common", "TransactGuard.Common\TransactGuard.Common.csproj", "{9A05BC35-6B47-4B0E-B6FE-FC0482573CE1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowDance.Common", "FlowDance.Common\FlowDance.Common.csproj", "{9A05BC35-6B47-4B0E-B6FE-FC0482573CE1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1183541A-94AA-436F-8F3A-7F825D836467}"
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransactGuard.AzureFunctions", "TransactGuard.AzureFunctions\TransactGuard.AzureFunctions.csproj", "{8117AA55-88D3-44E9-B205-EEB47C77031C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowDance.AzureFunctions", "FlowDance.AzureFunctions\FlowDance.AzureFunctions.csproj", "{8117AA55-88D3-44E9-B205-EEB47C77031C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

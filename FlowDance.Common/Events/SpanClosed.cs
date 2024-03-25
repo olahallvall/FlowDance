@@ -1,4 +1,4 @@
-﻿namespace TransactGuard.Common.Events;
+﻿namespace FlowDance.Common.Events;
 
 public class SpanClosed : Span
 {

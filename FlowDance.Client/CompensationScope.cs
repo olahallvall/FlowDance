@@ -1,5 +1,5 @@
 ﻿
-namespace TransactGuard.Client;
+namespace FlowDance.Client;
 public class CompensationScope : IDisposable
 {
     private bool disposedValue;

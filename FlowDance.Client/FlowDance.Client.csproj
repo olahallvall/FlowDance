@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TransactGuard.Common\TransactGuard.Common.csproj" />
+    <ProjectReference Include="..\FlowDance.Common\FlowDance.Common.csproj" />
   </ItemGroup>
 
 </Project>

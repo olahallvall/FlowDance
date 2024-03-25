@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TransactGuard.Client\TransactGuard.Client.csproj" />
+    <ProjectReference Include="..\FlowDance.Client\FlowDance.Client.csproj" />
   </ItemGroup>
 
   <ItemGroup>

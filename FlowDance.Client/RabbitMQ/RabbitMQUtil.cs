@@ -1,10 +1,10 @@
-﻿using TransactGuard.Common.Events;
-using TransactGuard.Common.Commands;
+﻿using FlowDance.Common.Events;
+using FlowDance.Common.Commands;
 using RabbitMQ.Client;
 using System;
 
 
-namespace TransactGuard.Client.RabbitMQ;
+namespace FlowDance.Client.RabbitMQ;
 
 public class RabbitMQUtil
 {

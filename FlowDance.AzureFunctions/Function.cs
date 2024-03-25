@@ -2,7 +2,7 @@ using System;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 
-namespace TransactGuard.AzureFunctions
+namespace FlowDance.AzureFunctions
 {
     public class Function
     {
