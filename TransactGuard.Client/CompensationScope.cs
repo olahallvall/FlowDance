@@ -1,5 +1,4 @@
-﻿using TransactGuard.Common.RabbitMQ;
-
+﻿
 namespace TransactGuard.Client;
 public class CompensationScope : IDisposable
 {
@@ -19,7 +18,7 @@ public class CompensationScope : IDisposable
         _spanOpened = new Common.Events.SpanOpened() { TraceId = traceId, SpanId = Guid.NewGuid(), SpanCompensationUrl = url };
 
         // Store the SpanOpended event
-        RabbitMQUtil.StoreEvent(_spanOpened);
+        RabbitMQ.RabbitMQUtil.StoreEvent(_spanOpened);
     }
 
     public void Commit() 
@@ -37,13 +36,13 @@ public class CompensationScope : IDisposable
                 _spanClosed = new Common.Events.SpanClosed() { TraceId = _spanOpened.TraceId, SpanId = _spanOpened.SpanId, MarkedAsCommitted = _committed };
 
                 // Store the SpanClosed event
-                RabbitMQUtil.StoreEvent(_spanClosed);
+                RabbitMQ.RabbitMQUtil.StoreEvent(_spanClosed);
 
                 if(_spanOpened.IsRootSpan)
                 {
                     var determineCompensation = new Common.Commands.DetermineCompensation();
                     // Check if this is a RootSpan, if so determine compensation.
-                    RabbitMQUtil.StoreCommand(determineCompensation);
+                    RabbitMQ.RabbitMQUtil.StoreCommand(determineCompensation);
                 }
             }
 
