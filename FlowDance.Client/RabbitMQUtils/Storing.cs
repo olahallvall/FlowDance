@@ -4,16 +4,16 @@ using RabbitMQ.Client;
 using System;
 
 
-namespace FlowDance.Client.RabbitMQ;
+namespace FlowDance.Client.RabbitMQUtils;
 
-public class RabbitMQUtil
+public class Storing
 {
     public void StoreEvent(Span span)
     {
         if(span is SpanOpened)
         {
             //Check if stream/queue exist. Only first span i stream should be a root span.
-            if (QueueExist(span.TraceId.ToString())) 
+            if (!QueueExist(span.TraceId.ToString())) 
                 ((SpanOpened)span).IsRootSpan = true;
             else
                 ((SpanOpened)span).IsRootSpan = false;
@@ -26,20 +26,22 @@ public class RabbitMQUtil
     }
 
     public bool QueueExist(string QueueName) 
-    { 
-        bool b = false; 
+    {  
         try {
             var factory = new ConnectionFactory { HostName = "localhost" };
             var connection = factory.CreateConnection();
             using var channel = connection.CreateModel();
 
-            var xx = channel.QueueDeclarePassive(QueueName); 
-            b = true; 
+            channel.QueueDeclarePassive(QueueName);  
         } 
-        catch (Exception x) 
+        catch (RabbitMQ.Client.Exceptions.OperationInterruptedException ex) 
         {
-            Console.WriteLine("Queue {0} does not exist", x.Message); 
+            return false; 
         }
-        return b; 
+        catch (Exception ex)
+        {
+            throw new Exception("Non suspected exception occured. See inner exception for more info", ex);
+        }
+        return true; 
     }
 }

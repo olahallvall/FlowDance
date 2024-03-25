@@ -7,7 +7,7 @@ public class CompensationScope : IDisposable
     private Common.Events.SpanOpened _spanOpened = null!;
     private Common.Events.SpanClosed _spanClosed = null!;
     private bool _committed = false;
-    private RabbitMQ.RabbitMQUtil rabbitMQUtil = new RabbitMQ.RabbitMQUtil();
+    private RabbitMQUtils.Storing rabbitMQUtil = new RabbitMQUtils.Storing();
 
     private CompensationScope()
     {
