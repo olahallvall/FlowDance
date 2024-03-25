@@ -15,6 +15,12 @@ namespace MyApp // Note: actual namespace depends on the project name.
             using (CompensationScope compScope = new CompensationScope(HotelServiceCompensationUrl, Guid.NewGuid())) 
             {
 
+                // Boka taxi
+
+
+                // Boka flyg
+
+
                 compScope.Commit();
             } 
         }

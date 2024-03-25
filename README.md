@@ -1,4 +1,4 @@
-# TransactGuard
+# FlowDance
 
 A robust solution to ensure that compensated transactions are handled securely.
 

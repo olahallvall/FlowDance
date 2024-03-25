@@ -6,7 +6,7 @@ using System;
 
 namespace FlowDance.Client.RabbitMQUtils;
 
-public class Storing
+public class Storage
 {
     public void StoreEvent(Span span)
     {
