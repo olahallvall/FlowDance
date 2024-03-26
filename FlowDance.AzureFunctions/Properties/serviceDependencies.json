@@ -12,7 +12,7 @@
     },
     "rabbitmq1": {
       "type": "rabbitmq",
-      "connectionId": "http:::localhost:15672"
+      "connectionId": "FlowDanceRabbitMqConnection"
     }
   }
 }

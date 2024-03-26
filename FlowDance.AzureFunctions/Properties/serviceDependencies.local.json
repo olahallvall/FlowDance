@@ -11,13 +11,12 @@
       "type": "secrets.user"
     },
     "rabbitmq1": {
-      "containerPorts": "5672:5672,15672:15672",
+      "containerPorts": "5672:5672,15672:15672,5552:5552",
       "secretStore": "LocalSecretsFile",
       "containerName": "rabbitmq",
       "containerImage": "rabbitmq:3-management-alpine",
-      "resourceId": null,
       "type": "rabbitmq.container",
-      "connectionId": "http:::localhost:15672"
+      "connectionId": "FlowDanceRabbitMqConnection"
     }
   }
 }

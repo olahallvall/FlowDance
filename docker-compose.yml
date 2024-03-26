@@ -1,0 +1,11 @@
+version: "3.2"
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: 'rabbitmq'
+    ports:
+       - "15672:15672" # Management UI
+       - "5672:5672"   # Default RabbitMQ Port
+       - "5552:5552"   # Steaming RabbitMQ Port
+
+# docker exec rabbitmq rabbitmq-plugins enable rabbitmq_stream
