@@ -34,16 +34,20 @@ public class Storage
             CreateStream(streamName);
         }
 
+        /*
         var streamSystem = StreamSystem.Create(new StreamSystemConfig() 
         {
             UserName = "guest",
             Password = "guest",
             VirtualHost = "/",
             Endpoints = new List<EndPoint>() { new IPEndPoint(IPAddress.Loopback, 5552) }
-        }, null).Result;
+        }, null).Result; */
+
+        // Create StreamSystem
+        var streamSystem = SingletonStreamSystem.getInstance().getStreamSystem();
 
         // Create producer
-        var producer = CreateProducer(streamName, streamSystem, confirmationTaskCompletionSource);
+        var producer = CreateProducer(streamName, streamSystem);
        
         // Send a messages
         var message = new Message(Encoding.UTF8.GetBytes("hello")); 
@@ -87,56 +91,38 @@ public class Storage
         channel.QueueDeclare(streamName, true, false, false, arguments);
     }
 
-    private Producer CreateProducer(string StreamName, StreamSystem streamSystem, TaskCompletionSource<int> confirmationTaskCompletionSource)
-    {
-        var confirmationCount = 0;
-        const int MessageCount = 100;
-
-        var producer = Producer.Create(new ProducerConfig(streamSystem, StreamName)
-        {
-            ConfirmationHandler = async confirmation => 
+    private Producer CreateProducer(string StreamName, StreamSystem streamSystem)
+    {       
+       var producer = await Producer.Create(
+            new ProducerConfig(
+                streamSystem,
+                StreamName)
             {
-                Interlocked.Increment(ref confirmationCount);
-
-                // here you can handle the confirmation
-                switch (confirmation.Status)
+                ConfirmationHandler = async confirmation => 
                 {
-                    case ConfirmationStatus.Confirmed: 
-                        // all the messages received here are confirmed
-                        if (confirmationCount == MessageCount)
-                        {
-                            Console.WriteLine("*********************************");
-                            Console.WriteLine($"All the {MessageCount} messages are confirmed");
-                            Console.WriteLine("*********************************");
-                        }
+                    switch (confirmation.Status)
+                    {
+                        case ConfirmationStatus.Confirmed:
+                            Console.WriteLine("Message confirmed");
+                            break;
+                        case ConfirmationStatus.ClientTimeoutError:
+                        case ConfirmationStatus.StreamNotAvailable:
+                        case ConfirmationStatus.InternalError:
+                        case ConfirmationStatus.AccessRefused:
+                        case ConfirmationStatus.PreconditionFailed:
+                        case ConfirmationStatus.PublisherDoesNotExist:
+                        case ConfirmationStatus.UndefinedError:
+                            Console.WriteLine("Message not confirmed with error: {0}", confirmation.Status);
+                            break;
 
-                        break;
-
-                    case ConfirmationStatus.StreamNotAvailable:
-                    case ConfirmationStatus.InternalError:
-                    case ConfirmationStatus.AccessRefused:
-                    case ConfirmationStatus.PreconditionFailed:
-                    case ConfirmationStatus.PublisherDoesNotExist:
-                    case ConfirmationStatus.UndefinedError:
-                    case ConfirmationStatus.ClientTimeoutError:
-                        // (4)
-                        Console.WriteLine(
-                            $"Message {confirmation.PublishingId} failed with {confirmation.Status}");
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+                    await Task.CompletedTask.ConfigureAwait(false);
                 }
-
-                if (confirmationCount == MessageCount)
-                {
-                    confirmationTaskCompletionSource.SetResult(MessageCount);
-                }
-
-                await Task.CompletedTask.ConfigureAwait(false);
             }
-        }, null).Result;
+        ).ConfigureAwait(false);
 
         return producer;
     }
-
 }
