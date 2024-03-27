@@ -49,7 +49,7 @@ public class Storage
         var streamSystem = SingletonStreamSystem.getInstance().getStreamSystem();
 
         // Create producer
-        RabbitMQ.Stream.Client.Reliable producer = CreateProducer(streamName, streamSystem);
+        RabbitMQ.Stream.Client.Reliable.Producer producer = CreateProducer(streamName, streamSystem);
        
         // Send a messages
         var message = new Message(Encoding.UTF8.GetBytes("hello")); 
