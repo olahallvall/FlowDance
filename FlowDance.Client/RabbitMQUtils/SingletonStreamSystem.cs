@@ -23,9 +23,9 @@ namespace FlowDance.Client.RabbitMQUtils
             return INSTANCE;
         }
 
-        public IConnection getConnection()
+        public StreamSystem getStreamSystem()
         {
-            return connection;
+            return streamSystem;
         }
     }
 }
