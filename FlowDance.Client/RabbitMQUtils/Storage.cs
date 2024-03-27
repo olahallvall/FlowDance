@@ -42,29 +42,14 @@ public class Storage
             Endpoints = new List<EndPoint>() { new IPEndPoint(IPAddress.Loopback, 5552) }
         }, null).Result;
 
-        //var confirmationTaskCompletionSource = new TaskCompletionSource<int>();
-        //var producer = CreateProducer(streamName, streamSystem, confirmationTaskCompletionSource);
-        
-        var reliableProducer = await ReliableProducer.CreateReliableProducer(new ReliableProducerConfig()
-        {
-            StreamSystem = system,
-            Stream = stream,
-            Reference = Guid.NewGuid().ToString(),
-            ReconnectStrategy = new ReconnectStrategy(),
-            ConfirmationHandler = confirmation =>
-            {
-                if (confirmation.Status == ConfirmationStatus.TimeoutError)
-                {
-                }
-                return Task.CompletedTask;
-            }
-        }) ;
-
+        // Create producer
+        var producer = CreateProducer(streamName, streamSystem, confirmationTaskCompletionSource);
+       
         // Send a messages
-        var message = new Message(Encoding.UTF8.GetBytes($"hello"));
-        await reliableProducer.Send(message);
+        var message = new Message(Encoding.UTF8.GetBytes("hello")); 
+        await producer.Send(message).ConfigureAwait(false); 
 
-        reliableProducer.Close().ConfigureAwait(false); 
+        producer.Close().ConfigureAwait(false); 
     }
 
     public void StoreCommand(DetermineCompensation command)
