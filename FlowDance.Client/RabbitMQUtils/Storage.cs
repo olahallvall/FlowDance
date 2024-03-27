@@ -41,7 +41,9 @@ public class Storage
             Password = "guest",
             VirtualHost = "/",
             Endpoints = new List<EndPoint>() { new IPEndPoint(IPAddress.Loopback, 5552) }
-        }, null).Result; */
+        }, null).Result; 
+        // https://github.com/rabbitmq/rabbitmq-stream-dotnet-client/blob/main/docs/Documentation/ProducerUsage.cs
+        */
 
         // Create StreamSystem
         var streamSystem = SingletonStreamSystem.getInstance().getStreamSystem();
