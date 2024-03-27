@@ -1,5 +1,5 @@
-﻿using RabbitMQ.Stream.Client; 
-using RabbitMQ.Stream.Client.Reliable;
+﻿using RabbitMQ.Stream.Client;
+using System.Net;
 
 namespace FlowDance.Client.RabbitMQUtils
 {
@@ -15,7 +15,7 @@ namespace FlowDance.Client.RabbitMQUtils
                 UserName = "guest",
                 Password = "guest",
                 Endpoints = new List<EndPoint>() {new IPEndPoint(IPAddress.Loopback, 5552)}
-            }, null).ConfigureAwait(false);
+            }, null).Result;
         }
 
         public static SingletonStreamSystem getInstance()

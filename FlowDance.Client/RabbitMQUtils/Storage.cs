@@ -1,10 +1,9 @@
 ﻿using FlowDance.Common.Events;
 using FlowDance.Common.Commands;
-using RabbitMQ.Stream.Client; 
+using RabbitMQ.Stream.Client;
 using RabbitMQ.Stream.Client.Reliable;
-using Microsoft.Extensions.Logging;
-using System.Net;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace FlowDance.Client.RabbitMQUtils;
 
@@ -34,26 +33,15 @@ public class Storage
             CreateStream(streamName);
         }
 
-        /*
-        var streamSystem = StreamSystem.Create(new StreamSystemConfig() 
-        {
-            UserName = "guest",
-            Password = "guest",
-            VirtualHost = "/",
-            Endpoints = new List<EndPoint>() { new IPEndPoint(IPAddress.Loopback, 5552) }
-        }, null).Result; 
-        // https://github.com/rabbitmq/rabbitmq-stream-dotnet-client/blob/main/docs/Documentation/ProducerUsage.cs
-        */
-
         // Create StreamSystem
         var streamSystem = SingletonStreamSystem.getInstance().getStreamSystem();
 
         // Create producer
-        RabbitMQ.Stream.Client.Reliable.Producer producer = CreateProducer(streamName, streamSystem);
-       
+        Producer producer = CreateProducer(streamName, streamSystem);
+
         // Send a messages
-        var message = new Message(Encoding.UTF8.GetBytes("hello")); 
-        await producer.Send(message).ConfigureAwait(false); 
+        var message = new Message(Encoding.Default.GetBytes(JsonConvert.SerializeObject(span))); 
+        producer.Send(message).ConfigureAwait(false); 
 
         producer.Close().ConfigureAwait(false); 
     }
@@ -93,9 +81,16 @@ public class Storage
         channel.QueueDeclare(streamName, true, false, false, arguments);
     }
 
+    /// <summary>
+    ///  https://github.com/rabbitmq/rabbitmq-stream-dotnet-client/blob/main/docs/Documentation/ProducerUsage.cs
+    /// </summary>
+    /// <param name="StreamName"></param>
+    /// <param name="streamSystem"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
     private Producer CreateProducer(string StreamName, StreamSystem streamSystem)
     {       
-       var producer = await Producer.Create(
+       var producer = Producer.Create(
             new ProducerConfig(
                 streamSystem,
                 StreamName)
@@ -123,7 +118,7 @@ public class Storage
                     await Task.CompletedTask.ConfigureAwait(false);
                 }
             }
-        ).ConfigureAwait(false);
+        ).Result;
 
         return producer;
     }
