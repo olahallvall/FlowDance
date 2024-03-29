@@ -1,4 +1,5 @@
-﻿
+﻿using Microsoft.Extensions.Logging;
+
 namespace FlowDance.Client;
 public class CompensationScope : IDisposable
 {
@@ -7,19 +8,23 @@ public class CompensationScope : IDisposable
     private Common.Events.SpanOpened _spanOpened = null!;
     private Common.Events.SpanClosed _spanClosed = null!;
     private bool _committed = false;
-    private RabbitMQUtils.Storage rabbitMQUtil = new RabbitMQUtils.Storage();
+    private RabbitMQUtils.Storage _rabbitMQUtil = null!;
 
     private CompensationScope()
     {
     }
 
-    public CompensationScope(string url, Guid traceId) 
+    public CompensationScope(string url, Guid traceId, ILoggerFactory loggerFactory) 
     {
+        if (_rabbitMQUtil == null)
+            _rabbitMQUtil = new RabbitMQUtils.Storage(loggerFactory);
+
+
         // Create the event - SpanOpened
         _spanOpened = new Common.Events.SpanOpened() { TraceId = traceId, SpanId = Guid.NewGuid(), SpanCompensationUrl = url };
 
         // Store the SpanOpended event
-        rabbitMQUtil.StoreEvent(_spanOpened);
+        _rabbitMQUtil.StoreEvent(_spanOpened);
     }
 
     public void Commit() 
@@ -37,13 +42,13 @@ public class CompensationScope : IDisposable
                 _spanClosed = new Common.Events.SpanClosed() { TraceId = _spanOpened.TraceId, SpanId = _spanOpened.SpanId, MarkedAsCommitted = _committed };
 
                 // Store the SpanClosed event
-                rabbitMQUtil.StoreEvent(_spanClosed);
+                _rabbitMQUtil.StoreEvent(_spanClosed);
 
                 if(_spanOpened.IsRootSpan)
                 {
                     var determineCompensation = new Common.Commands.DetermineCompensation();
                     // Check if this is a RootSpan, if so determine compensation.
-                    rabbitMQUtil.StoreCommand(determineCompensation);
+                    _rabbitMQUtil.StoreCommand(determineCompensation);
                 }
             }
 

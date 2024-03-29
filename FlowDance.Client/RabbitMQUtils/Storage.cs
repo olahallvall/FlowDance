@@ -2,19 +2,36 @@
 using FlowDance.Common.Commands;
 using RabbitMQ.Stream.Client;
 using RabbitMQ.Stream.Client.Reliable;
+using Microsoft.Extensions.Logging;
 using System.Text;
 using Newtonsoft.Json;
 
 namespace FlowDance.Client.RabbitMQUtils;
 
+/// <summary>
+/// https://rabbitmq.github.io/rabbitmq-stream-dotnet-client/stable/htmlsingle/index.html
+/// </summary>
 public class Storage
 {
+    private ILoggerFactory _loggerFactory;
+    private ILogger<Producer> _producerLogger;
+    private ILogger<StreamSystem> _streamLogger;
+
+    public Storage(ILoggerFactory loggerFactory)
+    {
+        _loggerFactory = loggerFactory;
+
+        _producerLogger = _loggerFactory.CreateLogger<Producer>();
+        _streamLogger = _loggerFactory.CreateLogger<StreamSystem>();
+    }
+
     public void StoreEvent(Span span)
     {
         var streamName = span.TraceId.ToString();
 
+
         //Check if stream/queue exist. 
-        if (StreamExist(streamName))
+        if (StreamExist(streamName, _producerLogger))
         {
             // Only first span in stream should be a root span.
             if (span is SpanOpened)
@@ -30,20 +47,20 @@ public class Storage
                 ((SpanOpened)span).IsRootSpan = true;
 
             // Create stream/queue
-            CreateStream(streamName);
+            CreateStream(streamName, _producerLogger);
         }
 
         // Create StreamSystem
-        var streamSystem = SingletonStreamSystem.getInstance().getStreamSystem();
+        var streamSystem = SingletonStreamSystem.getInstance(_streamLogger).getStreamSystem();
 
         // Create producer
-        Producer producer = CreateProducer(streamName, streamSystem);
+        Producer producer = CreateProducer(streamName, streamSystem, _producerLogger);
 
         // Send a messages
         var message = new Message(Encoding.Default.GetBytes(JsonConvert.SerializeObject(span))); 
-        producer.Send(message).ConfigureAwait(false); 
+        producer.Send(message).ConfigureAwait(true); 
 
-        producer.Close().ConfigureAwait(false); 
+        producer.Close().ConfigureAwait(true); 
     }
 
     public void StoreCommand(DetermineCompensation command)
@@ -51,7 +68,7 @@ public class Storage
 
     }
 
-    private bool StreamExist(string streamName) 
+    private bool StreamExist(string streamName, ILogger logger) 
     {  
         try {
             using var channel = SingletonConnection.getInstance().getConnection().CreateModel();
@@ -73,7 +90,7 @@ public class Storage
         return true; 
     }
 
-    private void CreateStream(string streamName)
+    private void CreateStream(string streamName, ILogger logger)
     {
         using var channel = SingletonConnection.getInstance().getConnection().CreateModel();
         Dictionary<string, object> arguments = new Dictionary<string, object> { { "x-queue-type", "stream" } };
@@ -88,7 +105,7 @@ public class Storage
     /// <param name="streamSystem"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    private Producer CreateProducer(string StreamName, StreamSystem streamSystem)
+    private Producer CreateProducer(string StreamName, StreamSystem streamSystem, ILogger<Producer> logger)
     {       
        var producer = Producer.Create(
             new ProducerConfig(
@@ -117,8 +134,7 @@ public class Storage
                     }
                     await Task.CompletedTask.ConfigureAwait(false);
                 }
-            }
-        ).Result;
+            }, logger).Result;
 
         return producer;
     }
