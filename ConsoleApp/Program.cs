@@ -20,7 +20,9 @@ namespace MyApp // Note: actual namespace depends on the project name.
             var config = new ConfigurationBuilder().AddJsonFile($"appsettings.json").Build();
             string HotelServiceCompensationUrl = config.GetSection("MySettings").GetSection("CompensationUrls").GetSection("HotelService").Value;
 
-            using (CompensationScope compScope = new CompensationScope(HotelServiceCompensationUrl, Guid.NewGuid(), factory)) 
+            var guid = Guid.NewGuid();
+
+            using (CompensationScope compScope = new CompensationScope(HotelServiceCompensationUrl, guid, factory)) 
             {
 
                 // Boka taxi
@@ -30,7 +32,31 @@ namespace MyApp // Note: actual namespace depends on the project name.
 
 
                 compScope.Commit();
-            } 
+            }
+
+            using (CompensationScope compScope = new CompensationScope(HotelServiceCompensationUrl, guid, factory))
+            {
+
+                // Boka taxi
+
+
+                // Boka flyg
+
+
+                compScope.Commit();
+            }
+
+            using (CompensationScope compScope = new CompensationScope(HotelServiceCompensationUrl, guid, factory))
+            {
+
+                // Boka taxi
+
+
+                // Boka flyg
+
+
+                compScope.Commit();
+            }
         }
     }
 }
