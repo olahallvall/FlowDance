@@ -19,7 +19,6 @@ public class CompensationScope : IDisposable
         if (_rabbitMQUtil == null)
             _rabbitMQUtil = new RabbitMQUtils.Storage(loggerFactory);
 
-
         // Create the event - SpanOpened
         _spanOpened = new Common.Events.SpanOpened() { TraceId = traceId, SpanId = Guid.NewGuid(), SpanCompensationUrl = url };
 

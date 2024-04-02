@@ -28,8 +28,8 @@ public class Storage
     public void StoreEvent(Span span)
     {
         var streamName = span.TraceId.ToString();
-
-
+        var confirmationTaskCompletionSource = new TaskCompletionSource<int>();
+       
         //Check if stream/queue exist. 
         if (StreamExist(streamName, _producerLogger))
         {
@@ -54,13 +54,14 @@ public class Storage
         var streamSystem = SingletonStreamSystem.getInstance(_streamLogger).getStreamSystem();
 
         // Create producer
-        Producer producer = CreateProducer(streamName, streamSystem, _producerLogger);
+        Producer producer = CreateProducer(streamName, streamSystem, confirmationTaskCompletionSource, _producerLogger);
 
-        // Send a messages
+        // Send a messages     
         var message = new Message(Encoding.Default.GetBytes(JsonConvert.SerializeObject(span))); 
-        producer.Send(message).ConfigureAwait(true); 
+        producer.Send(message);
 
-        producer.Close().ConfigureAwait(true); 
+        confirmationTaskCompletionSource.Task.Wait();
+        producer.Close();
     }
 
     public void StoreCommand(DetermineCompensation command)
@@ -68,12 +69,18 @@ public class Storage
 
     }
 
+    /// <summary>
+    /// Check if a queue/stream exists. 
+    /// </summary>
+    /// <param name="streamName"></param>
+    /// <param name="logger"></param>
+    /// <returns>True if queue/stream exists, else false.</returns>
+    /// <exception cref="Exception"></exception>
     private bool StreamExist(string streamName, ILogger logger) 
     {  
         try {
-            using var channel = SingletonConnection.getInstance().getConnection().CreateModel();
-
-            channel.QueueDeclarePassive(streamName);  
+            var channel = SingletonConnection.getInstance().getConnection().CreateModel();
+            channel.QueueDeclarePassive(streamName);
         } 
         catch (RabbitMQ.Client.Exceptions.OperationInterruptedException ex) 
         {
@@ -90,11 +97,15 @@ public class Storage
         return true; 
     }
 
+    /// <summary>
+    /// Create a stream. 
+    /// </summary>
+    /// <param name="streamName"></param>
+    /// <param name="logger"></param>
     private void CreateStream(string streamName, ILogger logger)
     {
-        using var channel = SingletonConnection.getInstance().getConnection().CreateModel();
+        var channel = SingletonConnection.getInstance().getConnection().CreateModel();
         Dictionary<string, object> arguments = new Dictionary<string, object> { { "x-queue-type", "stream" } };
-
         channel.QueueDeclare(streamName, true, false, false, arguments);
     }
 
@@ -105,9 +116,9 @@ public class Storage
     /// <param name="streamSystem"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    private Producer CreateProducer(string StreamName, StreamSystem streamSystem, ILogger<Producer> logger)
-    {       
-       var producer = Producer.Create(
+    private Producer CreateProducer(string StreamName, StreamSystem streamSystem, TaskCompletionSource<int> confirmationTaskCompletionSource, ILogger<Producer> logger)
+    {
+        var producer = Producer.Create(
             new ProducerConfig(
                 streamSystem,
                 StreamName)
@@ -132,7 +143,9 @@ public class Storage
                         default:
                             throw new ArgumentOutOfRangeException();
                     }
-                    await Task.CompletedTask.ConfigureAwait(false);
+                    confirmationTaskCompletionSource.SetResult(1);
+
+                    await Task.CompletedTask;
                 }
             }, logger).Result;
 

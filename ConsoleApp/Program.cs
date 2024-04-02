@@ -11,8 +11,11 @@ namespace MyApp // Note: actual namespace depends on the project name.
     {
         static void Main(string[] args)
         {
-            ILoggerFactory factory = LoggerFactory.Create(builder => builder.AddConsole());
-            //ILogger logger = factory.CreateLogger<Program>();
+            var factory = LoggerFactory.Create(builder =>
+            {
+                builder.AddConsole();
+                builder.AddFilter("RabbitMQ.Stream", LogLevel.Information);
+            });
 
             var config = new ConfigurationBuilder().AddJsonFile($"appsettings.json").Build();
             string HotelServiceCompensationUrl = config.GetSection("MySettings").GetSection("CompensationUrls").GetSection("HotelService").Value;

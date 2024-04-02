@@ -31,7 +31,6 @@ namespace FlowDance.Client.RabbitMQUtils
                     Endpoints = new List<EndPoint>() { new IPEndPoint(IPAddress.Loopback, 5552) }
                 }, _logger).Result;
             }
-
             return _streamSystem;
         }
     }
