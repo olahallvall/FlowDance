@@ -5,6 +5,7 @@ using RabbitMQ.Stream.Client.Reliable;
 using Microsoft.Extensions.Logging;
 using System.Text;
 using Newtonsoft.Json;
+using System;
 
 namespace FlowDance.Client.RabbitMQUtils;
 
@@ -15,6 +16,7 @@ public class Storage
 {
     private ILoggerFactory _loggerFactory;
     private ILogger<Producer> _producerLogger;
+    private ILogger<Consumer> _consumerLogger;
     private ILogger<StreamSystem> _streamLogger;
 
     public Storage(ILoggerFactory loggerFactory)
@@ -22,6 +24,7 @@ public class Storage
         _loggerFactory = loggerFactory;
 
         _producerLogger = _loggerFactory.CreateLogger<Producer>();
+        _consumerLogger = _loggerFactory.CreateLogger<Consumer>();
         _streamLogger = _loggerFactory.CreateLogger<StreamSystem>();
     }
 
@@ -50,14 +53,14 @@ public class Storage
             CreateStream(streamName, _producerLogger);
         }
 
-        // Create StreamSystem
+        // Get StreamSystem
         var streamSystem = SingletonStreamSystem.getInstance(_streamLogger).getStreamSystem();
 
         // Create producer
         Producer producer = CreateProducer(streamName, streamSystem, confirmationTaskCompletionSource, _producerLogger);
 
         // Send a messages     
-        var message = new Message(Encoding.Default.GetBytes(JsonConvert.SerializeObject(span))); 
+        var message = new Message(Encoding.Default.GetBytes(JsonConvert.SerializeObject(span, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All }))); 
         producer.Send(message);
 
         // Wait for confirmation feedback 
@@ -70,6 +73,45 @@ public class Storage
     public void StoreCommand(DetermineCompensation command)
     {
 
+    }
+
+    public List<Span> ReadAllSpansFromStream(string streamName)
+    {
+        return ReadAllSpansFromStream(streamName, _consumerLogger);
+    }
+
+    private List<Span> ReadAllSpansFromStream(string streamName, ILogger<Consumer> consumerLogger)
+    {
+        var consumerTaskCompletionSource = new TaskCompletionSource<int>();
+        var streamSystem = SingletonStreamSystem.getInstance(_streamLogger).getStreamSystem();
+        var spanList = new List<Span>();
+        var type = Type.GetType("Span");
+
+        var consumer = Consumer.Create(
+                new ConsumerConfig(streamSystem, streamName)
+                {
+                    OffsetSpec = new OffsetTypeFirst(),
+                    MessageHandler = async (stream, consumer, context, message) => 
+                    {
+                        try
+                        {
+                            var messageContent = JsonConvert.DeserializeObject<Span>(Encoding.UTF8.GetString(message.Data.Contents), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
+                            if(messageContent != null ) 
+                                spanList.Add(messageContent);
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new Exception("", ex);
+                        }
+                       
+                        await Task.CompletedTask;
+                    }
+                }, consumerLogger).Result;
+
+        consumerTaskCompletionSource.Task.Wait();
+
+        consumer.Close();
+        return spanList;
     }
 
     /// <summary>
@@ -113,13 +155,13 @@ public class Storage
     }
 
     /// <summary>
-    ///  https://github.com/rabbitmq/rabbitmq-stream-dotnet-client/blob/main/docs/Documentation/ProducerUsage.cs
+    /// Creates a producer. See https://github.com/rabbitmq/rabbitmq-stream-dotnet-client/blob/main/docs/Documentation/ProducerUsage.cs
     /// </summary>
     /// <param name="StreamName"></param>
     /// <param name="streamSystem"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    private Producer CreateProducer(string StreamName, StreamSystem streamSystem, TaskCompletionSource<int> confirmationTaskCompletionSource, ILogger<Producer> logger)
+    private Producer CreateProducer(string StreamName, StreamSystem streamSystem, TaskCompletionSource<int> confirmationTaskCompletionSource, ILogger<Producer> procuderLogger)
     {
         var producer = Producer.Create(
             new ProducerConfig(
@@ -150,7 +192,7 @@ public class Storage
 
                     await Task.CompletedTask;
                 }
-            }, logger).Result;
+            }, procuderLogger).Result;
 
         return producer;
     }

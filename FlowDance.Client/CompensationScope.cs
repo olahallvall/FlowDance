@@ -40,10 +40,10 @@ public class CompensationScope : IDisposable
                 // Create the event - SpanClosed
                 _spanClosed = new Common.Events.SpanClosed() { TraceId = _spanOpened.TraceId, SpanId = _spanOpened.SpanId, MarkedAsCommitted = _committed };
 
-                // Store the SpanClosed event
+                // Store the SpanClosed event and calulates IsRootSpan
                 _rabbitMQUtil.StoreEvent(_spanClosed);
 
-                if(_spanOpened.IsRootSpan)
+                if (_spanOpened.IsRootSpan)
                 {
                     var determineCompensation = new Common.Commands.DetermineCompensation();
                     // Check if this is a RootSpan, if so determine compensation.

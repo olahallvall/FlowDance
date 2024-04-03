@@ -1,14 +1,19 @@
+﻿using FlowDance.Client;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.Json;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 using FlowDance.Client;
+using FlowDance.Client.RabbitMQUtils;
 
 namespace FlowDance.Tests;
 
 [TestClass]
-public class InlineTests
+public class StorageTests
 {
     private static ILoggerFactory _factory = null!;
     private static IConfigurationRoot _config = null!;
@@ -26,21 +31,14 @@ public class InlineTests
     }
 
     [TestMethod]
-    public void OneLevelCompensationScope()
+    public void ReadAllSpansFromStream()
     {
-        var guid = Guid.NewGuid();
+        var storage = new Storage(_factory);
+        var spanList = storage.ReadAllSpansFromStream("70c9c2b9-ef4f-4f22-8e3f-a7e8254a54d0");
 
-        using (CompensationScope compScope = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
-        {
-
-            // Boka taxi
+        spanList.Count();
 
 
-            // Boka flyg
-
-
-            compScope.Commit();
-        }
 
     }
 }
