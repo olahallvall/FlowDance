@@ -80,17 +80,46 @@ public class Storage
         return ReadAllSpansFromStream(streamName, _consumerLogger);
     }
 
-    private List<Span> ReadAllSpansFromStream(string streamName, ILogger<Consumer> consumerLogger)
+    private ulong GetLastOffset(string streamName, ILogger<Consumer> consumerLogger)
     {
         var consumerTaskCompletionSource = new TaskCompletionSource<int>();
         var streamSystem = SingletonStreamSystem.getInstance(_streamLogger).getStreamSystem();
+        ulong lastOffset = 0;
+
+        var consumer = Consumer.Create(
+                new ConsumerConfig(streamSystem, streamName)
+                {
+                    OffsetSpec = new OffsetTypeLast(),
+                    ClientProvidedName = "FlowDance.Client",
+                    MessageHandler = async (stream, consumer, context, message) =>
+                    {
+                        lastOffset = context.Offset;
+                        consumerTaskCompletionSource.SetResult(1);
+                        await Task.CompletedTask;
+                    }
+                }, consumerLogger).Result;
+
+        consumerTaskCompletionSource.Task.Wait();
+
+        consumer.Close();
+      
+        return lastOffset;
+    }
+
+    private List<Span> ReadAllSpansFromStream(string streamName, ILogger<Consumer> consumerLogger)
+    {
+        var lastOffset = GetLastOffset(streamName, consumerLogger);
+
+        var consumerTaskCompletionSource = new TaskCompletionSource<int>();
+        var streamSystem = SingletonStreamSystem.getInstance(_streamLogger).getStreamSystem();
         var spanList = new List<Span>();
-        var type = Type.GetType("Span");
+        int numberOfMessageRecived = 0;
 
         var consumer = Consumer.Create(
                 new ConsumerConfig(streamSystem, streamName)
                 {
                     OffsetSpec = new OffsetTypeFirst(),
+                    ClientProvidedName = "FlowDance.Client",
                     MessageHandler = async (stream, consumer, context, message) => 
                     {
                         try
@@ -98,12 +127,17 @@ public class Storage
                             var messageContent = JsonConvert.DeserializeObject<Span>(Encoding.UTF8.GetString(message.Data.Contents), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
                             if(messageContent != null ) 
                                 spanList.Add(messageContent);
+
+                            if(numberOfMessageRecived == (int) lastOffset)
+                                consumerTaskCompletionSource.SetResult(1);
+                            
+                            numberOfMessageRecived++;
                         }
                         catch (Exception ex)
                         {
                             throw new Exception("", ex);
                         }
-                       
+
                         await Task.CompletedTask;
                     }
                 }, consumerLogger).Result;
