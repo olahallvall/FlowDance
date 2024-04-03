@@ -1,9 +1,8 @@
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.Json;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
 
 using FlowDance.Client;
+using FlowDance.Client.RabbitMQUtils;
 
 namespace FlowDance.Tests;
 
@@ -26,21 +25,38 @@ public class CompensationScopeTests
     }
 
     [TestMethod]
-    public void OneLevelCompensationScope()
+    public void ParentCompensationScope()
     {
         var guid = Guid.NewGuid();
 
+        var storage = new Storage(_factory);
+
         using (CompensationScope compScope = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
         {
-
-            // Boka taxi
-
-
-            // Boka flyg
-
-
             compScope.Commit();
         }
 
+        Assert.AreEqual(storage.ReadAllSpansFromStream(guid.ToString()).Count(),2);
+    }
+
+    [TestMethod]
+    public void ParentChildCompensationScope()
+    {
+        var guid = Guid.NewGuid();
+
+        // Parent
+        using (CompensationScope compScopeParent = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+        {
+            // Child
+            using (CompensationScope compScopeChild = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+            {
+                compScopeChild.Commit();
+            }
+
+            compScopeParent.Commit();
+        }
+
+        var storage = new Storage(_factory);
+        Assert.AreEqual(storage.ReadAllSpansFromStream(guid.ToString()).Count(), 4);
     }
 }
