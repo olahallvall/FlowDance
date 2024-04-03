@@ -41,7 +41,7 @@ public class Storage
         {
             // SpanClosed should newer create the CreateQueue. Only SpanOpened are allowed to do that!  
             if (span is SpanClosed)
-                throw new Exception("The event SpanClosed are trying to create a queue. This not allowed, only SpanOpened are allowed to do that!");
+                throw new Exception("The event SpanClosed are trying to create a stream for the first time. This not allowed, only SpanOpened are allowed to do that!");
 
             if (span is SpanOpened)
                 ((SpanOpened)span).IsRootSpan = true;
@@ -60,7 +60,10 @@ public class Storage
         var message = new Message(Encoding.Default.GetBytes(JsonConvert.SerializeObject(span))); 
         producer.Send(message);
 
+        // Wait for confirmation feedback 
         confirmationTaskCompletionSource.Task.Wait();
+
+        // Close producer
         producer.Close();
     }
 

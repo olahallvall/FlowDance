@@ -1,6 +1,7 @@
 ﻿using RabbitMQ.Stream.Client;
 using System.Net;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 
 namespace FlowDance.Client.RabbitMQUtils
 {
@@ -24,10 +25,12 @@ namespace FlowDance.Client.RabbitMQUtils
         {
             if(_streamSystem == null)
             {
+                var config = new ConfigurationBuilder().AddJsonFile($"appsettings.json").Build();
+
                 _streamSystem = StreamSystem.Create(new StreamSystemConfig()
                 {
-                    UserName = "guest",
-                    Password = "guest",
+                    UserName = config.GetSection("RabbitMqConnection").GetSection("Username").Value,
+                    Password = config.GetSection("RabbitMqConnection").GetSection("Password").Value,
                     Endpoints = new List<EndPoint>() { new IPEndPoint(IPAddress.Loopback, 5552) }
                 }, _logger).Result;
             }

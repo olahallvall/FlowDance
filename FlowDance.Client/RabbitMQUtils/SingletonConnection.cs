@@ -1,4 +1,5 @@
-﻿using RabbitMQ.Client;
+﻿using Microsoft.Extensions.Configuration;
+using RabbitMQ.Client;
 
 namespace FlowDance.Client.RabbitMQUtils
 {
@@ -8,9 +9,11 @@ namespace FlowDance.Client.RabbitMQUtils
         private IConnection connection;
         private SingletonConnection()
         {
-            // here you can init your connection parameter
-            var factory = new ConnectionFactory { HostName = "localhost" };
-            connection = factory.CreateConnection();
+            var config = new ConfigurationBuilder().AddJsonFile($"appsettings.json").Build();
+            var connectionFactory = new ConnectionFactory();
+            config.GetSection("RabbitMqConnection").Bind(connectionFactory);
+
+            connection = connectionFactory.CreateConnection();
         }
 
         public static SingletonConnection getInstance()
