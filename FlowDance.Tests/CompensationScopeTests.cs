@@ -59,4 +59,25 @@ public class CompensationScopeTests
         var storage = new Storage(_factory);
         Assert.AreEqual(storage.ReadAllSpansFromStream(guid.ToString()).Count(), 4);
     }
+
+    [TestMethod]
+    public void ParentParentCompensationScope()
+    {
+        var guid = Guid.NewGuid();
+
+        // Parent1
+        using (CompensationScope compScopeParent1 = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+        {
+            compScopeParent1.Commit();
+        }
+
+        // Parent2
+        using (CompensationScope compScopeParent2 = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+        {
+            compScopeParent2.Commit();
+        }
+
+        //var storage = new Storage(_factory);
+        //Assert.AreEqual(storage.ReadAllSpansFromStream(guid.ToString()).Count(), 4);
+    }
 }
