@@ -6,7 +6,7 @@ namespace FlowDance.Client;
 /// FlowDance.Client use a implicit programming model using the CompensationScope class, in which compensating code blocks can be enlisted together using the same TraceId.
 ///
 /// Voting inside a nested scope
-/// Although a nested scope can join the ambient transaction of the root scope, calling Complete in the nested scope has no affect on the root scope. Only if all the scopes from the root scope down to the last nested scope vote to commit the transaction, will the transaction be committed.
+/// Although a nested scope can join the ambient transaction (using the same TraceId) of the root scope, calling Complete in the nested scope has no affect on the root scope. 
 /// </summary>
 public class CompensationScope : IDisposable
 {
