@@ -1,9 +1,12 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace FlowDance.Client;
 /// <summary>
 /// The CompensationScope class provides a simple way to mark a block of code as participating in a transaction that can be compensated.
 /// FlowDance.Client use a implicit programming model using the CompensationScope class, in which compensating code blocks can be enlisted together using the same TraceId.
+///
+/// Voting inside a nested scope
+/// Although a nested scope can join the ambient transaction of the root scope, calling Complete in the nested scope has no affect on the root scope. Only if all the scopes from the root scope down to the last nested scope vote to commit the transaction, will the transaction be committed.
 /// </summary>
 public class CompensationScope : IDisposable
 {
