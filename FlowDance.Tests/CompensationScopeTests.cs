@@ -3,6 +3,8 @@ using Microsoft.Extensions.Logging;
 
 using FlowDance.Client;
 using FlowDance.Client.RabbitMQUtils;
+using System.Transactions;
+using System;
 
 namespace FlowDance.Tests;
 
@@ -25,7 +27,7 @@ public class CompensationScopeTests
     }
 
     [TestMethod]
-    public void ParentCompensationScope()
+    public void RootCompensationScope()
     {
         var guid = Guid.NewGuid();
 
@@ -33,27 +35,28 @@ public class CompensationScopeTests
 
         using (CompensationScope compScope = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
         {
-            compScope.Commit();
+            compScope.Complete();
         }
 
         Assert.AreEqual(storage.ReadAllSpansFromStream(guid.ToString()).Count(),2);
     }
 
     [TestMethod]
-    public void ParentChildCompensationScope()
+    public void RootWithInnerCompensationScope()
     {
         var guid = Guid.NewGuid();
 
-        // Parent
-        using (CompensationScope compScopeParent = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+        // The top-most compensation scope is referred to as the root scope.
+        // Root scope
+        using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
         {
-            // Child
-            using (CompensationScope compScopeChild = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+            // Inner scope
+            using (CompensationScope compScopeInner = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
             {
-                compScopeChild.Commit();
+                compScopeInner.Complete();
             }
 
-            compScopeParent.Commit();
+            compScopeRoot.Complete();
         }
 
         var storage = new Storage(_factory);
@@ -61,23 +64,52 @@ public class CompensationScopeTests
     }
 
     [TestMethod]
-    public void ParentParentCompensationScope()
+    public void RootMethodWithInnerMethodCompensationScope()
+    {
+        var guid = Guid.NewGuid();
+        RootMethod(guid);
+
+        var storage = new Storage(_factory);
+        Assert.AreEqual(storage.ReadAllSpansFromStream(guid.ToString()).Count(), 4);
+    }
+
+    private void RootMethod(Guid guid)
+    {
+        using (CompensationScope compScope = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+        {
+            /* Perform transactional work here */
+            InnerMethod(guid);
+            compScope.Complete();
+        }
+    }
+
+    private void InnerMethod(Guid guid)
+    {
+        using (CompensationScope compScope = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+        {
+            /* Perform transactional work here */
+            compScope.Complete();
+        }
+    }
+
+    [TestMethod]
+    public void MultipleRootCompensationScopeUsingSameTraceId()
     {
         var guid = Guid.NewGuid();
 
-        // Parent1
-        using (CompensationScope compScopeParent1 = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+        // Root
+        using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
         {
-            compScopeParent1.Commit();
+            compScopeRoot.Complete();
         }
 
-        // Parent2
-        using (CompensationScope compScopeParent2 = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+        // Root
+        using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
         {
-            compScopeParent2.Commit();
+            compScopeRoot.Complete();
         }
 
-        //var storage = new Storage(_factory);
-        //Assert.AreEqual(storage.ReadAllSpansFromStream(guid.ToString()).Count(), 4);
+        var storage = new Storage(_factory);
+        Assert.AreEqual(storage.ReadAllSpansFromStream(guid.ToString()).Count(), 4);
     }
 }
