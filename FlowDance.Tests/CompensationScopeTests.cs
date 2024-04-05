@@ -3,8 +3,6 @@ using Microsoft.Extensions.Logging;
 
 using FlowDance.Client;
 using FlowDance.Client.RabbitMQUtils;
-using System.Transactions;
-using System;
 
 namespace FlowDance.Tests;
 
@@ -38,7 +36,7 @@ public class CompensationScopeTests
             compScope.Complete();
         }
 
-        Assert.AreEqual(storage.ReadAllSpansFromStream(guid.ToString()).Count(),2);
+        Assert.AreEqual(storage.ReadAllSpansFromStream(guid.ToString()).Count(), 2);
     }
 
     [TestMethod]

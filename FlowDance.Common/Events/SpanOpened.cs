@@ -4,5 +4,5 @@ public class SpanOpened : Span
 {
     public bool IsRootSpan { get; set; }
 
-    public required string SpanCompensationUrl { get; set; }
+    public required string CompensationUrl { get; set; }
 }

@@ -18,13 +18,13 @@ public class CompensationScope : IDisposable
     {
     }
 
-    public CompensationScope(string url, Guid traceId, ILoggerFactory loggerFactory) 
+    public CompensationScope(string compensationUrl, Guid traceId, ILoggerFactory loggerFactory) 
     {
         if (_rabbitMQUtil == null)
             _rabbitMQUtil = new RabbitMQUtils.Storage(loggerFactory);
 
         // Create the event - SpanOpened
-        _spanOpened = new Common.Events.SpanOpened() { TraceId = traceId, SpanId = Guid.NewGuid(), SpanCompensationUrl = url };
+        _spanOpened = new Common.Events.SpanOpened() { TraceId = traceId, SpanId = Guid.NewGuid(), CompensationUrl = compensationUrl };
 
         // Store the SpanOpended event
         _rabbitMQUtil.StoreEvent(_spanOpened);
