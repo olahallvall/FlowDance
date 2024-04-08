@@ -239,12 +239,21 @@ public class Storage
     /// Create a stream. 
     /// </summary>
     /// <param name="streamName"></param>
-    private void CreateStream(string streamName)
+    public void CreateStream(string streamName)
     {
-        var channel = SingletonConnection.getInstance().getConnection().CreateModel();
-        Dictionary<string, object> arguments = new Dictionary<string, object> { { "x-queue-type", "stream" } };
-        channel.QueueDeclare(streamName, true, false, false, arguments);
-        channel.Close();
+        var streamSystem = SingletonStreamSystem.getInstance(_streamLogger).getStreamSystem();
+        streamSystem.CreateStream(
+            new StreamSpec(StreamName) { } );
+    }
+
+    /// <summary>
+    /// Delete a stream. 
+    /// </summary>
+    /// <param name="streamName"></param>
+    public void DeleteStream(string streamName)
+    {        
+        var streamSystem = SingletonStreamSystem.getInstance(_streamLogger).getStreamSystem();
+        streamSystem.DeleteStream(StreamName);        
     }
 
     /// <summary>
