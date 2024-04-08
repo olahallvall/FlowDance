@@ -114,8 +114,8 @@ public class Storage
         }
     
     }
-
-    public ulong GetLastOffset(string streamName, ILogger<Consumer> consumerLogger)
+    
+    private ulong GetLastOffset(string streamName, ILogger<Consumer> consumerLogger)
     {
         var consumerTaskCompletionSource = new TaskCompletionSource<int>();
         var streamSystem = SingletonStreamSystem.getInstance(_streamLogger).getStreamSystem();
@@ -194,7 +194,7 @@ public class Storage
     /// <param name="logger"></param>
     /// <returns>True if queue/stream exists, else false.</returns>
     /// <exception cref="Exception"></exception>
-    private bool StreamExist(string streamName) 
+    public bool StreamExist(string streamName) 
     {  
         try {
             var channel = SingletonConnection.getInstance().getConnection().CreateModel();
