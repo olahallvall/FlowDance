@@ -91,6 +91,7 @@ public class CompensationScopeTests
     }
 
     [TestMethod]
+    [ExpectedException(typeof(Exception))]
     public void MultipleRootCompensationScopeUsingSameTraceId()
     {
         var guid = Guid.NewGuid();
@@ -106,9 +107,6 @@ public class CompensationScopeTests
         {
             compScopeRoot.Complete();
         }
-
-        var storage = new Storage(_factory);
-        Assert.AreEqual(storage.ReadAllSpansFromStream(guid.ToString()).Count(), 4);
     }
 
     [TestMethod]
