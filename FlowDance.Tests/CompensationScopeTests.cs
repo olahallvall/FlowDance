@@ -37,6 +37,8 @@ public class CompensationScopeTests
         }
 
         Assert.AreEqual(storage.ReadAllSpansFromStream(guid.ToString()).Count(), 2);
+
+        storage.DeleteStream(guid.ToString());
     }
 
     [TestMethod]
@@ -59,6 +61,8 @@ public class CompensationScopeTests
 
         var storage = new Storage(_factory);
         Assert.AreEqual(storage.ReadAllSpansFromStream(guid.ToString()).Count(), 4);
+        
+        storage.DeleteStream(guid.ToString());
     }
 
     [TestMethod]
@@ -69,6 +73,8 @@ public class CompensationScopeTests
 
         var storage = new Storage(_factory);
         Assert.AreEqual(storage.ReadAllSpansFromStream(guid.ToString()).Count(), 4);
+
+        storage.DeleteStream(guid.ToString());
     }
 
     private void RootMethod(Guid guid)
@@ -134,5 +140,7 @@ public class CompensationScopeTests
         
         var storage = new Storage(_factory);
         Assert.AreEqual(storage.ReadAllSpansFromStream(guid.ToString()).Count(), 6);
+
+        storage.DeleteStream(guid.ToString());
     }
 }
