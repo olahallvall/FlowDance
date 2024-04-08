@@ -62,7 +62,7 @@ public class CompensationScopeTests
     }
 
     [TestMethod]
-    public void RootMethodWithInnerMethodCompensationScope()
+    public void RootMethodWithTwoInnerMethodCompensationScope()
     {
         var guid = Guid.NewGuid();
         RootMethod(guid);
@@ -109,5 +109,32 @@ public class CompensationScopeTests
 
         var storage = new Storage(_factory);
         Assert.AreEqual(storage.ReadAllSpansFromStream(guid.ToString()).Count(), 4);
+    }
+
+    [TestMethod]
+    public void RootMethodWithTwoInlineCompensationScope()
+    {
+        var guid = Guid.NewGuid();
+
+        // Root
+        using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+        {
+              // Inner scope 1
+            using (CompensationScope compScopeInner = new CompensationScope("http://localhost/HotelService/Compensation1", guid, _factory))
+            {
+                compScopeInner.Complete();
+            }
+
+              // Inner scope 2
+            using (CompensationScope compScopeInner = new CompensationScope("http://localhost/HotelService/Compensation2", guid, _factory))
+            {
+                compScopeInner.Complete();
+            }
+            
+            compScopeRoot.Complete();
+        }
+        
+        var storage = new Storage(_factory);
+        Assert.AreEqual(storage.ReadAllSpansFromStream(guid.ToString()).Count(), 6);
     }
 }
