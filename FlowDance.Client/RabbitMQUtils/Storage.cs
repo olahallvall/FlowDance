@@ -1,4 +1,4 @@
-﻿using FlowDance.Common.Events;
+using FlowDance.Common.Events;
 using FlowDance.Common.Commands;
 using RabbitMQ.Stream.Client;
 using RabbitMQ.Stream.Client.Reliable;
@@ -216,25 +216,6 @@ public class Storage
         return true; 
     }
 
-    ///// <summary>
-    ///// Count messages in a stream. 
-    ///// </summary>
-    ///// <param name="streamName"></param>
-    ///// <param name="logger"></param>
-    ///// <returns></returns>
-    ///// <exception cref="Exception"></exception>
-    //private uint StreamCount(string streamName)
-    //{
-    //    var channel = SingletonConnection.getInstance().getConnection().CreateModel();
-
-    //    QueueDeclareOk ok = channel.QueueDeclarePassive(streamName);
-    //    uint numberOfMessges = ok.MessageCount;
-
-    //    channel.Close();
-
-    //    return numberOfMessges;
-    //}
-
     /// <summary>
     /// Create a stream. 
     /// </summary>
@@ -243,7 +224,7 @@ public class Storage
     {
         var streamSystem = SingletonStreamSystem.getInstance(_streamLogger).getStreamSystem();
         streamSystem.CreateStream(
-            new StreamSpec(StreamName) { } );
+            new StreamSpec(streamName) { } );
     }
 
     /// <summary>
@@ -253,7 +234,7 @@ public class Storage
     public void DeleteStream(string streamName)
     {        
         var streamSystem = SingletonStreamSystem.getInstance(_streamLogger).getStreamSystem();
-        streamSystem.DeleteStream(StreamName);        
+        streamSystem.DeleteStream(streamName);        
     }
 
     /// <summary>
