@@ -114,7 +114,14 @@ public class Storage
         }
     
     }
-    
+
+    /// <summary>
+    /// Get the Offset-number from the last massage in the stream.
+    /// Use this method very carefully!!! The stream needs to have at least one message. If not this method will wait unti one message arrives.
+    /// </summary>
+    /// <param name="streamName"></param>
+    /// <param name="consumerLogger"></param>
+    /// <returns></returns>
     private ulong GetLastOffset(string streamName, ILogger<Consumer> consumerLogger)
     {
         var consumerTaskCompletionSource = new TaskCompletionSource<int>();
@@ -125,7 +132,7 @@ public class Storage
                 new ConsumerConfig(streamSystem, streamName)
                 {
                     OffsetSpec = new OffsetTypeLast(),
-                    ClientProvidedName = "FlowDance.Client",
+                    ClientProvidedName = "FlowDance.Client.Consumer",
                     MessageHandler = async (stream, consumer, context, message) =>
                     {
                         lastOffset = context.Offset;
@@ -141,6 +148,14 @@ public class Storage
         return lastOffset;
     }
 
+    /// <summary>
+    /// Reads all messages from the stream.
+    /// Use this method very carefully!!! The stream needs to have at least one message. If not this method will wait unti one message arrives.
+    /// </summary>
+    /// <param name="streamName"></param>
+    /// <param name="consumerLogger"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
     private List<Span> ReadAllSpansFromStream(string streamName, ILogger<Consumer> consumerLogger)
     {
         var numberOfMessages = GetLastOffset(streamName, consumerLogger) + 1;
@@ -156,7 +171,7 @@ public class Storage
                     new ConsumerConfig(streamSystem, streamName)
                     {
                         OffsetSpec = new OffsetTypeFirst(),
-                        ClientProvidedName = "FlowDance.Client",
+                        ClientProvidedName = "FlowDance.Client.Consumer",
                         MessageHandler = async (stream, consumer, context, message) =>
                         {
                             try
@@ -251,6 +266,7 @@ public class Storage
                 streamSystem,
                 StreamName)
             {
+                ClientProvidedName = "FlowDance.Client.Producer",
                 ConfirmationHandler = async confirmation => 
                 {
                     switch (confirmation.Status)
