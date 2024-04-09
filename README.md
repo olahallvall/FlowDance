@@ -1,5 +1,5 @@
 # FlowDance
-FlowDance goals is to support the following senario:
+FlowDance goals is to support the following scenario:
 - Breaking up a monolith into subsystem based on the Database-per-Service Pattern.
 - Replace distributed transactions calls based on MSDTC with common synchronous RPC-calls (http).
 - Moving away from strong consistency to eventual consistency using the Compensating Transaction pattern.      
