@@ -5,7 +5,7 @@ FlowDance goals is to support the following senario:
 - Moving away from strong consistency to eventual consistency using the Compensating Transaction pattern.      
 - Replace System.Transactions class TransactionScope with FlowDance's CompensationScope. 
 
-FlowDance consist of a Client library and back-end service based on RabbitMQ and Azure Functions.  
+FlowDance consist of a Client library and back-end service based on RabbitMQ and Microsoft Azure Durable Functions.
 
 # You need
 * Visual Studio 2022 or later
