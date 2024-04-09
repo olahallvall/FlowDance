@@ -128,6 +128,9 @@ public class Storage
         var streamSystem = SingletonStreamSystem.getInstance(_streamLogger).getStreamSystem();
         ulong lastOffset = 0;
 
+          // https://stackoverflow.com/questions/67267967/timeout-and-stop-a-task
+        // https://stackoverflow.com/questions/22637642/using-cancellationtoken-for-timeout-in-task-run-does-not-work
+
         var consumer = Consumer.Create(
                 new ConsumerConfig(streamSystem, streamName)
                 {
