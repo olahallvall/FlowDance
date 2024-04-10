@@ -10,14 +10,16 @@ using RabbitMQ.Client;
 namespace FlowDance.Client.RabbitMQUtils;
 
 /// <summary>
-/// https://rabbitmq.github.io/rabbitmq-stream-dotnet-client/stable/htmlsingle/index.html
+///This class handles the reading and storing of messages to RabbitMQ. 
+/// 
+/// Based on code from this site - https://rabbitmq.github.io/rabbitmq-stream-dotnet-client/stable/htmlsingle/index.html
 /// </summary>
 public class Storage
 {
-    private ILoggerFactory _loggerFactory;
-    private ILogger<Producer> _producerLogger;
-    private ILogger<Consumer> _consumerLogger;
-    private ILogger<StreamSystem> _streamLogger;
+    private readonly ILoggerFactory _loggerFactory;
+    private readonly ILogger<Producer> _producerLogger;
+    private readonly ILogger<Consumer> _consumerLogger;
+    private readonly ILogger<StreamSystem> _streamLogger;
 
     public Storage(ILoggerFactory loggerFactory)
     {
@@ -32,9 +34,9 @@ public class Storage
     {
         var streamName = span.TraceId.ToString();
         var confirmationTaskCompletionSource = new TaskCompletionSource<int>();
-       
+
         //Check if stream/queue exist. 
-        if (StreamExist(streamName))
+        if (StreamExistOrQueue(streamName))
         {
             // Only first span in stream should be a root span.
             if (span is SpanOpened)
@@ -75,7 +77,7 @@ public class Storage
             var streamSystem = SingletonStreamSystem.GetInstance(_streamLogger).GetStreamSystem();
 
             // Create producer
-            Producer producer = CreateProducer(streamName, streamSystem, confirmationTaskCompletionSource, _producerLogger);
+            var producer = CreateProducer(streamName, streamSystem, confirmationTaskCompletionSource, _producerLogger);
 
             // Send a messages     
             var message = new Message(Encoding.Default.GetBytes(JsonConvert.SerializeObject(span, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All })));
@@ -91,7 +93,25 @@ public class Storage
 
     public void StoreCommand(DetermineCompensation command)
     {
+        var channel = SingletonConnection.GetInstance().GetConnection().CreateModel();
+        channel.ConfirmSelect();
 
+        channel.QueueDeclare(queue: "FlowDance.DetermineCompensation",
+            durable: true,
+            exclusive: false,
+            autoDelete: false,
+            arguments: null);
+
+        var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(command));
+
+        channel.BasicPublish(exchange: string.Empty,
+            routingKey: "FlowDance.DetermineCompensation",
+            basicProperties: null,
+            body: body);
+
+        channel.WaitForConfirmsOrDie(TimeSpan.FromSeconds(5));
+
+        channel.Close();
     }
 
     public List<Span> ReadAllSpansFromStream(string streamName)
@@ -112,12 +132,12 @@ public class Storage
             if (spanClosed.Any())
                 throw new Exception("Spans can´t be add after the root Span has been closed");
         }
-    
+
     }
 
     /// <summary>
     /// Get the Offset-number from the last massage in the stream.
-    /// Use this method very carefully!!! The stream needs to have at least one message. If not this method will wait unti one message arrives.
+    /// Use this method very carefully!!! The stream needs to have at least one message. If not this method will wait until one message arrives.
     /// </summary>
     /// <param name="streamName"></param>
     /// <param name="consumerLogger"></param>
@@ -128,7 +148,7 @@ public class Storage
         var streamSystem = SingletonStreamSystem.GetInstance(_streamLogger).GetStreamSystem();
         ulong lastOffset = 0;
 
-          // https://stackoverflow.com/questions/67267967/timeout-and-stop-a-task
+        // https://stackoverflow.com/questions/67267967/timeout-and-stop-a-task
         // https://stackoverflow.com/questions/22637642/using-cancellationtoken-for-timeout-in-task-run-does-not-work
 
         var consumer = Consumer.Create(
@@ -153,7 +173,7 @@ public class Storage
 
     /// <summary>
     /// Reads all messages from the stream.
-    /// Use this method very carefully!!! The stream needs to have at least one message. If not this method will wait unti one message arrives.
+    /// Use this method very carefully!!! The stream needs to have at least one message. If not this method will wait until one message arrives.
     /// </summary>
     /// <param name="streamName"></param>
     /// <param name="consumerLogger"></param>
@@ -168,7 +188,7 @@ public class Storage
         {
             var consumerTaskCompletionSource = new TaskCompletionSource<int>();
             var streamSystem = SingletonStreamSystem.GetInstance(_streamLogger).GetStreamSystem();
-            int numberOfMessageRecived = 0;
+            int numberOfMessageReceived = 0;
 
             var consumer = Consumer.Create(
                     new ConsumerConfig(streamSystem, streamName)
@@ -182,10 +202,10 @@ public class Storage
                                 var messageContent = JsonConvert.DeserializeObject<Span>(Encoding.UTF8.GetString(message.Data.Contents), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
                                 if (messageContent != null)
                                     spanList.Add(messageContent);
-                                
-                                numberOfMessageRecived++;
 
-                                if (numberOfMessageRecived == (int)numberOfMessages)
+                                numberOfMessageReceived++;
+
+                                if (numberOfMessageReceived == (int)numberOfMessages)
                                     consumerTaskCompletionSource.SetResult(1);
                             }
                             catch (Exception ex)
@@ -208,20 +228,20 @@ public class Storage
     /// <summary>
     /// Check if a queue/stream exists. 
     /// </summary>
-    /// <param name="streamName"></param>
-    /// <param name="logger"></param>
-    /// <returns>True if queue/stream exists, else false.</returns>
+    /// <param name="name"></param>
+    /// <returns>True if stream exists, else false.</returns>
     /// <exception cref="Exception"></exception>
-    public bool StreamExist(string streamName) 
-    {  
-        try {
-            var channel = SingletonConnection.GetInstance().GetConnection().CreateModel();
-            QueueDeclareOk ok = channel.QueueDeclarePassive(streamName);
-            channel.Close();
-        } 
-        catch (RabbitMQ.Client.Exceptions.OperationInterruptedException ex) 
+    public bool StreamExistOrQueue(string name)
+    {
+        try
         {
-            if(ex.Message.Contains("no queue"))
+            var channel = SingletonConnection.GetInstance().GetConnection().CreateModel();
+            QueueDeclareOk ok = channel.QueueDeclarePassive(name);
+            channel.Close();
+        }
+        catch (RabbitMQ.Client.Exceptions.OperationInterruptedException ex)
+        {
+            if (ex.Message.Contains("no queue"))
                 return false;
             else
                 throw new Exception("Non suspected exception occurred. See inner exception for more details.", ex);
@@ -231,7 +251,7 @@ public class Storage
             throw new Exception("Non suspected exception occurred. See inner exception for more details.", ex);
         }
 
-        return true; 
+        return true;
     }
 
     /// <summary>
@@ -242,7 +262,7 @@ public class Storage
     {
         var streamSystem = SingletonStreamSystem.GetInstance(_streamLogger).GetStreamSystem();
         streamSystem.CreateStream(
-            new StreamSpec(streamName) { } );
+            new StreamSpec(streamName) { });
     }
 
     /// <summary>
@@ -250,9 +270,9 @@ public class Storage
     /// </summary>
     /// <param name="streamName"></param>
     public void DeleteStream(string streamName)
-    {        
+    {
         var streamSystem = SingletonStreamSystem.GetInstance(_streamLogger).GetStreamSystem();
-        streamSystem.DeleteStream(streamName);        
+        streamSystem.DeleteStream(streamName);
     }
 
     /// <summary>
@@ -270,7 +290,7 @@ public class Storage
                 streamName)
             {
                 ClientProvidedName = "FlowDance.Client.Producer",
-                ConfirmationHandler = async confirmation => 
+                ConfirmationHandler = async confirmation =>
                 {
                     switch (confirmation.Status)
                     {

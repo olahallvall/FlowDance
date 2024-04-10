@@ -55,10 +55,10 @@ public class CompensationScope : IDisposable
                 // Store the SpanClosed event and calculates IsRootSpan
                 _rabbitMqUtil!.StoreEvent(_spanClosed);
 
+                // Check if this is a RootSpan, if so determine compensation.
                 if (_spanOpened.IsRootSpan)
                 {
-                    var determineCompensation = new Common.Commands.DetermineCompensation();
-                    // Check if this is a RootSpan, if so determine compensation.
+                    var determineCompensation = new Common.Commands.DetermineCompensation { TraceId = _spanOpened.TraceId };
                     _rabbitMqUtil.StoreCommand(determineCompensation);
                 }
             }
