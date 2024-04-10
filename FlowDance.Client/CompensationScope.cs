@@ -10,12 +10,12 @@ namespace FlowDance.Client;
 /// </summary>
 public class CompensationScope : IDisposable
 {
-    private bool disposedValue;
+    private bool _disposedValue;
 
-    private Common.Events.SpanOpened _spanOpened = null!;
+    private readonly Common.Events.SpanOpened _spanOpened = null!;
     private Common.Events.SpanClosed _spanClosed = null!;
-    private bool _completed = false;
-    private RabbitMQUtils.Storage _rabbitMQUtil = null!;
+    private bool _completed;
+    private readonly RabbitMQUtils.Storage? _rabbitMqUtil;
 
     private CompensationScope()
     {
@@ -23,14 +23,14 @@ public class CompensationScope : IDisposable
 
     public CompensationScope(string compensationUrl, Guid traceId, ILoggerFactory loggerFactory) 
     {
-        if (_rabbitMQUtil == null)
-            _rabbitMQUtil = new RabbitMQUtils.Storage(loggerFactory);
+        if (_rabbitMqUtil == null)
+            _rabbitMqUtil = new RabbitMQUtils.Storage(loggerFactory);
 
         // Create the event - SpanOpened
         _spanOpened = new Common.Events.SpanOpened() { TraceId = traceId, SpanId = Guid.NewGuid(), CompensationUrl = compensationUrl };
 
-        // Store the SpanOpended event
-        _rabbitMQUtil.StoreEvent(_spanOpened);
+        // Store the SpanOpened event
+        _rabbitMqUtil.StoreEvent(_spanOpened);
     }
 
     /// <summary>
@@ -45,27 +45,27 @@ public class CompensationScope : IDisposable
     
     protected virtual void Dispose(bool disposing)
     {
-        if (!disposedValue)
+        if (!_disposedValue)
         {
             if (disposing)
             {
                 // Create the event - SpanClosed
                 _spanClosed = new Common.Events.SpanClosed() { TraceId = _spanOpened.TraceId, SpanId = _spanOpened.SpanId, MarkedAsCommitted = _completed };
 
-                // Store the SpanClosed event and calulates IsRootSpan
-                _rabbitMQUtil.StoreEvent(_spanClosed);
+                // Store the SpanClosed event and calculates IsRootSpan
+                _rabbitMqUtil!.StoreEvent(_spanClosed);
 
                 if (_spanOpened.IsRootSpan)
                 {
                     var determineCompensation = new Common.Commands.DetermineCompensation();
                     // Check if this is a RootSpan, if so determine compensation.
-                    _rabbitMQUtil.StoreCommand(determineCompensation);
+                    _rabbitMqUtil.StoreCommand(determineCompensation);
                 }
             }
 
             // TODO: free unmanaged resources (unmanaged objects) and override finalizer
             // TODO: set large fields to null
-            disposedValue = true;
+            _disposedValue = true;
         }
     }
 

@@ -26,11 +26,16 @@ public class StorageTests
     public void ReadAllSpansFromStream()
     {
         var storage = new Storage(_factory);
-        var spanList = storage.ReadAllSpansFromStream("14c8f569-8ad4-47d5-9aeb-cbe8fef6899c");
+        var spanList = storage.ReadAllSpansFromStream("119e60ec-f046-45f5-b880-fadb7e9da3c4");
 
         spanList.Count();
+    }
 
-
+    [TestMethod]
+    public void GetStreamSystem()
+    {
+        var storage = new Storage(_factory);
+        storage.CreateStream(new Guid().ToString());
 
     }
 }

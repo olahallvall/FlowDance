@@ -92,6 +92,7 @@ public class CompensationScopeTests
         using (CompensationScope compScope = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
         {
             /* Perform transactional work here */
+
             compScope.Complete();
         }
     }
@@ -105,12 +106,32 @@ public class CompensationScopeTests
         // Root
         using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
         {
+            /* Perform transactional work here */
+
             compScopeRoot.Complete();
         }
 
         // Root
         using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
         {
+            /* Perform transactional work here */
+
+            compScopeRoot.Complete();
+        }
+    }
+
+    [TestMethod]
+    [ExpectedException(typeof(Exception))]
+    public void CompensationScopeThrowingException()
+    {
+        var guid = Guid.NewGuid();
+
+        using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+        {
+            /* Perform transactional work here */
+            throw new Exception("Something bad has happened!");
+
+            // Will not run
             compScopeRoot.Complete();
         }
     }
@@ -123,15 +144,21 @@ public class CompensationScopeTests
         // Root
         using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
         {
-              // Inner scope 1
+            /* Perform transactional work here */
+
+            // Inner scope 1
             using (CompensationScope compScopeInner = new CompensationScope("http://localhost/HotelService/Compensation1", guid, _factory))
             {
+                /* Perform transactional work here */
+
                 compScopeInner.Complete();
             }
 
               // Inner scope 2
             using (CompensationScope compScopeInner = new CompensationScope("http://localhost/HotelService/Compensation2", guid, _factory))
             {
+                /* Perform transactional work here */
+
                 compScopeInner.Complete();
             }
             

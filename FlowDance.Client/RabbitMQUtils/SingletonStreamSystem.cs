@@ -8,20 +8,20 @@ namespace FlowDance.Client.RabbitMQUtils
     internal class SingletonStreamSystem
     {
         private static ILogger<StreamSystem>? _logger;
-        private static SingletonStreamSystem INSTANCE = new SingletonStreamSystem();
+        private static SingletonStreamSystem _instance = new SingletonStreamSystem();
         private StreamSystem? _streamSystem;
        
         private SingletonStreamSystem()
         {
         }
 
-        public static SingletonStreamSystem getInstance(ILogger<StreamSystem> logger)
+        public static SingletonStreamSystem GetInstance(ILogger<StreamSystem> logger)
         {
             _logger = logger;
-            return INSTANCE;
+            return _instance;
         }
 
-        public StreamSystem getStreamSystem()
+        public StreamSystem GetStreamSystem()
         {
             if(_streamSystem == null)
             {

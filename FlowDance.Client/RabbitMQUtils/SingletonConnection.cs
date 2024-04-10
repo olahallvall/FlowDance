@@ -5,25 +5,25 @@ namespace FlowDance.Client.RabbitMQUtils
 {
     internal class SingletonConnection
     {
-        private static SingletonConnection INSTANCE = new SingletonConnection();
-        private IConnection connection;
+        private static SingletonConnection _instance = new SingletonConnection();
+        private IConnection _connection;
         private SingletonConnection()
         {
             var config = new ConfigurationBuilder().AddJsonFile($"appsettings.json").Build();
             var connectionFactory = new ConnectionFactory();
             config.GetSection("RabbitMqConnection").Bind(connectionFactory);
 
-            connection = connectionFactory.CreateConnection();
+            _connection = connectionFactory.CreateConnection();
         }
 
-        public static SingletonConnection getInstance()
+        public static SingletonConnection GetInstance()
         {
-            return INSTANCE;
+            return _instance;
         }
 
-        public IConnection getConnection()
+        public IConnection GetConnection()
         {
-            return connection;
+            return _connection;
         }
     }
 }

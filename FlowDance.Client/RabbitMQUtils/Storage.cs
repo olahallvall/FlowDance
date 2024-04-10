@@ -41,7 +41,7 @@ public class Storage
                 ((SpanOpened)span).IsRootSpan = false;
 
             // Get StreamSystem
-            var streamSystem = SingletonStreamSystem.getInstance(_streamLogger).getStreamSystem();
+            var streamSystem = SingletonStreamSystem.GetInstance(_streamLogger).GetStreamSystem();
 
             // Validate against previous events grouped by the same TraceId. 
             ValidateStoredSpans(ReadAllSpansFromStream(span.TraceId.ToString()));
@@ -72,7 +72,7 @@ public class Storage
             CreateStream(streamName);
 
             // Get StreamSystem
-            var streamSystem = SingletonStreamSystem.getInstance(_streamLogger).getStreamSystem();
+            var streamSystem = SingletonStreamSystem.GetInstance(_streamLogger).GetStreamSystem();
 
             // Create producer
             Producer producer = CreateProducer(streamName, streamSystem, confirmationTaskCompletionSource, _producerLogger);
@@ -125,7 +125,7 @@ public class Storage
     private ulong GetLastOffset(string streamName, ILogger<Consumer> consumerLogger)
     {
         var consumerTaskCompletionSource = new TaskCompletionSource<int>();
-        var streamSystem = SingletonStreamSystem.getInstance(_streamLogger).getStreamSystem();
+        var streamSystem = SingletonStreamSystem.GetInstance(_streamLogger).GetStreamSystem();
         ulong lastOffset = 0;
 
           // https://stackoverflow.com/questions/67267967/timeout-and-stop-a-task
@@ -167,7 +167,7 @@ public class Storage
         if (numberOfMessages > 0)
         {
             var consumerTaskCompletionSource = new TaskCompletionSource<int>();
-            var streamSystem = SingletonStreamSystem.getInstance(_streamLogger).getStreamSystem();
+            var streamSystem = SingletonStreamSystem.GetInstance(_streamLogger).GetStreamSystem();
             int numberOfMessageRecived = 0;
 
             var consumer = Consumer.Create(
@@ -215,7 +215,7 @@ public class Storage
     public bool StreamExist(string streamName) 
     {  
         try {
-            var channel = SingletonConnection.getInstance().getConnection().CreateModel();
+            var channel = SingletonConnection.GetInstance().GetConnection().CreateModel();
             QueueDeclareOk ok = channel.QueueDeclarePassive(streamName);
             channel.Close();
         } 
@@ -240,7 +240,7 @@ public class Storage
     /// <param name="streamName"></param>
     public void CreateStream(string streamName)
     {
-        var streamSystem = SingletonStreamSystem.getInstance(_streamLogger).getStreamSystem();
+        var streamSystem = SingletonStreamSystem.GetInstance(_streamLogger).GetStreamSystem();
         streamSystem.CreateStream(
             new StreamSpec(streamName) { } );
     }
@@ -251,23 +251,23 @@ public class Storage
     /// <param name="streamName"></param>
     public void DeleteStream(string streamName)
     {        
-        var streamSystem = SingletonStreamSystem.getInstance(_streamLogger).getStreamSystem();
+        var streamSystem = SingletonStreamSystem.GetInstance(_streamLogger).GetStreamSystem();
         streamSystem.DeleteStream(streamName);        
     }
 
     /// <summary>
     /// Creates a producer. See https://github.com/rabbitmq/rabbitmq-stream-dotnet-client/blob/main/docs/Documentation/ProducerUsage.cs
     /// </summary>
-    /// <param name="StreamName"></param>
+    /// <param name="streamName"></param>
     /// <param name="streamSystem"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    private Producer CreateProducer(string StreamName, StreamSystem streamSystem, TaskCompletionSource<int> confirmationTaskCompletionSource, ILogger<Producer> procuderLogger)
+    private Producer CreateProducer(string streamName, StreamSystem streamSystem, TaskCompletionSource<int> confirmationTaskCompletionSource, ILogger<Producer> procuderLogger)
     {
         var producer = Producer.Create(
             new ProducerConfig(
                 streamSystem,
-                StreamName)
+                streamName)
             {
                 ClientProvidedName = "FlowDance.Client.Producer",
                 ConfirmationHandler = async confirmation => 
