@@ -162,7 +162,7 @@ public class Storage
                         consumerTaskCompletionSource.SetResult(1);
                         await Task.CompletedTask;
                     }
-                }, consumerLogger).Result;
+                }, consumerLogger).GetAwaiter().GetResult();
 
         consumerTaskCompletionSource.Task.Wait();
 
@@ -215,7 +215,7 @@ public class Storage
 
                             await Task.CompletedTask;
                         }
-                    }, consumerLogger).Result;
+                    }, consumerLogger).GetAwaiter().GetResult();
 
             consumerTaskCompletionSource.Task.Wait();
 
