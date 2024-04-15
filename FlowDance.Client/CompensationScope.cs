@@ -1,8 +1,9 @@
 using Microsoft.Extensions.Logging;
+using FlowDance.Common.RabbitMQUtils;
 
 namespace FlowDance.Client;
 /// <summary>
-/// The CompensationScope class provides a simple way to mark a block of code as participating in a transaction that can be compensated.
+/// The CompensationScope class provides a simple way to mark a block of code as participating in a flow dance/transaction that can be compensated.
 /// FlowDance.Client use a implicit programming model using the CompensationScope class, in which compensating code blocks can be enlisted together using the same TraceId.
 ///
 /// Voting inside a nested scope
@@ -15,7 +16,7 @@ public class CompensationScope : IDisposable
     private readonly Common.Events.SpanOpened _spanOpened = null!;
     private Common.Events.SpanClosed _spanClosed = null!;
     private bool _completed;
-    private readonly RabbitMQUtils.Storage? _rabbitMqUtil;
+    private readonly Storage? _rabbitMqUtil;
 
     private CompensationScope()
     {
@@ -24,7 +25,7 @@ public class CompensationScope : IDisposable
     public CompensationScope(string compensationUrl, Guid traceId, ILoggerFactory loggerFactory) 
     {
         if (_rabbitMqUtil == null)
-            _rabbitMqUtil = new RabbitMQUtils.Storage(loggerFactory);
+            _rabbitMqUtil = new Storage(loggerFactory);
 
         // Create the event - SpanOpened
         _spanOpened = new Common.Events.SpanOpened() { TraceId = traceId, SpanId = Guid.NewGuid(), CompensationUrl = compensationUrl };

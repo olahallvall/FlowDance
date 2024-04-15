@@ -3,7 +3,7 @@ using System.Net;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 
-namespace FlowDance.Client.RabbitMQUtils
+namespace FlowDance.Common.RabbitMQUtils
 {
     internal class SingletonStreamSystem
     {

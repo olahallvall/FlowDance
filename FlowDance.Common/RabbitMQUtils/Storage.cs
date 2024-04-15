@@ -7,7 +7,7 @@ using System.Text;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 
-namespace FlowDance.Client.RabbitMQUtils;
+namespace FlowDance.Common.RabbitMQUtils;
 
 /// <summary>
 ///This class handles the reading and storing of messages to RabbitMQ. 

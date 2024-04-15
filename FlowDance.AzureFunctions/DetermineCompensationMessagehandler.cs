@@ -1,6 +1,11 @@
 using System;
+using System.Globalization;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using FlowDance.Common;
+using FlowDance.Common.Commands;
+using System.Security.Principal;
 
 namespace FlowDance.AzureFunctions
 {
@@ -14,9 +19,11 @@ namespace FlowDance.AzureFunctions
         }
 
         [Function("DetermineCompensationMessagehandler")]
-        public void Run([RabbitMQTrigger("FlowDance.DetermineCompensation", ConnectionStringSetting = "FlowDanceRabbitMqConnection")] string myQueueItem)
+        public void Run([RabbitMQTrigger("FlowDance.DetermineCompensation", ConnectionStringSetting = "FlowDanceRabbitMqConnection")] string queueItem)
         {
-            _logger.LogInformation($"C# Queue trigger function processed: {myQueueItem}");
+            var determineCompensationCommand = JsonConvert.DeserializeObject<DetermineCompensation>(queueItem);
+
+            _logger.LogInformation($"C# Queue trigger function processed: {queueItem}");
         }
     }
 }

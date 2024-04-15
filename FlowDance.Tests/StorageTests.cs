@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using FlowDance.Client.RabbitMQUtils;
+using FlowDance.Common.RabbitMQUtils;
 
 namespace FlowDance.Tests;
 
