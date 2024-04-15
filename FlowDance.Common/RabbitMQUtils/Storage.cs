@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using System.Text;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
+using System.Diagnostics;
 
 namespace FlowDance.Common.RabbitMQUtils;
 
@@ -14,7 +15,7 @@ namespace FlowDance.Common.RabbitMQUtils;
 /// 
 /// Based on code from this site - https://rabbitmq.github.io/rabbitmq-stream-dotnet-client/stable/htmlsingle/index.html
 /// </summary>
-public class Storage
+public class Storage : IStorage
 {
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger<Producer> _producerLogger;
@@ -49,7 +50,7 @@ public class Storage
             ValidateStoredSpans(ReadAllSpansFromStream(span.TraceId.ToString()));
 
             // Create producer
-            Producer producer = CreateProducer(streamName, streamSystem, confirmationTaskCompletionSource, _producerLogger);
+            var producer = CreateProducer(streamName, streamSystem, confirmationTaskCompletionSource, _producerLogger);
 
             // Send a messages     
             var message = new Message(Encoding.Default.GetBytes(JsonConvert.SerializeObject(span, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All })));
@@ -121,8 +122,12 @@ public class Storage
 
     private void ValidateStoredSpans(List<Span> spanList)
     {
+        
         if (spanList.Any())
         {
+            var sw = new Stopwatch();
+            sw.Start();
+
             // Rule #1 - Can´t add Span after the root Span has been closed.
             var spanOpened = spanList[0];
             var spanClosed = from s in spanList
@@ -131,6 +136,9 @@ public class Storage
 
             if (spanClosed.Any())
                 throw new Exception("Spans can´t be add after the root Span has been closed");
+
+            sw.Stop();
+            _streamLogger.LogInformation("A call to ValidateStoredSpans runs for {0} ms.", sw.Elapsed.TotalMilliseconds);
         }
 
     }
@@ -181,6 +189,9 @@ public class Storage
     /// <exception cref="Exception"></exception>
     private List<Span> ReadAllSpansFromStream(string streamName, ILogger<Consumer> consumerLogger)
     {
+        var sw = new Stopwatch();
+        sw.Start();
+
         var numberOfMessages = GetLastOffset(streamName, consumerLogger) + 1;
         var spanList = new List<Span>();
 
@@ -220,6 +231,9 @@ public class Storage
             consumerTaskCompletionSource.Task.Wait();
 
             consumer.Close();
+
+            sw.Stop();
+            _streamLogger.LogInformation("A call to ReadAllSpansFromStream runs for {0} ms.", sw.Elapsed.TotalMilliseconds);
         }
 
         return spanList;
@@ -235,9 +249,15 @@ public class Storage
     {
         try
         {
+            var sw = new Stopwatch();
+            sw.Start();
+
             var channel = SingletonConnection.GetInstance().GetConnection().CreateModel();
             QueueDeclareOk ok = channel.QueueDeclarePassive(name);
             channel.Close();
+
+            sw.Stop();
+            _streamLogger.LogInformation("A call to StreamExistOrQueue runs for {0} ms.", sw.Elapsed.TotalMilliseconds);
         }
         catch (RabbitMQ.Client.Exceptions.OperationInterruptedException ex)
         {
@@ -260,9 +280,15 @@ public class Storage
     /// <param name="streamName"></param>
     public void CreateStream(string streamName)
     {
+        var sw = new Stopwatch();
+        sw.Start();
+
         var streamSystem = SingletonStreamSystem.GetInstance(_streamLogger).GetStreamSystem();
         streamSystem.CreateStream(
             new StreamSpec(streamName) { });
+
+        sw.Stop();
+        _streamLogger.LogInformation("A call to StreamExistOrQueue runs for {0} ms.", sw.Elapsed.TotalMilliseconds);
     }
 
     /// <summary>
@@ -284,6 +310,9 @@ public class Storage
     /// <exception cref="ArgumentOutOfRangeException"></exception>
     private Producer CreateProducer(string streamName, StreamSystem streamSystem, TaskCompletionSource<int> confirmationTaskCompletionSource, ILogger<Producer> procuderLogger)
     {
+        var sw = new Stopwatch();
+        sw.Start();
+
         var producer = Producer.Create(
             new ProducerConfig(
                 streamSystem,
@@ -314,7 +343,10 @@ public class Storage
 
                     await Task.CompletedTask;
                 }
-            }, procuderLogger).Result;
+            }, procuderLogger).GetAwaiter().GetResult();
+
+        sw.Stop();
+        _streamLogger.LogInformation("A call to CreateProducer runs for {0} ms.", sw.Elapsed.TotalMilliseconds);
 
         return producer;
     }
