@@ -4,7 +4,7 @@ FlowDance goals is to support the following scenario:
 - Replace distributed transactions calls driven by MSDTC with common synchronous RPC-calls sharing a Correlation ID.
 - Moving away from strong consistency to eventual consistency using the Compensating Transaction pattern.      
 
-![Saga example](Docs/distributed monolith.png)
+![Saga example](Docs/'distributed monolith.png')
 When moving away from an monolith to an microservices solution it's easy to ends up with something like this picture.
 We uphold strong consistency by using distributed transaction throughout the complete solution.
 FlowDance takes a aim at reducing or eliminate the need of distributed transaction between microservices based on MSDTC.
