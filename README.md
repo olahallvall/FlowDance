@@ -1,9 +1,13 @@
 # FlowDance
 FlowDance goals is to support the following scenario:
-- Breaking up a monolith into subsystem based on the Database-per-Service Pattern.
-- Replace distributed transactions calls based on MSDTC with common synchronous RPC-calls (http).
+- Interservice communication between microservices (Database-per-Service Pattern).
+- Replace distributed transactions calls driven by MSDTC with common synchronous RPC-calls sharing a Correlation ID.
 - Moving away from strong consistency to eventual consistency using the Compensating Transaction pattern.      
-- Replace System.Transactions class TransactionScope with FlowDance's CompensationScope. 
+
+![Saga example](Docs/distributed monolith.png)
+When moving away from an monolith to an microservices solution it's easy to ends up with something like this picture.
+We uphold strong consistency by using distributed transaction throughout the complete solution.
+FlowDance takes a aim at reducing or eliminate the need of distributed transaction between microservices based on MSDTC.
 
 FlowDance consist of a Client library and back-end service based on RabbitMQ and Microsoft Azure Durable Functions.
 
