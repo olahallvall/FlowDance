@@ -25,11 +25,15 @@ The team(s) has been working to split the monolith or at least some steps in tha
 ![Distributed monolith](Docs/distributed-monolith.png)
 
 The picure below showes how easy a call chain gets created in the system. One more call can't hurt that bad! Or.. :) 
-The use case is a trip book that includes car, hotel and flight. 
+The sad truth is that it does hurts!  
 
 ![Synchronous choreography-based call chains](Docs/synchronous-choreography-based-call-chains.png)
 
-Remember that FlowDance wants to support Interservice Communication Between Microservices based on synchronous RPC-Calls. 
+So how does FlowDance help us out when we have to base our solution on synchronous RPC-Calls?   
+Remember that FlowDance wants to support communication between microservices based on synchronous RPC-calls. Event-driven architecture is out of scoop here.
+In short - by replacing System.Transactions.TransactionScope with FlowDance.Client.CompensationScope you have done half the job! 
+
+
 
 **Components of FlowDance**:
     - **Client Library**: The prima ballerina, guiding services in their graceful movements.
