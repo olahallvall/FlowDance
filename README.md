@@ -1,34 +1,31 @@
-# FlowDance
-FlowDance goals is to support the following scenario:
-- Interservice communication between microservices (Database-per-Service Pattern).
-- Replacing distributed transactions calls driven by MSDTC with common synchronous RPC-calls sharing a Correlation ID.
-- Moving away from strong consistency to eventual consistency using the Compensating Transaction pattern.
-- Reducing long-running locks in the database due to distributed transactions based on ACID.      
+**FlowDance** aims to address several critical aspects in the context of microservices architecture. Let's delve into each of these goals:
 
-## Breaking up the distributed monolith or at least one step in that direction
-![Distributed monolith](Docs/distributed-monolith.png)
+1. **Interservice Communication Between Microservices (Database-per-Service Pattern)**:
+    - In a microservices architecture, each service often manages its own database. The **Database-per-Service Pattern** encourages this separation.
+    - By adopting this pattern, services can communicate with each other through well-defined APIs, avoiding direct database access.
+    - This approach enhances modularity, scalability, and isolation, allowing services to evolve independently.
 
-When moving away from an monolith to an microservices solution it's easy to ends up with something like the picture above. 
-Synchronous choreography-based call chains that´s cuts through the entire solution. The solution upholds strong consistency by using distributed transaction based on MSDTC throughout the complete solution.
+2. **Replacing Distributed Transactions Calls Driven by MSDTC with Common Synchronous RPC-Calls Sharing a Correlation ID**:
+    - **MSDTC (Microsoft Distributed Transaction Coordinator)** is commonly used for distributed transactions across multiple databases.
+    - However, MSDTC introduces complexity, performance overhead, and potential deadlocks.
+    - FlowDance proposes a shift towards synchronous RPC (Remote Procedure Call) communication.
+    - Services share a **Correlation ID** to track related requests across the system.
+    - Instead of distributed transactions, services coordinate their actions using synchronous calls, simplifying the architecture.
 
-The picure below showes how easy a call chain gets created in the solution. One more call can't hurt that bad :) 
-![Synchronous choreography-based call chains](Docs/synchronous-choreography-based-call-chains.png)
+3. **Moving Away from Strong Consistency to Eventual Consistency Using the Compensating Transaction Pattern**:
+    - In distributed systems, achieving strong consistency (ACID properties) across all services can be challenging.
+    - FlowDance embraces **eventual consistency**, where operations may temporarily yield inconsistent results.
+    - The **Compensating Transaction Pattern** comes into play when a step in a process fails.
+    - If a step cannot be fully rolled back (e.g., due to concurrent changes), compensating transactions undo the effects of previous steps.
+    - This pattern ensures that the system eventually converges to a consistent state, even after partial failures.
 
+4. **Reducing Long-Running Locks in the Database Due to Distributed Transactions Based on ACID**:
+    - Traditional distributed transactions (based on ACID properties) can lead to long-running locks.
+    - These locks hinder concurrency and scalability.
+    - FlowDance advocates for alternative approaches, such as:
+        - **Optimized Locking**: A feature introduced in 2023 that reduces lock memory and the number of locks required for concurrent writes.
+        - **Isolation Levels**: Adjusting transaction isolation levels to balance consistency and performance.
+        - **Idempotent Commands**: Ensuring that commands can be safely repeated without unintended side effects.
+        - **Eventual Consistency**: Accepting occasional inconsistency while allowing parallel processing.
 
-FlowDance takes an aim at reducing or eliminate the need of distributed transaction between microservices based on MSDTC. There still can be some business case needing strong consistency.
-
-By extracting data from synchronous choreography based call chains into a Saga, FlowDance can support Compensating Transaction pattern.
-      
-
-FlowDance consist of a Client library and back-end service based on RabbitMQ and Microsoft Azure Durable Functions.
-
-# You need
-* Visual Studio 2022 or later
-* Azure Functions Core Tools (Azure Functions Core Tools lets you develop and test your functions on your local computer)
- 
-
-# Inspiration
-* Compensating Action - https://learn.microsoft.com/en-us/azure/architecture/patterns/compensating-transaction
-* Distributed Transactions with the Saga Pattern - https://dev.to/willvelida/the-saga-pattern-3o7p
-
-# Get started
+Remember, FlowDance isn't just about dancing—it's about orchestrating microservices with grace! 🕺💃
