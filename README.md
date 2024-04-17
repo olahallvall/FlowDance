@@ -1,4 +1,5 @@
-**FlowDance** aims to address several critical aspects in the context of microservices architecture. Let's delve into each of these goals:
+# FlowDance
+FlowDance aims to address several critical aspects in the context of microservices architecture. Let's delve into each of these goals:
 
 **Support Interservice Communication Between Microservices (Database-per-Service Pattern)**:
     - In a microservices architecture, each service often manages its own database. The **Database-per-Service Pattern** encourages this separation.
@@ -33,7 +34,7 @@ So how does FlowDance help us out when we have to base our solution on synchrono
 Remember that FlowDance wants to support communication between microservices based on synchronous RPC-calls. 
 Event-driven architecture is out of scoop here.
 
-In short - by replacing System.Transactions.TransactionScope with FlowDance.Client.CompensationScope you leaves the world of strong consistency into eventual consistency.
+In short - by replacing **System.Transactions.TransactionScope** with **FlowDance.Client.CompensationScope** you leaves the world of strong consistency into eventual consistency.
 
 ![Synchronous choreography-based call chains supported by FlowDance](Docs/synchronous-choreography-based-call-chains-with-flowdance.png)
 
