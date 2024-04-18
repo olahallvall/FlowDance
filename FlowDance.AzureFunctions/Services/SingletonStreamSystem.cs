@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using System.Diagnostics;
 
-namespace FlowDance.Common.RabbitMQUtils
+namespace FlowDance.AzureFunctions.Services
 {
     internal class SingletonStreamSystem
     {

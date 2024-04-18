@@ -1,5 +1,6 @@
+using FlowDance.Client.RabbitMQUtils;
+using FlowDance.Common.Interfaces;
 using Microsoft.Extensions.Logging;
-using FlowDance.Common.RabbitMQUtils;
 
 namespace FlowDance.Client;
 /// <summary>
@@ -9,7 +10,7 @@ namespace FlowDance.Client;
 /// Voting inside a nested scope
 /// Although a nested scope can join the ambient transaction (using the same TraceId) of the root scope, calling Complete in the nested scope has no affect on the root scope. 
 /// </summary>
-public class CompensationScope : IDisposable
+public class CompensationScope : ICompensationScope
 {
     private bool _disposedValue;
 

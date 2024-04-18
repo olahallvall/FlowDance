@@ -1,8 +1,9 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System;
+using Microsoft.Extensions.Configuration;
 using RabbitMQ.Client;
 using System.Diagnostics;
 
-namespace FlowDance.Common.RabbitMQUtils
+namespace FlowDance.Client.Legacy.RabbitMQUtils
 {
     internal class SingletonConnection
     {

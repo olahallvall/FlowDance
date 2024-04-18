@@ -1,5 +1,4 @@
 using FlowDance.AzureFunctions.Services;
-using FlowDance.Common.RabbitMQUtils;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

@@ -1,5 +1,9 @@
-﻿namespace FlowDance.Common.Commands;
-public class DetermineCompensation
+﻿using System;
+
+namespace FlowDance.Common.Commands
 {
-    public Guid TraceId { get; set; }
+    public class DetermineCompensation
+    {
+        public Guid TraceId { get; set; }
+    }
 }

@@ -1,5 +1,4 @@
-﻿using FlowDance.Common.RabbitMQUtils;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 
 namespace FlowDance.AzureFunctions.Services
 {

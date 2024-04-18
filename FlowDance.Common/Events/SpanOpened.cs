@@ -1,8 +1,9 @@
-﻿namespace FlowDance.Common.Events;
-
-public class SpanOpened : Span
+﻿namespace FlowDance.Common.Events
 {
-    public bool IsRootSpan { get; set; }
+    public class SpanOpened : Span
+    {
+        public bool IsRootSpan { get; set; }
 
-    public required string CompensationUrl { get; set; }
+        public string CompensationUrl { get; set; }
+    }
 }

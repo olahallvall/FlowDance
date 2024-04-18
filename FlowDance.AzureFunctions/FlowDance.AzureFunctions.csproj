@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UserSecretsId>43812bac-a87f-4e90-bbbb-f036ee44c96a</UserSecretsId>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
@@ -20,6 +21,8 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="RabbitMQ.Client" Version="6.8.1" />
+    <PackageReference Include="RabbitMQ.Stream.Client" Version="1.8.3" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FlowDance.Common\FlowDance.Common.csproj" />

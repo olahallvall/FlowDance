@@ -8,14 +8,14 @@ using Newtonsoft.Json;
 using RabbitMQ.Client;
 using System.Diagnostics;
 
-namespace FlowDance.Common.RabbitMQUtils;
+namespace FlowDance.Client.RabbitMQUtils;
 
 /// <summary>
 ///This class handles the reading and storing of messages to RabbitMQ. 
 /// 
 /// Based on code from this site - https://rabbitmq.github.io/rabbitmq-stream-dotnet-client/stable/htmlsingle/index.html
 /// </summary>
-public class Storage : IStorage
+public class Storage
 {
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger<Producer> _producerLogger;
