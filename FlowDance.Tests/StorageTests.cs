@@ -32,10 +32,9 @@ public class StorageTests
     }
 
     [TestMethod]
-    public void GetStreamSystem()
+    public void CreateSystem()
     {
         var storage = new Storage(_factory);
         storage.CreateStream(new Guid().ToString());
-
     }
 }

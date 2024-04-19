@@ -13,9 +13,8 @@ using System;
 namespace FlowDance.Client.Legacy.RabbitMQUtils
 {
     /// <summary>
-    ///This class handles the reading and storing of messages to RabbitMQ. 
-    /// 
-    /// Based on code from this site - https://rabbitmq.github.io/rabbitmq-stream-dotnet-client/stable/htmlsingle/index.html
+    /// This class handles the reading and storing of messages to RabbitMQ. 
+    ///
     /// </summary>
     public class Storage
     {
