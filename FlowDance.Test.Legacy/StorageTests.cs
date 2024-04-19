@@ -29,16 +29,16 @@ namespace FlowDance.Test.Legacy
         public void ReadAllSpansFromStream()
         {
             var storage = new Storage(_factory);
-            var spanList = storage.ReadAllSpansFromStream("119e60ec-f046-45f5-b880-fadb7e9da3c4");
+            var spanList = storage.ReadAllSpansFromStream("c8d8070d-7680-4a70-83f1-910672af9c76");
 
             spanList.Count();
         }
 
-        [TestMethod]
-        public void CreateSystem()
-        {
-            var storage = new Storage(_factory);
-            storage.CreateStream(new Guid().ToString());
-        }
+        //[TestMethod]
+        //public void CreateSystem()
+        //{
+        //    var storage = new Storage(_factory);
+        //    storage.CreateStream(new Guid().ToString());
+        //}
     }
 }

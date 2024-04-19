@@ -9,6 +9,9 @@ using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System;
+using System.Xml.Linq;
+using RabbitMQ.Client.Events;
+using System.Threading.Channels;
 
 namespace FlowDance.Client.Legacy.RabbitMQUtils
 {
@@ -31,7 +34,10 @@ namespace FlowDance.Client.Legacy.RabbitMQUtils
             var confirmationTaskCompletionSource = new TaskCompletionSource<int>();
 
             //Check if stream/queue exist. 
-            if (StreamExistOrQueue(streamName))
+            uint messageCount = 0;
+            var channel = SingletonConnection.GetInstance().GetConnection().CreateModel();
+
+            if (StreamExistOrQueue(streamName, channel, ref messageCount))
             {
                 // Only first span in stream should be a root span.
                 if (span is SpanOpened)
@@ -109,7 +115,31 @@ namespace FlowDance.Client.Legacy.RabbitMQUtils
 
         public List<Span> ReadAllSpansFromStream(string streamName)
         {
-            return null; //ReadAllSpansFromStream(streamName, _consumerLogger);
+            var spanList = new List<Span>();
+            var channel = SingletonConnection.GetInstance().GetConnection().CreateModel();
+
+            uint messageCount = 0;
+            if (StreamExistOrQueue(streamName, channel, ref messageCount))
+            {
+                if (messageCount > 0)
+                {
+                    channel.BasicQos(0, 40, false);
+
+                    var consumer = new EventingBasicConsumer(channel);
+                    consumer.Received += (model, ea) =>
+                    {
+                        var messageContent = JsonConvert.DeserializeObject<Span>(Encoding.UTF8.GetString(ea.Body.ToArray()), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
+                        if (messageContent != null)
+                            spanList.Add(messageContent);
+                    };
+
+                    channel.BasicConsume(queue: streamName,
+                        autoAck: false,
+                        consumer: consumer, arguments: new Dictionary<string, object> { { "x-stream-offset", 0 } });
+                } 
+            }
+
+            return spanList;
         }
 
         //private void ValidateStoredSpans(List<Span> spanList)
@@ -235,15 +265,16 @@ namespace FlowDance.Client.Legacy.RabbitMQUtils
         /// Check if a queue/stream exists. 
         /// </summary>
         /// <param name="name"></param>
+        /// <param name="channel"></param>
+        /// <param name="messageCount"></param>
         /// <returns>True if stream exists, else false.</returns>
         /// <exception cref="Exception"></exception>
-        public bool StreamExistOrQueue(string name)
+        public bool StreamExistOrQueue(string name, IModel channel,  ref uint messageCount)
         {
             try
             {
-                var channel = SingletonConnection.GetInstance().GetConnection().CreateModel();
                 QueueDeclareOk ok = channel.QueueDeclarePassive(name);
-                channel.Close();
+                messageCount = ok.MessageCount;
             }
             catch (RabbitMQ.Client.Exceptions.OperationInterruptedException ex)
             {
