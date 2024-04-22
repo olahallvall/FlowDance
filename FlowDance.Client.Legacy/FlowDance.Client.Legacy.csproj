@@ -127,10 +127,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CompensationScope.cs" />
-    <Compile Include="MessageListner.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RabbitMQUtils\SingletonConnection.cs" />
-    <Compile Include="RabbitMQUtils\Storage.cs" />
+    <Compile Include="RabbitMq\Storage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
