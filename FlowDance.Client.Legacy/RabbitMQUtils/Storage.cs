@@ -4,12 +4,10 @@ using Microsoft.Extensions.Logging;
 using System.Text;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
-using System.Diagnostics;
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System;
-using System.Xml.Linq;
+using System.Linq;
 using RabbitMQ.Client.Events;
 using System.Threading.Channels;
 
@@ -17,82 +15,87 @@ namespace FlowDance.Client.Legacy.RabbitMQUtils
 {
     /// <summary>
     /// This class handles the reading and storing of messages to RabbitMQ. 
-    ///
     /// </summary>
     public class Storage
     {
         private readonly ILoggerFactory _loggerFactory;
-        
+        private readonly ILogger<Storage> _logger;
+
         public Storage(ILoggerFactory loggerFactory)
         {
             _loggerFactory = loggerFactory;
+            _logger = _loggerFactory.CreateLogger<Storage>();
         }
 
-        public void StoreEvent(Span span)
+        public void StoreEvent(Span span, IModel channel)
         {
-            var streamName = span.TraceId.ToString();
-            var confirmationTaskCompletionSource = new TaskCompletionSource<int>();
-
-            //Check if stream/queue exist. 
-            uint messageCount = 0;
-            var channel = SingletonConnection.GetInstance().GetConnection().CreateModel();
-
-            if (StreamExistOrQueue(streamName, channel, ref messageCount))
+            try
             {
-                // Only first span in stream should be a root span.
-                if (span is SpanOpened)
-                    ((SpanOpened)span).IsRootSpan = false;
+                var streamName = span.TraceId.ToString();
+                //var channel = SingletonConnection.GetInstance().GetConnection().CreateModel();
 
-               
-                // Validate against previous events grouped by the same TraceId. 
-                //ValidateStoredSpans(ReadAllSpansFromStream(span.TraceId.ToString()));
+                //Check if stream/queue exist. 
+                uint messageCount = 0;
+                if (StreamExistOrQueue(streamName, ref messageCount))
+                {
+                    var confirmationTaskCompletionSource = new TaskCompletionSource<int>();
 
-                // Create producer
-                //var producer = CreateProducer(streamName, streamSystem, confirmationTaskCompletionSource, _producerLogger);
+                    // Only first span in stream should be a root span.
+                    if (span is SpanOpened)
+                        ((SpanOpened)span).IsRootSpan = false;
 
-                // Send a messages     
-                //var message = new Message(Encoding.Default.GetBytes(JsonConvert.SerializeObject(span, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All })));
-                //producer.Send(message);
+                    //var spanList = ReadAllSpansFromStream(span.TraceId.ToString(), confirmationTaskCompletionSource);
+                    // Wait for confirmation feedback 
+                    //confirmationTaskCompletionSource.Task.Wait();
 
-                // Wait for confirmation feedback 
-                confirmationTaskCompletionSource.Task.Wait();
+                    // Validate against previous events grouped by the same TraceId. 
+                    //ValidateStoredSpans(spanList);
 
-                // Close producer
-                //producer.Close();
+                    // So we can Confirm
+                    channel.ConfirmSelect();
+
+                    // Store the messages
+                    channel.BasicPublish(exchange: string.Empty,
+                            routingKey: streamName,
+                            basicProperties: null,
+                            body: Encoding.Default.GetBytes(JsonConvert.SerializeObject(span, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All })));
+
+                    channel.WaitForConfirmsOrDie(TimeSpan.FromSeconds(5));
+                }
+                else // Stream don´t exists.
+                {
+                    // SpanClosed should newer create the CreateQueue. Only SpanOpened are allowed to do that!  
+                    if (span is SpanClosed)
+                        throw new Exception("The event SpanClosed are trying to create a stream for the first time. This not allowed, only SpanOpened are allowed to do that!");
+
+                    if (span is SpanOpened)
+                        ((SpanOpened)span).IsRootSpan = true;
+
+                    // Create stream
+                    CreateStream(streamName, channel);
+
+                    // So we can Confirm
+                    channel.ConfirmSelect();
+
+                    // Store the messages
+                    channel.BasicPublish(exchange: string.Empty,
+                        routingKey: streamName,
+                        basicProperties: null,
+                        body: Encoding.Default.GetBytes(JsonConvert.SerializeObject(span, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All })));
+
+                    channel.WaitForConfirmsOrDie(TimeSpan.FromSeconds(5));
+                }
             }
-            else // Stream don´t exists.
+            catch (Exception e)
             {
-                // SpanClosed should newer create the CreateQueue. Only SpanOpened are allowed to do that!  
-                if (span is SpanClosed)
-                    throw new Exception("The event SpanClosed are trying to create a stream for the first time. This not allowed, only SpanOpened are allowed to do that!");
-
-                if (span is SpanOpened)
-                    ((SpanOpened)span).IsRootSpan = true;
-
-                // Create stream/queue
-                CreateStream(streamName);
-
-                // Get StreamSystem
-                //var streamSystem = SingletonStreamSystem.GetInstance(_streamLogger).GetStreamSystem();
-
-                // Create producer
-                //var producer = CreateProducer(streamName, streamSystem, confirmationTaskCompletionSource, _producerLogger);
-
-                // Send a messages     
-                //var message = new Message(Encoding.Default.GetBytes(JsonConvert.SerializeObject(span, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All })));
-                //producer.Send(message);
-
-                // Wait for confirmation feedback 
-                confirmationTaskCompletionSource.Task.Wait();
-
-                // Close producer
-                //producer.Close();
+                Console.WriteLine(e);
+                throw;
             }
         }
 
-        public void StoreCommand(DetermineCompensation command)
+        public void StoreCommand(DetermineCompensation command, IModel channel)
         {
-            var channel = SingletonConnection.GetInstance().GetConnection().CreateModel();
+            //var channel = SingletonConnection.GetInstance().GetConnection().CreateModel();
             channel.ConfirmSelect();
 
             channel.QueueDeclare(queue: "FlowDance.DetermineCompensation",
@@ -113,153 +116,96 @@ namespace FlowDance.Client.Legacy.RabbitMQUtils
             channel.Close();
         }
 
-        public List<Span> ReadAllSpansFromStream(string streamName)
+        public List<Span> ReadRabbitMsg(string queue)
         {
+            // https://www.rabbitmq.com/client-libraries/dotnet-api-guide
             var spanList = new List<Span>();
             var channel = SingletonConnection.GetInstance().GetConnection().CreateModel();
 
-            uint messageCount = 0;
-            if (StreamExistOrQueue(streamName, channel, ref messageCount))
+            if (channel.MessageCount(queue) == 0) return null;
+            BasicGetResult result = channel.BasicGet(queue, true);
+            if (result == null) return null;
+            else
             {
-                if (messageCount > 0)
-                {
-                    channel.BasicQos(0, 40, false);
+                IBasicProperties props = result.BasicProperties;
+                var messageContent = JsonConvert.DeserializeObject<Span>(Encoding.UTF8.GetString(result.Body.ToArray()), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
+                    if (messageContent != null) spanList.Add(messageContent);
 
-                    var consumer = new EventingBasicConsumer(channel);
-                    consumer.Received += (model, ea) =>
-                    {
-                        var messageContent = JsonConvert.DeserializeObject<Span>(Encoding.UTF8.GetString(ea.Body.ToArray()), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
-                        if (messageContent != null)
-                            spanList.Add(messageContent);
-                    };
-
-                    channel.BasicConsume(queue: streamName,
-                        autoAck: false,
-                        consumer: consumer, arguments: new Dictionary<string, object> { { "x-stream-offset", 0 } });
-                } 
+                channel.BasicAck(result.DeliveryTag, false);
             }
 
             return spanList;
         }
 
-        //private void ValidateStoredSpans(List<Span> spanList)
-        //{
+        public List<Span> ReadAllSpansFromStream(string streamName, TaskCompletionSource<int> taskCompletionSource)
+        {
+            var spanList = new List<Span>();
+            try
+            {
+                var channel = SingletonConnection.GetInstance().GetConnection().CreateModel();
+                uint numberOfMessages = 0;
 
-        //    if (spanList.Any())
-        //    {
-        //        var sw = new Stopwatch();
-        //        sw.Start();
+                if (StreamExistOrQueue(streamName, ref numberOfMessages))
+                {
+                    if (numberOfMessages > 0)
+                    {
+                        var numberOfMessageReceived = 0;
+                        channel.BasicQos(0, 100, false);
+                        string consumerTag = "";
 
-        //        // Rule #1 - Can´t add Span after the root Span has been closed.
-        //        var spanOpened = spanList[0];
-        //        var spanClosed = from s in spanList
-        //                         where s.SpanId == spanOpened.SpanId && s.GetType() == typeof(SpanClosed)
-        //                         select s;
+                        // Setup the Channel
+                        var consumer = new EventingBasicConsumer(channel);
 
-        //        if (spanClosed.Any())
-        //            throw new Exception("Spans can´t be add after the root Span has been closed");
+                        // Received
+                        void OnConsumerOnReceived(object model, BasicDeliverEventArgs ea)
+                        {
+                            _logger.LogInformation("OnConsumerOnReceived");
 
-        //        sw.Stop();
-        //        _streamLogger.LogInformation("A call to ValidateStoredSpans runs for {0} ms.", sw.Elapsed.TotalMilliseconds);
-        //    }
+                            var messageContent = JsonConvert.DeserializeObject<Span>(Encoding.UTF8.GetString(ea.Body.ToArray()), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
+                            if (messageContent != null) spanList.Add(messageContent);
 
-        //}
+                            numberOfMessageReceived++;
+                            if (numberOfMessageReceived == (int)numberOfMessages)
+                            {
+                                channel.BasicCancel(consumerTag);
+                                taskCompletionSource.SetResult(numberOfMessageReceived);
+                                _logger.LogInformation("Got all message - {numberOfMessageReceived}", numberOfMessageReceived);
+                            }
+                        }
 
-        ///// <summary>
-        ///// Get the Offset-number from the last massage in the stream.
-        ///// Use this method very carefully!!! The stream needs to have at least one message. If not this method will wait until one message arrives.
-        ///// </summary>
-        ///// <param name="streamName"></param>
-        ///// <param name="consumerLogger"></param>
-        ///// <returns></returns>
-        //private ulong GetLastOffset(string streamName, ILogger<Consumer> consumerLogger)
-        //{
-        //    var consumerTaskCompletionSource = new TaskCompletionSource<int>();
-        //    var streamSystem = SingletonStreamSystem.GetInstance(_streamLogger).GetStreamSystem();
-        //    ulong lastOffset = 0;
+                        consumer.Received += OnConsumerOnReceived;
 
-        //    // https://stackoverflow.com/questions/67267967/timeout-and-stop-a-task
-        //    // https://stackoverflow.com/questions/22637642/using-cancellationtoken-for-timeout-in-task-run-does-not-work
+                        // Start consuming...
+                        consumerTag = channel.BasicConsume(queue: streamName, consumer: consumer, autoAck: false, arguments: new Dictionary<string, object> { { "x-stream-offset", 0 } });
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                    Console.WriteLine(e);
+                    throw;
+            }
+            
+            if(taskCompletionSource != null)
+                taskCompletionSource.Task.Wait();
 
-        //    var consumer = Consumer.Create(
-        //            new ConsumerConfig(streamSystem, streamName)
-        //            {
-        //                OffsetSpec = new OffsetTypeLast(),
-        //                ClientProvidedName = "FlowDance.Client.Consumer",
-        //                MessageHandler = async (stream, consumer, context, message) =>
-        //                {
-        //                    lastOffset = context.Offset;
-        //                    consumerTaskCompletionSource.SetResult(1);
-        //                    await Task.CompletedTask;
-        //                }
-        //            }, consumerLogger).GetAwaiter().GetResult();
+            return spanList;
+        }
 
-        //    consumerTaskCompletionSource.Task.Wait();
+        private void ValidateStoredSpans(List<Span> spanList)
+        {
+            if (spanList.Any())
+            {
+                // Rule #1 - Can´t add Span after the root Span has been closed.
+                var spanOpened = spanList[0];
+                var spanClosed = from s in spanList
+                                 where s.SpanId == spanOpened.SpanId && s.GetType() == typeof(SpanClosed)
+                                 select s;
 
-        //    consumer.Close();
-
-        //    return lastOffset;
-        //}
-
-        ///// <summary>
-        ///// Reads all messages from the stream.
-        ///// Use this method very carefully!!! The stream needs to have at least one message. If not this method will wait until one message arrives.
-        ///// </summary>
-        ///// <param name="streamName"></param>
-        ///// <param name="consumerLogger"></param>
-        ///// <returns></returns>
-        ///// <exception cref="Exception"></exception>
-        //private List<Span> ReadAllSpansFromStream(string streamName, ILogger<Consumer> consumerLogger)
-        //{
-        //    var sw = new Stopwatch();
-        //    sw.Start();
-
-        //    var numberOfMessages = GetLastOffset(streamName, consumerLogger) + 1;
-        //    var spanList = new List<Span>();
-
-        //    if (numberOfMessages > 0)
-        //    {
-        //        var consumerTaskCompletionSource = new TaskCompletionSource<int>();
-        //        var streamSystem = SingletonStreamSystem.GetInstance(_streamLogger).GetStreamSystem();
-        //        int numberOfMessageReceived = 0;
-
-        //        var consumer = Consumer.Create(
-        //                new ConsumerConfig(streamSystem, streamName)
-        //                {
-        //                    OffsetSpec = new OffsetTypeFirst(),
-        //                    ClientProvidedName = "FlowDance.Client.Consumer",
-        //                    MessageHandler = async (stream, consumer, context, message) =>
-        //                    {
-        //                        try
-        //                        {
-        //                            var messageContent = JsonConvert.DeserializeObject<Span>(Encoding.UTF8.GetString(message.Data.Contents), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
-        //                            if (messageContent != null)
-        //                                spanList.Add(messageContent);
-
-        //                            numberOfMessageReceived++;
-
-        //                            if (numberOfMessageReceived == (int)numberOfMessages)
-        //                                consumerTaskCompletionSource.SetResult(1);
-        //                        }
-        //                        catch (Exception ex)
-        //                        {
-        //                            throw new Exception("", ex);
-        //                        }
-
-        //                        await Task.CompletedTask;
-        //                    }
-        //                }, consumerLogger).GetAwaiter().GetResult();
-
-        //        consumerTaskCompletionSource.Task.Wait();
-
-        //        consumer.Close();
-
-        //        sw.Stop();
-        //        _streamLogger.LogInformation("A call to ReadAllSpansFromStream runs for {0} ms.", sw.Elapsed.TotalMilliseconds);
-        //    }
-
-        //    return spanList;
-        //}
+                if (spanClosed.Any())
+                    throw new Exception("Spans can´t be add after the root Span has been closed");
+            }
+        }
 
         /// <summary>
         /// Check if a queue/stream exists. 
@@ -269,10 +215,11 @@ namespace FlowDance.Client.Legacy.RabbitMQUtils
         /// <param name="messageCount"></param>
         /// <returns>True if stream exists, else false.</returns>
         /// <exception cref="Exception"></exception>
-        public bool StreamExistOrQueue(string name, IModel channel,  ref uint messageCount)
+        public bool StreamExistOrQueue(string name, ref uint messageCount)
         {
             try
             {
+                var channel = SingletonConnection.GetInstance().GetConnection().CreateModel();
                 QueueDeclareOk ok = channel.QueueDeclarePassive(name);
                 messageCount = ok.MessageCount;
             }
@@ -295,17 +242,14 @@ namespace FlowDance.Client.Legacy.RabbitMQUtils
         /// Create a stream. 
         /// </summary>
         /// <param name="streamName"></param>
-        public void CreateStream(string streamName)
+        /// <param name="channel"></param>
+        public void CreateStream(string streamName, IModel channel)
         {
-            //var sw = new Stopwatch();
-            //sw.Start();
-
-            //var streamSystem = SingletonStreamSystem.GetInstance(_streamLogger).GetStreamSystem();
-            //streamSystem.CreateStream(
-            //    new StreamSpec(streamName) { });
-
-            //sw.Stop();
-            //_streamLogger.LogInformation("A call to StreamExistOrQueue runs for {0} ms.", sw.Elapsed.TotalMilliseconds);
+            channel.QueueDeclare(queue: streamName,
+                durable: true,
+                exclusive: false,
+                autoDelete: false,
+                arguments: new Dictionary<string, object> { { "x-queue-type", "stream" } });
         }
 
         /// <summary>
@@ -314,59 +258,7 @@ namespace FlowDance.Client.Legacy.RabbitMQUtils
         /// <param name="streamName"></param>
         public void DeleteStream(string streamName)
         {
-            //var streamSystem = SingletonStreamSystem.GetInstance(_streamLogger).GetStreamSystem();
-            //streamSystem.DeleteStream(streamName);
+            SingletonConnection.GetInstance().GetConnection().CreateModel().QueueDelete(streamName);
         }
-
-        ///// <summary>
-        ///// Creates a producer. See https://github.com/rabbitmq/rabbitmq-stream-dotnet-client/blob/main/docs/Documentation/ProducerUsage.cs
-        ///// </summary>
-        ///// <param name="streamName"></param>
-        ///// <param name="streamSystem"></param>
-        ///// <returns></returns>
-        ///// <exception cref="ArgumentOutOfRangeException"></exception>
-        //private Producer CreateProducer(string streamName, StreamSystem streamSystem, TaskCompletionSource<int> confirmationTaskCompletionSource, ILogger<Producer> procuderLogger)
-        //{
-        //    var sw = new Stopwatch();
-        //    sw.Start();
-
-        //    var producer = Producer.Create(
-        //        new ProducerConfig(
-        //            streamSystem,
-        //            streamName)
-        //        {
-        //            ClientProvidedName = "FlowDance.Client.Producer",
-        //            ConfirmationHandler = async confirmation =>
-        //            {
-        //                switch (confirmation.Status)
-        //                {
-        //                    case ConfirmationStatus.Confirmed:
-        //                        Console.WriteLine("Message confirmed");
-        //                        break;
-        //                    case ConfirmationStatus.ClientTimeoutError:
-        //                    case ConfirmationStatus.StreamNotAvailable:
-        //                    case ConfirmationStatus.InternalError:
-        //                    case ConfirmationStatus.AccessRefused:
-        //                    case ConfirmationStatus.PreconditionFailed:
-        //                    case ConfirmationStatus.PublisherDoesNotExist:
-        //                    case ConfirmationStatus.UndefinedError:
-        //                        Console.WriteLine("Message not confirmed with error: {0}", confirmation.Status);
-        //                        break;
-
-        //                    default:
-        //                        throw new ArgumentOutOfRangeException();
-        //                }
-        //                confirmationTaskCompletionSource.SetResult(1);
-
-        //                await Task.CompletedTask;
-        //            }
-        //        }, procuderLogger).GetAwaiter().GetResult();
-
-        //    sw.Stop();
-        //    _streamLogger.LogInformation("A call to CreateProducer runs for {0} ms.", sw.Elapsed.TotalMilliseconds);
-
-        //    return producer;
-        //}
     }
 }
-

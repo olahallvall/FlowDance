@@ -12,7 +12,6 @@ namespace FlowDance.Client.Legacy.RabbitMQUtils
             var config = new ConfigurationBuilder().AddJsonFile($"appsettings.json").Build();
             var connectionFactory = new ConnectionFactory();
             config.GetSection("RabbitMqConnection").Bind(connectionFactory);
-
             _connection = connectionFactory.CreateConnection();
         }
 

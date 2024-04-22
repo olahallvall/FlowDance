@@ -1,7 +1,10 @@
 using System;
+using System.Collections.ObjectModel;
+using System.Data.Common;
 using FlowDance.Client.Legacy.RabbitMQUtils;
 using FlowDance.Common.Interfaces;
 using Microsoft.Extensions.Logging;
+using RabbitMQ.Client;
 
 namespace FlowDance.Client.Legacy
 {
@@ -19,22 +22,26 @@ namespace FlowDance.Client.Legacy
         private readonly Common.Events.SpanOpened _spanOpened;
         private Common.Events.SpanClosed _spanClosed;
         private bool _completed;
-        private readonly Storage? _rabbitMqUtil;
+        private readonly Storage _rabbitMqUtil;
+        private readonly IConnection _connection;
+
 
         private CompensationScope()
         {
+            
         }
 
         public CompensationScope(string compensationUrl, Guid traceId, ILoggerFactory loggerFactory)
         {
-            if (_rabbitMqUtil == null)
-                _rabbitMqUtil = new Storage(loggerFactory);
+            _connection = SingletonConnection.GetInstance().GetConnection();
+
+            _rabbitMqUtil = new Storage(loggerFactory);
 
             // Create the event - SpanOpened
             _spanOpened = new Common.Events.SpanOpened() { TraceId = traceId, SpanId = Guid.NewGuid(), CompensationUrl = compensationUrl };
 
             // Store the SpanOpened event
-            _rabbitMqUtil.StoreEvent(_spanOpened);
+            _rabbitMqUtil.StoreEvent(_spanOpened, _connection.CreateModel());
         }
 
         /// <summary>
@@ -57,15 +64,18 @@ namespace FlowDance.Client.Legacy
                     _spanClosed = new Common.Events.SpanClosed() { TraceId = _spanOpened.TraceId, SpanId = _spanOpened.SpanId, MarkedAsCommitted = _completed };
 
                     // Store the SpanClosed event and calculates IsRootSpan
-                    _rabbitMqUtil!.StoreEvent(_spanClosed);
+                    _rabbitMqUtil!.StoreEvent(_spanClosed, _connection.CreateModel());
 
                     // Check if this is a RootSpan, if so determine compensation.
                     if (_spanOpened.IsRootSpan)
                     {
                         var determineCompensation = new Common.Commands.DetermineCompensation { TraceId = _spanOpened.TraceId };
-                        _rabbitMqUtil.StoreCommand(determineCompensation);
+                        _rabbitMqUtil.StoreCommand(determineCompensation, _connection.CreateModel());
                     }
                 }
+
+                if (_connection.IsOpen)
+                    _connection.Close();
 
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer
                 // TODO: set large fields to null
