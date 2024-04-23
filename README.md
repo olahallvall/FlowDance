@@ -6,7 +6,7 @@ FlowDance aims to address several critical aspects in the context of microservic
     By adopting this pattern, services can communicate with each other through well-defined APIs, avoiding direct database access.
     This approach enhances modularity, scalability, and isolation, allowing services to evolve independently.
 
-**Replacing Distributed Transactions Calls Driven by MSDTC with Common Synchronous RPC-Calls Sharing a Correlation ID**:
+**Replacing Distributed Transactions Calls Driven by MSDTC with Synchronous RPC-Calls Sharing a Correlation ID**:
     MSDTC (Microsoft Distributed Transaction Coordinator) is commonly used for distributed transactions across multiple databases.
     However, MSDTC introduces complexity, performance overhead, and potential deadlocks.
     FlowDance proposes a shift towards synchronous RPC (Remote Procedure Call) communication.
