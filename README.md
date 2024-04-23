@@ -42,12 +42,12 @@ In short - by replacing **System.Transactions.TransactionScope** with **FlowDanc
 
 In the center of **FlowDance**, there is something called a **Span**. A **Span** carries the information for how a transaction can be compensated.
 A **Span** is initialized using the **SpanOpened** event and closed using the **SpanClosed** event. The image below illustrates a **Span** with a blue bracket.
+
 The initial Span is called the Root Span, and it serves as the starting point for subsequent calls. Subsequent Spans share the same Correlation ID as the Root Span.
 When **Spans** are created, they are stored in a **RabbitMQ Stream**. A **Stream** is a persistent and replicated data structure that models an append-only log with non-destructive consumer semantics. Unlike traditional queues, which delete messages once consumed, streams allow consumers to attach at any point in the log and read from there. They provide a powerful way to manage and process messages efficiently. 🐰📜
 
-![Synchronous choreography-based call chains supported by FlowDance](Docs/spans-saved-in-rabbitmq.png)
 
-
+In the image below, we have replaced `System.Transactions.TransactionScope` with `FlowDance.Client.CompensationScope`. Instead of using MSDTC, a RabbitMQ is employed to store data related to a Span.
 
 ![Synchronous choreography-based call chains supported by FlowDance](Docs/synchronous-choreography-based-call-chains-with-span.png)
 
