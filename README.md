@@ -26,8 +26,9 @@ The team(s) has been working to split the monolith or at least some steps in tha
 
 ![Distributed monolith](Docs/distributed-monolith.png)
 
-The picure below shows how easy a call chain gets created in the system. One more call can't hurt that bad! Or..
-
+In the picure below shows how easy a call chain gets created in the system. 
+The user is attempting to book a trip that includes a car rental, hotel reservation, and flight.
+The solution employs a microservices architecture, where each component (car, hotel, and flight) has its own dedicated microservice. These microservices are seamlessly integrated using a Distributed Transaction Coordinator (DTC) session.
 
 ![Synchronous choreography-based call chains](Docs/synchronous-choreography-based-call-chains.png)
 
