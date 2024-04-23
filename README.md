@@ -21,7 +21,7 @@ FlowDance aims to address several critical aspects in the context of microservic
     If a step cannot be fully rolled back (e.g., due to concurrent changes), compensating transactions undo the effects of previous steps.
     This pattern ensures that the system eventually converges to a consistent state, even after partial failures.
 
-## Where you maybe are today
+## Where you might be today?
 The team(s) has been working to split the monolith or at least some steps in that direction. To uphold strong Consistency the microservices use Distributed Transactions Calls Driven by MSDTC.   
 
 ![Distributed monolith](Docs/distributed-monolith.png)
@@ -39,6 +39,13 @@ Event-driven architecture is out of scoop here.
 In short - by replacing **System.Transactions.TransactionScope** with **FlowDance.Client.CompensationScope** you leaves the world of strong consistency into eventual consistency.
 
 ![Synchronous choreography-based call chains supported by FlowDance](Docs/synchronous-choreography-based-call-chains-with-flowdance.png)
+
+In the center of **FlowDance**, there is something called a **Span**. A **Span** carries the information for how a transaction can be compensated.
+A **Span** is initialized using the **SpanOpened** event and closed using the **SpanClosed** event. The image below illustrates a **Span** with a blue bracket.
+The initial Span is called the Root Span, and it serves as the starting point for subsequent calls. Subsequent Spans share the same Correlation ID as the Root Span.
+
+![Synchronous choreography-based call chains supported by FlowDance](Docs/synchronous-choreography-based-call-chains-with-span.png)
+
 
 **Components of FlowDance**:
     - **Client Library**: The prima ballerina, guiding services in their graceful movements.
