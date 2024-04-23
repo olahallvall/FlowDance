@@ -21,7 +21,7 @@ FlowDance aims to address several critical aspects in the context of microservic
     - If a step cannot be fully rolled back (e.g., due to concurrent changes), compensating transactions undo the effects of previous steps.
     - This pattern ensures that the system eventually converges to a consistent state, even after partial failures.
 
-**Where you maybe are today**:
+##Where you maybe are today
 The team(s) has been working to split the monolith or at least some steps in that direction. To uphold strong Consistency the microservices use Distributed Transactions Calls Driven by MSDTC.   
 ![Distributed monolith](Docs/distributed-monolith.png)
 
