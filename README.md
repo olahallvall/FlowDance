@@ -23,10 +23,11 @@ FlowDance aims to address several critical aspects in the context of microservic
 
 ## Where you maybe are today
 The team(s) has been working to split the monolith or at least some steps in that direction. To uphold strong Consistency the microservices use Distributed Transactions Calls Driven by MSDTC.   
+
 ![Distributed monolith](Docs/distributed-monolith.png)
 
-The picure below shows how easy a call chain gets created in the system. One more call can't hurt that bad! Or.. :) 
-The sad truth is that it does hurts!  
+The picure below shows how easy a call chain gets created in the system. One more call can't hurt that bad! Or..
+
 
 ![Synchronous choreography-based call chains](Docs/synchronous-choreography-based-call-chains.png)
 
