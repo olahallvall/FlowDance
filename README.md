@@ -58,19 +58,19 @@ Here we create a root span.
 
 ```csharp
 
-    public void RootCompensationScope()
+public void RootCompensationScope()
+{
+    var traceId = Guid.NewGuid();
+
+    using (CompensationScope compScope = 
+            new CompensationScope("http://localhost/TripBookingService/Compensation", traceId, _loggerFactory))
     {
-        var traceId = Guid.NewGuid();
+        /* Perform transactional work here */
+        // DoSomething()
 
-        using (CompensationScope compScope = 
-               new CompensationScope("http://localhost/TripBookingService/Compensation", traceId, _loggerFactory))
-        {
-            /* Perform transactional work here */
-            // DoSomething()
-
-            compScope.Complete();
-        }
+        compScope.Complete();
     }
+}
 
 ```
 
@@ -78,25 +78,25 @@ Here we create a root span with a inner scope.
 
 ```csharp
  
-    public void RootWithInnerCompensationScope()
-    {
-        var traceId = Guid.NewGuid();
+public void RootWithInnerCompensationScope()
+{
+    var traceId = Guid.NewGuid();
 
-        // The top-most compensation scope is referred to as the root scope.
-        // Root scope
-        using (CompensationScope compScopeRoot = 
-               new CompensationScope("http://localhost/TripBookingService/Compensation", traceId, _loggerFactory))
+    // The top-most compensation scope is referred to as the root scope.
+    // Root scope
+    using (CompensationScope compScopeRoot = 
+            new CompensationScope("http://localhost/TripBookingService/Compensation", traceId, _loggerFactory))
+    {
+        // Inner scope
+        using (CompensationScope compScopeInner = 
+                new CompensationScope("http://localhost/CarService/Compensation", traceId, _loggerFactory))
         {
-            // Inner scope
-            using (CompensationScope compScopeInner = 
-                   new CompensationScope("http://localhost/CarService/Compensation", traceId, _loggerFactory))
-            {
-                compScopeInner.Complete();
-            }
-                 
-            compScopeRoot.Complete();
+            compScopeInner.Complete();
         }
+                 
+        compScopeRoot.Complete();
     }
+}
 ```
 
 **Components of FlowDance**:
