@@ -2,7 +2,7 @@
 
 namespace FlowDance.Common.Events
 {
-    public class Span
+    public class SpanEvent
     {
         public Guid TraceId { get; set; }
 

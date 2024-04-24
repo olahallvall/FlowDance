@@ -31,29 +31,29 @@ public class Storage : IStorage
         _streamLogger = _loggerFactory.CreateLogger<StreamSystem>();
     }
 
-    public void StoreEvent(Span span)
+    public void StoreEvent(SpanEvent spanEvent)
     {
-        var streamName = span.TraceId.ToString();
+        var streamName = spanEvent.TraceId.ToString();
         var confirmationTaskCompletionSource = new TaskCompletionSource<int>();
 
         //Check if stream/queue exist. 
         if (StreamExistOrQueue(streamName))
         {
-            // Only first span in stream should be a root span.
-            if (span is SpanOpened)
-                ((SpanOpened)span).IsRootSpan = false;
+            // Only first spanEvent in stream should be a root spanEvent.
+            if (spanEvent is SpanOpened)
+                ((SpanOpened)spanEvent).IsRootSpan = false;
 
             // Get StreamSystem
             var streamSystem = SingletonStreamSystem.GetInstance(_streamLogger).GetStreamSystem();
 
             // Validate against previous events grouped by the same TraceId. 
-            ValidateStoredSpans(ReadAllSpansFromStream(span.TraceId.ToString()));
+            ValidateStoredSpans(ReadAllSpansFromStream(spanEvent.TraceId.ToString()));
 
             // Create producer
             var producer = CreateProducer(streamName, streamSystem, confirmationTaskCompletionSource, _producerLogger);
 
             // Send a messages     
-            var message = new Message(Encoding.Default.GetBytes(JsonConvert.SerializeObject(span, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All })));
+            var message = new Message(Encoding.Default.GetBytes(JsonConvert.SerializeObject(spanEvent, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All })));
             producer.Send(message);
 
             // Wait for confirmation feedback 
@@ -64,12 +64,12 @@ public class Storage : IStorage
         }
         else // Stream don´t exists.
         {
-            // SpanClosed should newer create the CreateQueue. Only SpanOpened are allowed to do that!  
-            if (span is SpanClosed)
-                throw new Exception("The event SpanClosed are trying to create a stream for the first time. This not allowed, only SpanOpened are allowed to do that!");
+            // SpanClosed should newer create the CreateQueue. Only SpanEventOpened are allowed to do that!  
+            if (spanEvent is SpanClosed)
+                throw new Exception("The event SpanClosed are trying to create a stream for the first time. This not allowed, only SpanEventOpened are allowed to do that!");
 
-            if (span is SpanOpened)
-                ((SpanOpened)span).IsRootSpan = true;
+            if (spanEvent is SpanOpened)
+                ((SpanOpened)spanEvent).IsRootSpan = true;
 
             // Create stream/queue
             CreateStream(streamName);
@@ -81,7 +81,7 @@ public class Storage : IStorage
             var producer = CreateProducer(streamName, streamSystem, confirmationTaskCompletionSource, _producerLogger);
 
             // Send a messages     
-            var message = new Message(Encoding.Default.GetBytes(JsonConvert.SerializeObject(span, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All })));
+            var message = new Message(Encoding.Default.GetBytes(JsonConvert.SerializeObject(spanEvent, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All })));
             producer.Send(message);
 
             // Wait for confirmation feedback 
@@ -115,12 +115,12 @@ public class Storage : IStorage
         channel.Close();
     }
 
-    public List<Span> ReadAllSpansFromStream(string streamName)
+    public List<SpanEvent> ReadAllSpansFromStream(string streamName)
     {
         return ReadAllSpansFromStream(streamName, _consumerLogger);
     }
 
-    private void ValidateStoredSpans(List<Span> spanList)
+    private void ValidateStoredSpans(List<SpanEvent> spanList)
     {
         
         if (spanList.Any())
@@ -128,14 +128,14 @@ public class Storage : IStorage
             var sw = new Stopwatch();
             sw.Start();
 
-            // Rule #1 - Can´t add Span after the root Span has been closed.
+            // Rule #1 - Can´t add SpanEvent after the root SpanEvent has been closed.
             var spanOpened = spanList[0];
             var spanClosed = from s in spanList
                              where s.SpanId == spanOpened.SpanId && s.GetType() == typeof(SpanClosed)
                              select s;
 
             if (spanClosed.Any())
-                throw new Exception("Spans can´t be add after the root Span has been closed");
+                throw new Exception("Spans can´t be add after the root SpanEvent has been closed");
 
             sw.Stop();
             _streamLogger.LogInformation("A call to ValidateStoredSpans runs for {0} ms.", sw.Elapsed.TotalMilliseconds);
@@ -187,13 +187,13 @@ public class Storage : IStorage
     /// <param name="consumerLogger"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    private List<Span> ReadAllSpansFromStream(string streamName, ILogger<Consumer> consumerLogger)
+    private List<SpanEvent> ReadAllSpansFromStream(string streamName, ILogger<Consumer> consumerLogger)
     {
         var sw = new Stopwatch();
         sw.Start();
 
         var numberOfMessages = GetLastOffset(streamName, consumerLogger) + 1;
-        var spanList = new List<Span>();
+        var spanList = new List<SpanEvent>();
 
         if (numberOfMessages > 0)
         {
@@ -210,7 +210,7 @@ public class Storage : IStorage
                         {
                             try
                             {
-                                var messageContent = JsonConvert.DeserializeObject<Span>(Encoding.UTF8.GetString(message.Data.Contents), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
+                                var messageContent = JsonConvert.DeserializeObject<SpanEvent>(Encoding.UTF8.GetString(message.Data.Contents), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
                                 if (messageContent != null)
                                     spanList.Add(messageContent);
 

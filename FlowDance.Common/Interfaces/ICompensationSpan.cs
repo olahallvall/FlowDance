@@ -2,7 +2,7 @@
 
 namespace FlowDance.Common.Interfaces
 {
-    public interface ICompensationScope : IDisposable
+    public interface ICompensationSpan: IDisposable
     {
         void Complete();
     }

@@ -23,16 +23,16 @@ namespace FlowDance.Client.RabbitMq
             _logger = _loggerFactory.CreateLogger<Storage>();
         }
 
-        public void StoreEvent(Span span, IConnection connection, IModel channel)
+        public void StoreEvent(SpanEvent spanEvent, IConnection connection, IModel channel)
         {
-            var streamName = span.TraceId.ToString();
+            var streamName = spanEvent.TraceId.ToString();
 
             //Check if stream/queue exist. 
             if (StreamExistOrQueue(streamName, connection))   
             {
-                // Only first span in stream should be a root span.
-                if (span is SpanOpened)
-                    ((SpanOpened)span).IsRootSpan = false;
+                // Only first spanEvent in stream should be a root spanEvent.
+                if (spanEvent is SpanOpened)
+                    ((SpanOpened)spanEvent).IsRootSpan = false;
 
                 // So we can Confirm
                 channel.ConfirmSelect();
@@ -41,18 +41,18 @@ namespace FlowDance.Client.RabbitMq
                 channel.BasicPublish(exchange: string.Empty,
                         routingKey: streamName,
                         basicProperties: null,
-                        body: Encoding.Default.GetBytes(JsonConvert.SerializeObject(span, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All })));
+                        body: Encoding.Default.GetBytes(JsonConvert.SerializeObject(spanEvent, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All })));
 
                 channel.WaitForConfirmsOrDie(TimeSpan.FromSeconds(5));
             }
             else // Stream don´t exists.
             {
-                // SpanClosed should newer create the CreateQueue. Only SpanOpened are allowed to do that!  
-                if (span is SpanClosed)
-                    throw new Exception("The event SpanClosed are trying to create a stream for the first time. This not allowed, only SpanOpened are allowed to do that!");
+                // SpanClosed should newer create the CreateQueue. Only SpanEventOpened are allowed to do that!  
+                if (spanEvent is SpanClosed)
+                    throw new Exception("The event SpanClosed are trying to create a stream for the first time. This not allowed, only SpanEventOpened are allowed to do that!");
 
-                if (span is SpanOpened)
-                    ((SpanOpened)span).IsRootSpan = true;
+                if (spanEvent is SpanOpened)
+                    ((SpanOpened)spanEvent).IsRootSpan = true;
 
                 // Create stream
                 CreateStream(streamName, channel);
@@ -64,7 +64,7 @@ namespace FlowDance.Client.RabbitMq
                 channel.BasicPublish(exchange: string.Empty,
                     routingKey: streamName,
                     basicProperties: null,
-                    body: Encoding.Default.GetBytes(JsonConvert.SerializeObject(span, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All })));
+                    body: Encoding.Default.GetBytes(JsonConvert.SerializeObject(spanEvent, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All })));
 
                 channel.WaitForConfirmsOrDie(TimeSpan.FromSeconds(5));
             }

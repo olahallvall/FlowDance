@@ -6,7 +6,7 @@ FlowDance aims to address several critical aspects in the context of microservic
     By adopting this pattern, services can communicate with each other through well-defined APIs, avoiding direct database access.
     This approach enhances modularity, scalability, and isolation, allowing services to evolve independently.
 
-**Replacing Distributed Transactions Calls Driven by MSDTC with Synchronous RPC-Calls Sharing a Correlation ID**:
+**Replacing Distributed Transactions Calls Driven by MSDTC with Synchronous RPC-Calls Sharing a Correlation ID/Trace ID**:
     MSDTC (Microsoft Distributed Transaction Coordinator) is commonly used for distributed transactions across multiple databases.
     However, MSDTC introduces complexity, performance overhead, and potential deadlocks.
     FlowDance proposes a shift towards synchronous RPC (Remote Procedure Call) communication.
@@ -36,7 +36,7 @@ So how does FlowDance help us out when we have to base our solution on synchrono
 Remember that FlowDance wants to support communication between microservices based on synchronous RPC-calls. 
 Event-driven architecture is out of scoop here.
 
-In short - by replacing **System.Transactions.TransactionScope** with **FlowDance.Client.CompensationScope** you leaves the world of strong consistency into eventual consistency.
+In short - by replacing **System.Transactions.TransactionScope** with **FlowDance.Client.CompensationSpan** you leaves the world of strong consistency into eventual consistency.
 
 ![Synchronous choreography-based call chains supported by FlowDance](Docs/synchronous-choreography-based-call-chains-with-flowdance.png)
 
@@ -48,7 +48,7 @@ When **Spans** are created, they are stored in a **RabbitMQ Stream**. A **Stream
 
 ![Synchronous choreography-based call chains supported by FlowDance](Docs/spans-saved-in-rabbitmq.png)
 
-In the image below, we have replaced `System.Transactions.TransactionScope` with `FlowDance.Client.CompensationScope`. Instead of using MSDTC, a RabbitMQ is employed to store data related to a Span.
+In the image below, we have replaced `System.Transactions.TransactionScope` with `FlowDance.Client.CompensationSpan`. Instead of using MSDTC, a RabbitMQ is employed to store data related to a Span.
 
 ![Synchronous choreography-based call chains supported by FlowDance](Docs/synchronous-choreography-based-call-chains-with-span.png)
 
@@ -62,49 +62,49 @@ Here we create a root span.
 
 ```csharp
 
-public void RootCompensationScope()
+public void RootCompensationSpan()
 {
     var traceId = Guid.NewGuid();
 
-    using (CompensationScope compScope = 
-            new CompensationScope("http://localhost/TripBookingService/Compensation", traceId, _loggerFactory))
+    using (CompensationSpan compSpan = 
+            new CompensationSpan("http://localhost/TripBookingService/Compensation", traceId, _loggerFactory))
     {
         /* Perform transactional work here */
         // DoSomething()
 
-        compScope.Complete();
+        compSpan.Complete();
     }
 }
 
 ```
 
-Here we create a root span with a inner scope.
+Here we create a root span with a inner scope. They are sharing the same traceId. 
 
 ```csharp
  
-public void RootWithInnerCompensationScope()
+public void RootWithInnerCompensationSpan()
 {
     var traceId = Guid.NewGuid();
 
     // The top-most compensation scope is referred to as the root scope.
     // Root scope
-    using (CompensationScope compScopeRoot = 
-            new CompensationScope("http://localhost/TripBookingService/Compensation", traceId, _loggerFactory))
+    using (CompensationSpan compSpanRoot = 
+            new CompensationSpan("http://localhost/TripBookingService/Compensation", traceId, _loggerFactory))
     {
         /* Perform transactional work here */
         // DoSomething()
 
         // Inner scope
-        using (CompensationScope compScopeInner = 
-                new CompensationScope("http://localhost/CarService/Compensation", traceId, _loggerFactory))
+        using (CompensationSpan compSpanInner = 
+                new CompensationSpan("http://localhost/CarService/Compensation", traceId, _loggerFactory))
         {
             /* Perform transactional work here */
             // DoSomething()
 
-            compScopeInner.Complete();
+            compSpanInner.Complete();
         }
                  
-        compScopeRoot.Complete();
+        compSpanRoot.Complete();
     }
 }
 ```
@@ -113,7 +113,7 @@ public void RootWithInnerCompensationScope()
     - **Client Library**: The prima ballerina, guiding services in their graceful movements.
     - **Back-End Service**: A symphony of RabbitMQ and Microsoft Azure Durable Functions.
         - **Azure Durable Functions**: The conductor, orchestrating communication between services when compensating transaction has to be executed.
-        - **RabbitMQ**: Stores the eventdata from each CompensationScope in a call chain.
+        - **RabbitMQ**: Stores the eventdata from each CompensationSpan in a call chain.
 
 
 Remember, FlowDance isn't just about dancing—it's about orchestrating microservices with grace when compensating transaction has to be executed! 🕺💃
