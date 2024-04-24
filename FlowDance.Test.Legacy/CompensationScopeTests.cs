@@ -31,6 +31,8 @@ namespace FlowDance.Test.Legacy
 
             using (CompensationScope compScope = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
             {
+                // 
+
                 compScope.Complete();
             }
         }
