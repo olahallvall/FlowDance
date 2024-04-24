@@ -53,12 +53,23 @@ In the image below, we have replaced `System.Transactions.TransactionScope` with
 ![Synchronous choreography-based call chains supported by FlowDance](Docs/synchronous-choreography-based-call-chains-with-span.png)
 
 
-  ```csharp
-    for (int i = 0 ; i < 10; i++)
-    {
-      // Code to execute.
-    }
-    ```
+ ```csharp
+
+        [TestMethod]
+        public void RootCompensationScope()
+        {
+            var guid = Guid.NewGuid();
+
+            using (CompensationScope compScope = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+            {
+                // Code that you can compensate
+
+
+                compScope.Complete();
+            }
+        }
+
+ ```
 
 **Components of FlowDance**:
     - **Client Library**: The prima ballerina, guiding services in their graceful movements.
