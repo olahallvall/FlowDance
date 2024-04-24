@@ -1,10 +1,7 @@
 using System;
-using System.Collections.ObjectModel;
-using System.Data.Common;
-using System.Threading.Tasks;
+using System.Configuration;
 using FlowDance.Client.Legacy.RabbitMq;
 using FlowDance.Common.Interfaces;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
@@ -34,9 +31,12 @@ namespace FlowDance.Client.Legacy
 
         public CompensationSpan(string compensationUrl, Guid traceId, ILoggerFactory loggerFactory)
         {
-            var config = new ConfigurationBuilder().AddJsonFile($"appsettings.json").Build();
             var connectionFactory = new ConnectionFactory();
-            config.GetSection("RabbitMqConnection").Bind(connectionFactory);
+         
+            var hostName = ConfigurationManager.AppSettings["RabbitMqConnection.HostName"];
+            var username = ConfigurationManager.AppSettings["RabbitMqConnection.Username"];
+            var password = ConfigurationManager.AppSettings["RabbitMqConnection.Password"];
+            var virtualHost = ConfigurationManager.AppSettings["RabbitMqConnection.VirtualHost"];
 
             _connection = connectionFactory.CreateConnection();
             _channel = _connection.CreateModel();
