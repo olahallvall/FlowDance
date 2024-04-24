@@ -52,6 +52,10 @@ In the image below, we have replaced `System.Transactions.TransactionScope` with
 
 ![Synchronous choreography-based call chains supported by FlowDance](Docs/synchronous-choreography-based-call-chains-with-span.png)
 
+## A Span in detail
+
+A Span ...
+
 ### How to work with Spans in code
 
 Here we create a root span. 
@@ -87,10 +91,16 @@ public void RootWithInnerCompensationScope()
     using (CompensationScope compScopeRoot = 
             new CompensationScope("http://localhost/TripBookingService/Compensation", traceId, _loggerFactory))
     {
+        /* Perform transactional work here */
+        // DoSomething()
+
         // Inner scope
         using (CompensationScope compScopeInner = 
                 new CompensationScope("http://localhost/CarService/Compensation", traceId, _loggerFactory))
         {
+            /* Perform transactional work here */
+            // DoSomething()
+
             compScopeInner.Complete();
         }
                  
