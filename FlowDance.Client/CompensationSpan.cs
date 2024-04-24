@@ -40,7 +40,7 @@ namespace FlowDance.Client
             _rabbitMqUtil = new Storage(loggerFactory);
 
             // Create the event - SpanEventOpened
-            _spanOpened = new Common.Events.SpanOpened() { TraceId = traceId, SpanId = Guid.NewGuid(), CompensationUrl = compensationUrl };
+            _spanOpened = new Common.Events.SpanOpened() { TraceId = traceId, SpanId = Guid.NewGuid(), CompensationUrl = compensationUrl, Timestamp = DateTime.Now };
 
             // Store the SpanEventOpened event
             _rabbitMqUtil.StoreEvent(_spanOpened, _connection, _channel);
@@ -63,7 +63,7 @@ namespace FlowDance.Client
                 if (disposing)
                 {
                     // Create the event - SpanClosed
-                    _spanClosed = new Common.Events.SpanClosed() { TraceId = _spanOpened.TraceId, SpanId = _spanOpened.SpanId, MarkedAsCommitted = _completed };
+                    _spanClosed = new Common.Events.SpanClosed() { TraceId = _spanOpened.TraceId, SpanId = _spanOpened.SpanId, MarkedAsCommitted = _completed, Timestamp = DateTime.Now };
 
                     // Store the SpanClosed event and calculates IsRootSpan
                     _rabbitMqUtil!.StoreEvent(_spanClosed, _connection, _connection.CreateModel());
