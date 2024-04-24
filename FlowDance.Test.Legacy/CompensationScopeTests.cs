@@ -10,13 +10,13 @@ namespace FlowDance.Test.Legacy
     [TestClass]
     public class CompensationScopeTests
     {
-        private static ILoggerFactory _factory;
+        private static ILoggerFactory _loggerFactory;
         private static IConfigurationRoot _config;
 
         [ClassInitialize()]
         public static void ClassInit(TestContext context)
         {
-            _factory = LoggerFactory.Create(builder =>
+            _loggerFactory = LoggerFactory.Create(builder =>
             {
                 builder.AddConsole();
             }); 
@@ -27,12 +27,12 @@ namespace FlowDance.Test.Legacy
         [TestMethod]
         public void RootCompensationScope()
         {
-            var guid = Guid.NewGuid();
+            var traceId = Guid.NewGuid();
 
-            using (CompensationScope compScope = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+            using (CompensationScope compScope = new CompensationScope("http://localhost/TripBookingService/Compensation", traceId, _loggerFactory))
             {
-                // Code that you can compensate
-
+                /* Perform transactional work here */
+                // DoSomething()
 
                 compScope.Complete();
             }
@@ -42,24 +42,24 @@ namespace FlowDance.Test.Legacy
         public void RootWithInnerCompensationScope()
         {
 
-            var guid = Guid.NewGuid();
+            var traceId = Guid.NewGuid();
 
             // The top-most compensation scope is referred to as the root scope.
             // Root scope
-            using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+            using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/TripBookingService/Compensation", traceId, _loggerFactory))
             {
+                /* Perform transactional work here */
+
                 // Inner scope
-                using (CompensationScope compScopeInner = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+                using (CompensationScope compScopeInner = new CompensationScope("http://localhost/CarService/Compensation", traceId, _loggerFactory))
                 {
+                    /* Perform transactional work here */
+
                     compScopeInner.Complete();
                 }
                  
                 compScopeRoot.Complete();
             }
-
-            //Assert.AreEqual(spanList.Count(), 4);
-
-            //SingletonConnection.GetInstance().GetConnection().CreateModel().QueueDelete(guid.ToString(), true, true);
         }
 
         [TestMethod]
@@ -75,7 +75,7 @@ namespace FlowDance.Test.Legacy
 
         private void RootMethod(Guid guid)
         {
-            using (CompensationScope compScope = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+            using (CompensationScope compScope = new CompensationScope("http://localhost/HotelService/Compensation", guid, _loggerFactory))
             {
                 /* Perform transactional work here */
                 InnerMethod(guid);
@@ -85,7 +85,7 @@ namespace FlowDance.Test.Legacy
 
         private void InnerMethod(Guid guid)
         {
-            using (CompensationScope compScope = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+            using (CompensationScope compScope = new CompensationScope("http://localhost/HotelService/Compensation", guid, _loggerFactory))
             {
                 /* Perform transactional work here */
 
@@ -96,10 +96,10 @@ namespace FlowDance.Test.Legacy
         [TestMethod]
         public void MultipleRootCompensationScopeUsingSameTraceId()
         {
-            var guid = Guid.NewGuid();
+            var traceId = Guid.NewGuid();
 
             // Root
-            using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+            using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/HotelService/Compensation", traceId, _loggerFactory))
             {
                 /* Perform transactional work here */
 
@@ -107,7 +107,7 @@ namespace FlowDance.Test.Legacy
             }
 
             // Root
-            using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+            using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/HotelService/Compensation", traceId, _loggerFactory))
             {
                 /* Perform transactional work here */
 
@@ -119,9 +119,9 @@ namespace FlowDance.Test.Legacy
         [ExpectedException(typeof(Exception))]
         public void CompensationScopeThrowingException()
         {
-            var guid = Guid.NewGuid();
+            var traceId = Guid.NewGuid();
 
-            using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+            using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/HotelService/Compensation", traceId, _loggerFactory))
             {
                 /* Perform transactional work here */
                 throw new Exception("Something bad has happened!");
@@ -134,15 +134,15 @@ namespace FlowDance.Test.Legacy
         [TestMethod]
         public void RootMethodWithTwoInlineCompensationScope()
         {
-            var guid = Guid.NewGuid();
+            var traceId = Guid.NewGuid();
 
             // Root
-            using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+            using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/HotelService/Compensation", traceId, _loggerFactory))
             {
                 /* Perform transactional work here */
 
                 // Inner scope 1
-                using (CompensationScope compScopeInner = new CompensationScope("http://localhost/HotelService/Compensation1", guid, _factory))
+                using (CompensationScope compScopeInner = new CompensationScope("http://localhost/HotelService/Compensation1", traceId, _loggerFactory))
                 {
                     /* Perform transactional work here */
 
@@ -150,7 +150,7 @@ namespace FlowDance.Test.Legacy
                 }
 
                 // Inner scope 2
-                using (CompensationScope compScopeInner = new CompensationScope("http://localhost/HotelService/Compensation2", guid, _factory))
+                using (CompensationScope compScopeInner = new CompensationScope("http://localhost/HotelService/Compensation2", traceId, _loggerFactory))
                 {
                     /* Perform transactional work here */
 
@@ -160,7 +160,7 @@ namespace FlowDance.Test.Legacy
                 compScopeRoot.Complete();
             }
 
-            var storage = new Storage(_factory);
+            var storage = new Storage(_loggerFactory);
             //Assert.AreEqual(storage.ReadAllSpansFromStream(guid.ToString(), null).Count(), 6);
 
             //storage.DeleteStream(guid.ToString());

@@ -27,29 +27,29 @@ public class CompensationScopeTests
     [TestMethod]
     public void RootCompensationScope()
     {
-        var guid = Guid.NewGuid();
+        var traceId = Guid.NewGuid();
 
         var storage = new Storage(_factory);
 
-        using (CompensationScope compScope = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+        using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/TripBookingService/Compensation", traceId, _factory))
         {
-            compScope.Complete();
+            compScopeRoot.Complete();
         }
     }
 
     [TestMethod]
     public void RootWithInnerCompensationScope()
     {
-        var guid = Guid.NewGuid();
+        var traceId = Guid.NewGuid();
 
         // The top-most compensation scope is referred to as the root scope.
         // Root scope
-        using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+        using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/TripBookingService/Compensation", traceId, _factory))
         {
             // Inner scope
-            using (CompensationScope compScopeInner = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+            using (CompensationScope compScopeInnerCar = new CompensationScope("http://localhost/CarService/Compensation", traceId, _factory))
             {
-                compScopeInner.Complete();
+                compScopeInnerCar.Complete();
             }
 
             compScopeRoot.Complete();
@@ -59,37 +59,38 @@ public class CompensationScopeTests
     [TestMethod]
     public void RootMethodWithTwoInnerMethodCompensationScope()
     {
-        var guid = Guid.NewGuid();
-        RootMethod(guid);
+        var traceId = Guid.NewGuid();
+        RootMethod(traceId);
     }
 
-    private void RootMethod(Guid guid)
+    private void RootMethod(Guid traceId)
     {
-        using (CompensationScope compScope = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+        using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/TripBookingService/Compensation", traceId, _factory))
         {
             /* Perform transactional work here */
-            InnerMethod(guid);
-            compScope.Complete();
+            InnerMethod(traceId);
+
+            compScopeRoot.Complete();
         }
     }
 
-    private void InnerMethod(Guid guid)
+    private void InnerMethod(Guid traceId)
     {
-        using (CompensationScope compScope = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+        using (CompensationScope compScopeInner = new CompensationScope("http://localhost/CarService/Compensation", traceId, _factory))
         {
             /* Perform transactional work here */
 
-            compScope.Complete();
+            compScopeInner.Complete();
         }
     }
 
     [TestMethod]
     public void MultipleRootCompensationScopeUsingSameTraceId()
     {
-        var guid = Guid.NewGuid();
+        var newGuid = Guid.NewGuid();
 
         // Root
-        using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+        using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/HotelService/Compensation", newGuid, _factory))
         {
             /* Perform transactional work here */
 
@@ -97,7 +98,7 @@ public class CompensationScopeTests
         }
 
         // Root
-        using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+        using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/HotelService/Compensation", newGuid, _factory))
         {
             /* Perform transactional work here */
 
@@ -109,9 +110,9 @@ public class CompensationScopeTests
     [ExpectedException(typeof(Exception))]
     public void CompensationScopeThrowingException()
     {
-        var guid = Guid.NewGuid();
+        var traceId = Guid.NewGuid();
 
-        using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+        using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/HotelService/Compensation", traceId, _factory))
         {
             /* Perform transactional work here */
             throw new Exception("Something bad has happened!");
@@ -124,15 +125,15 @@ public class CompensationScopeTests
     [TestMethod]
     public void RootMethodWithTwoInlineCompensationScope()
     {
-        var guid = Guid.NewGuid();
+        var traceId = Guid.NewGuid();
 
         // Root
-        using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
+        using (CompensationScope compScopeRoot = new CompensationScope("http://localhost/TripBookingService/Compensation", traceId, _factory))
         {
             /* Perform transactional work here */
 
             // Inner scope 1
-            using (CompensationScope compScopeInner = new CompensationScope("http://localhost/HotelService/Compensation1", guid, _factory))
+            using (CompensationScope compScopeInner = new CompensationScope("http://localhost/CarService/Compensation", traceId, _factory))
             {
                 /* Perform transactional work here */
 
@@ -140,7 +141,7 @@ public class CompensationScopeTests
             }
 
               // Inner scope 2
-            using (CompensationScope compScopeInner = new CompensationScope("http://localhost/HotelService/Compensation2", guid, _factory))
+            using (CompensationScope compScopeInner = new CompensationScope("http://localhost/HotelService/Compensation2", traceId, _factory))
             {
                 /* Perform transactional work here */
 

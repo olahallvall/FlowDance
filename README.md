@@ -52,24 +52,52 @@ In the image below, we have replaced `System.Transactions.TransactionScope` with
 
 ![Synchronous choreography-based call chains supported by FlowDance](Docs/synchronous-choreography-based-call-chains-with-span.png)
 
+### How to work with Spans in code
 
- ```csharp
+Here we create a root span. 
 
-        [TestMethod]
-        public void RootCompensationScope()
+```csharp
+
+    public void RootCompensationScope()
+    {
+        var traceId = Guid.NewGuid();
+
+        using (CompensationScope compScope = 
+               new CompensationScope("http://localhost/TripBookingService/Compensation", traceId, _loggerFactory))
         {
-            var guid = Guid.NewGuid();
+            /* Perform transactional work here */
+            // DoSomething()
 
-            using (CompensationScope compScope = new CompensationScope("http://localhost/HotelService/Compensation", guid, _factory))
-            {
-                // Code that you can compensate
-
-
-                compScope.Complete();
-            }
+            compScope.Complete();
         }
+    }
 
- ```
+```
+
+Here we create a root span with a inner scope.
+
+```csharp
+ 
+    public void RootWithInnerCompensationScope()
+    {
+        var traceId = Guid.NewGuid();
+
+        // The top-most compensation scope is referred to as the root scope.
+        // Root scope
+        using (CompensationScope compScopeRoot = 
+               new CompensationScope("http://localhost/TripBookingService/Compensation", traceId, _loggerFactory))
+        {
+            // Inner scope
+            using (CompensationScope compScopeInner = 
+                   new CompensationScope("http://localhost/CarService/Compensation", traceId, _loggerFactory))
+            {
+                compScopeInner.Complete();
+            }
+                 
+            compScopeRoot.Complete();
+        }
+    }
+```
 
 **Components of FlowDance**:
     - **Client Library**: The prima ballerina, guiding services in their graceful movements.
