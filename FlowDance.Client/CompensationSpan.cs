@@ -28,7 +28,7 @@ namespace FlowDance.Client
         {
         }
 
-        public CompensationSpan(string compensationUrl, Guid traceId, ILoggerFactory loggerFactory)
+        public CompensationSpan(string compensationUrl, Guid traceId, [System.Runtime.CompilerServices.CallerMemberName] string callingFunctionName = "", ILoggerFactory loggerFactory)
         {
             var config = new ConfigurationBuilder().AddJsonFile($"appsettings.json").Build();
             var connectionFactory = new ConnectionFactory();
