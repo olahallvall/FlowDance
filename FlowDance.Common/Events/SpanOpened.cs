@@ -5,5 +5,7 @@
         public bool IsRootSpan { get; set; }
 
         public string CompensationUrl { get; set; }
+        
+        public string callingFunctionName { get; set; }
     }
 }
