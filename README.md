@@ -40,7 +40,7 @@ In short - by replacing **System.Transactions.TransactionScope** with **FlowDanc
 
 ![Synchronous choreography-based call chains supported by FlowDance](Docs/synchronous-choreography-based-call-chains-with-flowdance.png)
 
-In the center of **FlowDance**, there is something called a **Span**. A **Span** carries the information for how a transaction can be compensated.
+In center of **FlowDance**, there is something called a **Span**. A **Span** carries the information for how a transaction can be compensated.
 A **Span** is initialized using the **SpanOpened** event and closed using the **SpanClosed** event. The image below illustrates a **Span** with a blue bracket.
 
 The initial Span is called the Root Span, and it serves as the starting point for subsequent calls. Subsequent Spans share the same Correlation ID as the Root Span.
@@ -78,7 +78,7 @@ public void RootCompensationSpan()
 
 ```
 
-Here we create a root span with a inner scope. They are sharing the same traceId. 
+Here we create a root span with a inner span. They are sharing the same traceId. 
 
 ```csharp
  
@@ -86,7 +86,7 @@ public void RootWithInnerCompensationSpan()
 {
     var traceId = Guid.NewGuid();
 
-    // The top-most compensation scope is referred to as the root scope.
+    // The top-most compensation span is referred to as the root span.
     // Root scope
     using (CompensationSpan compSpanRoot = 
             new CompensationSpan("http://localhost/TripBookingService/Compensation", traceId, _loggerFactory))
@@ -94,7 +94,7 @@ public void RootWithInnerCompensationSpan()
         /* Perform transactional work here */
         // DoSomething()
 
-        // Inner scope
+        // Inner span
         using (CompensationSpan compSpanInner = 
                 new CompensationSpan("http://localhost/CarService/Compensation", traceId, _loggerFactory))
         {
