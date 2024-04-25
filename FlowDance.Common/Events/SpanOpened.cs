@@ -6,6 +6,6 @@
 
         public string CompensationUrl { get; set; }
         
-        public string callingFunctionName { get; set; }
+        public string CallingFunctionName { get; set; }
     }
 }
