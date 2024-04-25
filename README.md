@@ -32,9 +32,8 @@ The solution employs a microservices architecture, where each component (car, ho
 
 ![Synchronous choreography-based call chains](Docs/synchronous-choreography-based-call-chains.png)
 
-So how does FlowDance help us out when we have to base our solution on synchronous RPC-Calls?   
-Remember that FlowDance wants to support communication between microservices based on synchronous RPC-calls. 
-Event-driven architecture is out of scoop here.
+So how does FlowDance help us out when we still want to base our solution on synchronous RPC-Calls but leaving MSDTC behind?
+Remember that FlowDance wants to support communication between microservices based on synchronous RPC-calls. Event-driven architecture is out of scoop here.
 
 In short - by replacing **System.Transactions.TransactionScope** with **FlowDance.Client.CompensationSpan** you leaves the world of strong consistency into eventual consistency.
 
