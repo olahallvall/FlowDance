@@ -1,4 +1,5 @@
-﻿using Microsoft.DurableTask.Client;
+﻿using FlowDance.Common.Models;
+using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 
 namespace FlowDance.AzureFunctions.Services
@@ -18,6 +19,8 @@ namespace FlowDance.AzureFunctions.Services
         {
             // Build a list of Spans from Span events.
             var spanEventList = _storage.ReadAllSpanEventsFromStream(streamName);
+            var spanList = new List<Span>();
+
             if (spanEventList.Any())
             {
                 _logger.LogInformation("Stream has {count} events!", spanEventList.Count);
@@ -33,7 +36,7 @@ namespace FlowDance.AzureFunctions.Services
             }
 
             // ToDo: spanEventList need tags for serialization 
-            string instanceId = orchestrationClient.ScheduleNewOrchestrationInstanceAsync(nameof(Sagas.CompensatingSaga), spanEventList).Result;
+            string instanceId = orchestrationClient.ScheduleNewOrchestrationInstanceAsync(nameof(Sagas.CompensatingSaga), spanList).Result;
         }
     }
 }
