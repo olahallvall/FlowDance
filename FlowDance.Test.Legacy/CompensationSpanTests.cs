@@ -40,13 +40,13 @@ namespace FlowDance.Test.Legacy
 
             var traceId = Guid.NewGuid();
 
-            // The top-most compensation span is referred to as the root span.
+            // The top-most compensation scope is referred to as the root scope.
             // Root span
             using (CompensationSpan compSpanRoot = new CompensationSpan("http://localhost/TripBookingService/Compensation", traceId, _loggerFactory))
             {
                 /* Perform transactional work here */
 
-                // Inner span
+                // Inner scope
                 using (CompensationSpan compSpanInner = new CompensationSpan("http://localhost/CarService/Compensation", traceId, _loggerFactory))
                 {
                     /* Perform transactional work here */
@@ -137,7 +137,7 @@ namespace FlowDance.Test.Legacy
             {
                 /* Perform transactional work here */
 
-                // Inner span 1
+                // Inner scope 1
                 using (CompensationSpan compSpanInner = new CompensationSpan("http://localhost/HotelService/Compensation1", traceId, _loggerFactory))
                 {
                     /* Perform transactional work here */
@@ -145,7 +145,7 @@ namespace FlowDance.Test.Legacy
                     compSpanInner.Complete();
                 }
 
-                // Inner span 2
+                // Inner scope 2
                 using (CompensationSpan compSpanInner = new CompensationSpan("http://localhost/HotelService/Compensation2", traceId, _loggerFactory))
                 {
                     /* Perform transactional work here */

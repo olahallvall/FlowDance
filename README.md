@@ -86,7 +86,7 @@ public void RootWithInnerCompensationSpan()
     var traceId = Guid.NewGuid();
 
     // The top-most compensation span is referred to as the root span.
-    // Root span
+    // Root scope
     using (CompensationSpan compSpanRoot = 
             new CompensationSpan("http://localhost/TripBookingService/Compensation", traceId, _loggerFactory))
     {

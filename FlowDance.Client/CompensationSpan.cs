@@ -10,8 +10,8 @@ namespace FlowDance.Client
     /// The CompensationSpan class provides a simple way to mark a block of code as participating in a flow dance/transaction that can be compensated.
     /// FlowDance.Client use a implicit programming model using the CompensationSpan class, in which compensating code blocks can be enlisted together using the same TraceId.
     ///
-    /// Voting inside a nested span
-    /// Although a nested span can join the ambient transaction (using the same TraceId) of the root span, calling Complete in the nested span has no affect on the root span. 
+    /// Voting inside a nested scope
+    /// Although a nested scope can join the ambient transaction (using the same TraceId) of the root scope, calling Complete in the nested scope has no affect on the root scope. 
     /// </summary>
     public class CompensationSpan : ICompensationSpan
     {
