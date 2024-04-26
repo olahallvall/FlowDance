@@ -1,4 +1,5 @@
-﻿using FlowDance.Common.Models;
+﻿using FlowDance.Common.Events;
+using FlowDance.Common.Models;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 
@@ -25,18 +26,29 @@ namespace FlowDance.AzureFunctions.Services
             {
                 _logger.LogInformation("Stream has {count} events!", spanEventList.Count);
 
-                //// Rule #1 - Can´t add SpanEvent after the root SpanEvent has been closed.
-                //var spanOpened = spanList[0];
-                //var spanClosed = from s in spanList
-                //    where s.SpanId == spanOpened.SpanId && s.GetType() == typeof(SpanClosed)
-                //    select s;
+                // Construct a SpanList from SpanEventList
+                var spanOpenEvents = from so in spanEventList
+                                       where so.GetType() == typeof(SpanOpened)
+                                       select (SpanOpened)so;
 
-                //if (spanClosed.Any())
-                //    throw new Exception("Spans can´t be add after the root SpanEvent has been closed");
+                // Pick all SpanOpened event and create a Span for each
+                spanList.AddRange(spanOpenEvents.Select(spanOpenEvent => new Span() {SpanOpened = spanOpenEvent}));
+
+                foreach (var span in spanList)
+                {
+                    var spanClosedEvent = (from sc in spanEventList
+                        where sc.GetType() == typeof(SpanClosed) && sc.SpanId == span.SpanOpened.SpanId
+                        select (SpanClosed)sc).ToList();
+
+                    if (spanClosedEvent.Any())
+                    {
+                        span.SpanClosed = spanClosedEvent.First();
+                    }
+                }
+
+                // Start the Saga
+                string instanceId = orchestrationClient.ScheduleNewOrchestrationInstanceAsync(nameof(Sagas.CompensatingSaga), spanList).Result;
             }
-
-            // ToDo: spanEventList need tags for serialization 
-            string instanceId = orchestrationClient.ScheduleNewOrchestrationInstanceAsync(nameof(Sagas.CompensatingSaga), spanList).Result;
         }
     }
 }
