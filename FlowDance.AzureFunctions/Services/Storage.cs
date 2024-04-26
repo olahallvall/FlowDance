@@ -1,12 +1,9 @@
 using FlowDance.Common.Events;
-using FlowDance.Common.Commands;
 using RabbitMQ.Stream.Client;
 using RabbitMQ.Stream.Client.Reliable;
 using Microsoft.Extensions.Logging;
 using System.Text;
 using Newtonsoft.Json;
-using RabbitMQ.Client;
-using System.Diagnostics;
 
 namespace FlowDance.AzureFunctions.Services;
 
@@ -32,21 +29,6 @@ public class Storage : IStorage
     public List<SpanEvent> ReadAllSpanEventsFromStream(string streamName)
     {
         return ReadAllSpansFromStream(streamName, _consumerLogger);
-    }
-
-    private void ValidateStoredSpans(List<SpanEvent> spanList)
-    {
-        if (spanList.Any())
-        {
-            // Rule #1 - Can´t add SpanEvent after the root SpanEvent has been closed.
-            var spanOpened = spanList[0];
-            var spanClosed = from s in spanList
-                             where s.SpanId == spanOpened.SpanId && s.GetType() == typeof(SpanClosed)
-                             select s;
-
-            if (spanClosed.Any())
-                throw new Exception("Spans can´t be add after the root SpanEvent has been closed");
-        }
     }
 
     /// <summary>
@@ -78,6 +60,7 @@ public class Storage : IStorage
                     }
                 }, consumerLogger).GetAwaiter().GetResult();
 
+        // Todo: Add support for CancellationTokenSource and Timer - wait max 5 sec
         consumerTaskCompletionSource.Task.Wait();
 
         consumer.Close();
@@ -111,70 +94,25 @@ public class Storage : IStorage
                         ClientProvidedName = "FlowDance.AzureFunctions.Consumer",
                         MessageHandler = async (stream, consumer, context, message) =>
                         {
-                            try
-                            {
-                                var messageContent = JsonConvert.DeserializeObject<SpanEvent>(Encoding.UTF8.GetString(message.Data.Contents), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
-                                if (messageContent != null)
-                                    spanEventList.Add(messageContent);
+                            var messageContent = JsonConvert.DeserializeObject<SpanEvent>(Encoding.UTF8.GetString(message.Data.Contents), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
+                            if (messageContent != null)
+                                spanEventList.Add(messageContent);
 
-                                numberOfMessageReceived++;
+                            numberOfMessageReceived++;
 
-                                if (numberOfMessageReceived == (int)numberOfMessages)
-                                    consumerTaskCompletionSource.SetResult(1);
-                            }
-                            catch (Exception ex)
-                            {
-                                throw new Exception("", ex);
-                            }
+                            if (numberOfMessageReceived == (int)numberOfMessages)
+                                consumerTaskCompletionSource.SetResult(1);
 
                             await Task.CompletedTask;
                         }
                     }, consumerLogger).GetAwaiter().GetResult();
 
+            // Todo: Add support for CancellationTokenSource and Timer - wait max 5 sec
             consumerTaskCompletionSource.Task.Wait();
 
             consumer.Close();
         }
 
         return spanEventList;
-    }
-
-    /// <summary>
-    /// Check if a queue/stream exists. 
-    /// </summary>
-    /// <param name="name"></param>
-    /// <returns>True if stream exists, else false.</returns>
-    /// <exception cref="Exception"></exception>
-    public bool StreamExistOrQueue(string name)
-    {
-        try
-        {
-            var channel = SingletonConnection.GetInstance().GetConnection().CreateModel();
-            QueueDeclareOk ok = channel.QueueDeclarePassive(name);
-            channel.Close();
-        }
-        catch (RabbitMQ.Client.Exceptions.OperationInterruptedException ex)
-        {
-            if (ex.Message.Contains("no queue"))
-                return false;
-            else
-                throw new Exception("Non suspected exception occurred. See inner exception for more details.", ex);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception("Non suspected exception occurred. See inner exception for more details.", ex);
-        }
-
-        return true;
-    }
-
-    /// <summary>
-    /// Delete a stream. 
-    /// </summary>
-    /// <param name="streamName"></param>
-    public void DeleteStream(string streamName)
-    {
-        var streamSystem = SingletonStreamSystem.GetInstance(_streamLogger).GetStreamSystem();
-        streamSystem.DeleteStream(streamName);
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using FlowDance.Common.Events;
+using Microsoft.Extensions.Logging;
 
 namespace FlowDance.AzureFunctions.Services
 {
@@ -17,9 +18,19 @@ namespace FlowDance.AzureFunctions.Services
         {
             // Build a list of Spans from Span events.
             var spanEventList = _storage.ReadAllSpanEventsFromStream(streamName);
+            if (spanEventList.Any())
+            {
+                _logger.LogInformation("Stream has {count} events!", spanEventList.Count);
 
+                //// Rule #1 - Can´t add SpanEvent after the root SpanEvent has been closed.
+                //var spanOpened = spanList[0];
+                //var spanClosed = from s in spanList
+                //    where s.SpanId == spanOpened.SpanId && s.GetType() == typeof(SpanClosed)
+                //    select s;
 
-            _logger.LogInformation("Stream worked !");
+                //if (spanClosed.Any())
+                //    throw new Exception("Spans can´t be add after the root SpanEvent has been closed");
+            }
         }
     }
 }
