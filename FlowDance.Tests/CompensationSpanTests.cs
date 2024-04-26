@@ -42,11 +42,11 @@ public class CompensationSpanTests
     {
         var traceId = Guid.NewGuid();
 
-        // The top-most compensation scope is referred to as the root scope.
-        // Root scope
+        // The top-most compensation span is referred to as the root span.
+        // Root span
         using (CompensationSpan compSpanRoot = new CompensationSpan("http://localhost/TripBookingService/Compensation", traceId, _factory))
         {
-            // Inner scope
+            // Inner span
             using (CompensationSpan compSpanInnerCar = new CompensationSpan("http://localhost/CarService/Compensation", traceId, _factory))
             {
                 compSpanInnerCar.Complete();
@@ -132,7 +132,7 @@ public class CompensationSpanTests
         {
             /* Perform transactional work here */
 
-            // Inner scope 1
+            // Inner span 1
             using (CompensationSpan compSpanInner = new CompensationSpan("http://localhost/CarService/Compensation", traceId, _factory))
             {
                 /* Perform transactional work here */
@@ -140,7 +140,7 @@ public class CompensationSpanTests
                 compSpanInner.Complete();
             }
 
-              // Inner scope 2
+              // Inner span 2
             using (CompensationSpan compSpanInner = new CompensationSpan("http://localhost/HotelService/Compensation2", traceId, _factory))
             {
                 /* Perform transactional work here */

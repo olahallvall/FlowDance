@@ -10,15 +10,15 @@ namespace FlowDance.Client
     /// The CompensationSpan class provides a simple way to mark a block of code as participating in a flow dance/transaction that can be compensated.
     /// FlowDance.Client use a implicit programming model using the CompensationSpan class, in which compensating code blocks can be enlisted together using the same TraceId.
     ///
-    /// Voting inside a nested scope
-    /// Although a nested scope can join the ambient transaction (using the same TraceId) of the root scope, calling Complete in the nested scope has no affect on the root scope. 
+    /// Voting inside a nested span
+    /// Although a nested span can join the ambient transaction (using the same TraceId) of the root span, calling Complete in the nested span has no affect on the root span. 
     /// </summary>
     public class CompensationSpan : ICompensationSpan
     {
         private bool _disposedValue;
 
         private readonly Common.Events.SpanOpened _spanOpened;
-        private Common.Events.SpanClosed _spanClosed; 
+        private Common.Events.SpanClosed _spanClosed;
         private bool _completed;
         private readonly Storage _rabbitMqUtil;
         private readonly IConnection _connection;
@@ -28,7 +28,7 @@ namespace FlowDance.Client
         {
         }
 
-        public CompensationSpan(string compensationUrl, Guid traceId, [System.Runtime.CompilerServices.CallerMemberName] string callingFunctionName = "", ILoggerFactory loggerFactory)
+        public CompensationSpan(string compensationUrl, Guid traceId, ILoggerFactory loggerFactory, [System.Runtime.CompilerServices.CallerMemberName] string callingFunctionName = "")
         {
             var config = new ConfigurationBuilder().AddJsonFile($"appsettings.json").Build();
             var connectionFactory = new ConnectionFactory();
@@ -40,7 +40,14 @@ namespace FlowDance.Client
             _rabbitMqUtil = new Storage(loggerFactory);
 
             // Create the event - SpanEventOpened
-            _spanOpened = new Common.Events.SpanOpened() { TraceId = traceId, SpanId = Guid.NewGuid(), CompensationUrl = compensationUrl, Timestamp = DateTime.Now };
+            _spanOpened = new Common.Events.SpanOpened()
+            {
+                TraceId = traceId,
+                SpanId = Guid.NewGuid(),
+                CompensationUrl = compensationUrl,
+                CallingFunctionName = callingFunctionName,
+                Timestamp = DateTime.Now
+            };
 
             // Store the SpanEventOpened event
             _rabbitMqUtil.StoreEvent(_spanOpened, _connection, _channel);

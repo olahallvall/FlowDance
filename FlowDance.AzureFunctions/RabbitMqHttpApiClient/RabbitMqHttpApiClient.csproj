@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+	<PackageId>RabbitMqHttpApiClient</PackageId>
+    <PackageVersion>1.0.5</PackageVersion>
+    <Authors>Kuanysh Nabiyev</Authors>
+    <Description>C# wrapper for RabbitMQ HTTP Management API</Description>            
+	<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageReleaseNotes>bug fixes</PackageReleaseNotes>
+    <Copyright>Copyright 2017 (c) Kuanysh Nabiyev</Copyright>
+    <PackageTags>RabbitMQ</PackageTags>
+    <AssemblyVersion>1.0.5.0</AssemblyVersion>
+    <FileVersion>1.0.5.0</FileVersion>
+    <PackageLicenseUrl>https://github.com/kuanysh-nabiyev/RabbitMqHttpApiClient/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/kuanysh-nabiyev/RabbitMqHttpApiClient</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/kuanysh-nabiyev/RabbitMqHttpApiClient</RepositoryUrl>
+    <Version>1.0.5</Version>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="API\RabbitMqApi.VirtualHost.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+</Project>

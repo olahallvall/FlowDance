@@ -11,8 +11,8 @@ namespace FlowDance.Client.Legacy
     /// The CompensationSpan class provides a simple way to mark a block of code as participating in a flow dance/transaction that can be compensated.
     /// FlowDance.Client use a implicit programming model using the CompensationSpan class, in which compensating code blocks can be enlisted together using the same TraceId.
     ///
-    /// Voting inside a nested scope
-    /// Although a nested scope can join the ambient transaction (using the same TraceId) of the root scope, calling Complete in the nested scope has no affect on the root scope. 
+    /// Voting inside a nested span
+    /// Although a nested span can join the ambient transaction (using the same TraceId) of the root span, calling Complete in the nested span has no affect on the root span. 
     /// </summary>
     public class CompensationSpan : ICompensationSpan
     {
@@ -29,14 +29,15 @@ namespace FlowDance.Client.Legacy
         {
         }
 
-        public CompensationSpan(string compensationUrl, Guid traceId, [System.Runtime.CompilerServices.CallerMemberName] string callingFunctionName = "", ILoggerFactory loggerFactory)
+        public CompensationSpan(string compensationUrl, Guid traceId, ILoggerFactory loggerFactory, [System.Runtime.CompilerServices.CallerMemberName] string callingFunctionName = "")
         {
-            var connectionFactory = new ConnectionFactory();
-         
-            var hostName = ConfigurationManager.AppSettings["RabbitMqConnection.HostName"];
-            var username = ConfigurationManager.AppSettings["RabbitMqConnection.Username"];
-            var password = ConfigurationManager.AppSettings["RabbitMqConnection.Password"];
-            var virtualHost = ConfigurationManager.AppSettings["RabbitMqConnection.VirtualHost"];
+            var connectionFactory = new ConnectionFactory
+            {
+                HostName = ConfigurationManager.AppSettings["RabbitMqConnection.HostName"],
+                UserName = ConfigurationManager.AppSettings["RabbitMqConnection.Username"],
+                Password = ConfigurationManager.AppSettings["RabbitMqConnection.Password"],
+                VirtualHost = ConfigurationManager.AppSettings["RabbitMqConnection.VirtualHost"]
+            };
 
             _connection = connectionFactory.CreateConnection();
             _channel = _connection.CreateModel();
@@ -44,14 +45,21 @@ namespace FlowDance.Client.Legacy
             _rabbitMqUtil = new Storage(loggerFactory);
 
             // Create the event - SpanEventOpened
-            _spanOpened = new Common.Events.SpanOpened() { TraceId = traceId, SpanId = Guid.NewGuid(), CompensationUrl = compensationUrl, Timestamp = DateTime.Now };
+            _spanOpened = new Common.Events.SpanOpened()
+            {
+                TraceId = traceId,
+                SpanId = Guid.NewGuid(),
+                CompensationUrl = compensationUrl,
+                CallingFunctionName = callingFunctionName,
+                Timestamp = DateTime.Now
+            };
 
             // Store the SpanEventOpened event
             _rabbitMqUtil.StoreEvent(_spanOpened, _connection, _channel);
         }
 
         /// <summary>
-        /// When you are satisfied that all operations within the scope are completed successfully, you should call this method only once to 
+        /// When you are satisfied that all operations within the span are completed successfully, you should call this method only once to 
         /// inform that transaction manager that the state across all resources is consistent, and the transaction can be committed. 
         /// It is very good practice to put the call as the last statement in the using block. If not, the Span will be called for compensation.
         /// </summary>
@@ -71,7 +79,7 @@ namespace FlowDance.Client.Legacy
 
                     // Store the SpanClosed event and calculates IsRootSpan
                     _rabbitMqUtil!.StoreEvent(_spanClosed, _connection, _connection.CreateModel());
-                    
+
                     // Check if this is a RootSpan, if so determine compensation.
                     if (_spanOpened.IsRootSpan)
                     {

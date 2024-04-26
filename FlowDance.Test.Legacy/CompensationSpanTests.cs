@@ -1,7 +1,6 @@
 using System;
 using FlowDance.Client.Legacy;
 using FlowDance.Client.Legacy.RabbitMq;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -11,8 +10,7 @@ namespace FlowDance.Test.Legacy
     public class CompensationSpanTests
     {
         private static ILoggerFactory _loggerFactory;
-        private static IConfigurationRoot _config;
-
+     
         [ClassInitialize()]
         public static void ClassInit(TestContext context)
         {
@@ -20,8 +18,6 @@ namespace FlowDance.Test.Legacy
             {
                 builder.AddConsole();
             }); 
-
-            _config = new ConfigurationBuilder().AddJsonFile($"appsettings.json").Build();
         }
 
         [TestMethod]
@@ -44,13 +40,13 @@ namespace FlowDance.Test.Legacy
 
             var traceId = Guid.NewGuid();
 
-            // The top-most compensation scope is referred to as the root scope.
-            // Root scope
+            // The top-most compensation span is referred to as the root span.
+            // Root span
             using (CompensationSpan compSpanRoot = new CompensationSpan("http://localhost/TripBookingService/Compensation", traceId, _loggerFactory))
             {
                 /* Perform transactional work here */
 
-                // Inner scope
+                // Inner span
                 using (CompensationSpan compSpanInner = new CompensationSpan("http://localhost/CarService/Compensation", traceId, _loggerFactory))
                 {
                     /* Perform transactional work here */
@@ -141,7 +137,7 @@ namespace FlowDance.Test.Legacy
             {
                 /* Perform transactional work here */
 
-                // Inner scope 1
+                // Inner span 1
                 using (CompensationSpan compSpanInner = new CompensationSpan("http://localhost/HotelService/Compensation1", traceId, _loggerFactory))
                 {
                     /* Perform transactional work here */
@@ -149,7 +145,7 @@ namespace FlowDance.Test.Legacy
                     compSpanInner.Complete();
                 }
 
-                // Inner scope 2
+                // Inner span 2
                 using (CompensationSpan compSpanInner = new CompensationSpan("http://localhost/HotelService/Compensation2", traceId, _loggerFactory))
                 {
                     /* Perform transactional work here */

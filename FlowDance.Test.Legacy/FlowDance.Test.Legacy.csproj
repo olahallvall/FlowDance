@@ -64,6 +64,15 @@
     <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=8.0.0.1, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.Abstractions.8.0.1\lib\net462\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Extensions.FileProviders.Abstractions, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.FileProviders.Abstractions.8.0.0\lib\net462\Microsoft.Extensions.FileProviders.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.FileProviders.Physical, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.FileProviders.Physical.8.0.0\lib\net462\Microsoft.Extensions.FileProviders.Physical.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.FileSystemGlobbing, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.FileSystemGlobbing.8.0.0\lib\net462\Microsoft.Extensions.FileSystemGlobbing.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Extensions.Logging, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.Logging.8.0.0\lib\net462\Microsoft.Extensions.Logging.dll</HintPath>
     </Reference>
@@ -72,6 +81,9 @@
     </Reference>
     <Reference Include="Microsoft.Extensions.Logging.Configuration, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.Logging.Configuration.8.0.0\lib\net462\Microsoft.Extensions.Logging.Configuration.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Logging.Console, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Logging.Console.8.0.0\lib\net462\Microsoft.Extensions.Logging.Console.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Extensions.Options, Version=8.0.0.2, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.Options.8.0.2\lib\net462\Microsoft.Extensions.Options.dll</HintPath>
@@ -111,6 +123,9 @@
     </Reference>
     <Reference Include="Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\MSTest.TestFramework.3.3.1\lib\net462\Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Frameworks, Version=6.9.1.3, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\NuGet.Frameworks.6.9.1\lib\net472\NuGet.Frameworks.dll</HintPath>
@@ -167,6 +182,82 @@
   <ItemGroup>
     <Compile Include="CompensationSpanTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RabbitMqHttpApiClient\API\RabbitMqApi.Binding.cs" />
+    <Compile Include="RabbitMqHttpApiClient\API\RabbitMqApi.Channel.cs" />
+    <Compile Include="RabbitMqHttpApiClient\API\RabbitMqApi.Connection.cs" />
+    <Compile Include="RabbitMqHttpApiClient\API\RabbitMqApi.Consumer.cs" />
+    <Compile Include="RabbitMqHttpApiClient\API\RabbitMqApi.cs" />
+    <Compile Include="RabbitMqHttpApiClient\API\RabbitMqApi.Definition.cs" />
+    <Compile Include="RabbitMqHttpApiClient\API\RabbitMqApi.Exchange.cs" />
+    <Compile Include="RabbitMqHttpApiClient\API\RabbitMqApi.Node.cs" />
+    <Compile Include="RabbitMqHttpApiClient\API\RabbitMqApi.Permission.cs" />
+    <Compile Include="RabbitMqHttpApiClient\API\RabbitMqApi.Queue.cs" />
+    <Compile Include="RabbitMqHttpApiClient\API\RabbitMqApi.SystemInfo.cs" />
+    <Compile Include="RabbitMqHttpApiClient\API\RabbitMqApi.User.cs" />
+    <Compile Include="RabbitMqHttpApiClient\API\RabbitMqApi.VirtualHost.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\ChannelModel\Channel.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\ChannelModel\ConnectionDetails.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\ChannelModel\GarbageCollection.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\ClusterModel\Cluster.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\Common\Arguments.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\Common\ExchangeType.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\Common\MessageStats.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\Common\MessageStatsModel\IAck.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\Common\MessageStatsModel\IConfirm.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\Common\MessageStatsModel\IDeliver.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\Common\MessageStatsModel\IDeliverGet.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\Common\MessageStatsModel\IDeliverNoAck.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\Common\MessageStatsModel\IDiskInfo.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\Common\MessageStatsModel\IGet.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\Common\MessageStatsModel\IGetNoAck.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\Common\MessageStatsModel\IPublishInfo.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\Common\MessageStatsModel\IRedeliver.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\Common\MessageStatsModel\IReturnUnroutable.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\Common\RateDetails.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\Common\RequestErrorResponse.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\ConnectionModel\Capabilities.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\ConnectionModel\ClientProperties.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\ConnectionModel\Connection.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\ConnectionModel\GarbageCollection.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\ConsumerModel\ChannelDetails.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\ConsumerModel\Consumer.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\ConsumerModel\Queue.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\DefinitionModel\Binding.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\DefinitionModel\IDefinition.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\DefinitionModel\Permission.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\DefinitionModel\Queue.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\DefinitionModel\SystemDefinition.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\DefinitionModel\User.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\DefinitionModel\VhostDefinition.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\DefinitionModel\VirtualHost.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\ExchangeModel\Exchange.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\ExchangeModel\MessageStats.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\ExchangeModel\PublishMessageModel\PayloadEncoding.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\ExchangeModel\PublishMessageModel\Properties.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\ExchangeModel\PublishMessageModel\PublishMessageRequest.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\ExchangeModel\PublishMessageModel\PublishMessageResponse.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\NodeModel\Application.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\NodeModel\AuthMechanism.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\NodeModel\Context.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\NodeModel\Node.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\NodeModel\NodeBinary.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\NodeModel\NodeMemory.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\QueueModel\BackingQueueStatus.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\QueueModel\GarbageCollection.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\QueueModel\GetQueueMessagesRequest.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\QueueModel\Queue.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\QueueModel\QueueMessage.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\QueueModel\QueueMessageStats.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\SystemInfoModel\HealthCheck.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\SystemInfoModel\ManagementPluginExtension.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\SystemInfoModel\OverviewInfo\Context.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\SystemInfoModel\OverviewInfo\Listener.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\SystemInfoModel\OverviewInfo\ObjectTotals.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\SystemInfoModel\OverviewInfo\Overview.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\SystemInfoModel\OverviewInfo\QueueTotals.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Models\VirtualHostModel\VirtualHost.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Utils\EpochDateTimeConverter.cs" />
+    <Compile Include="RabbitMqHttpApiClient\Utils\UrlPathEncoder.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
