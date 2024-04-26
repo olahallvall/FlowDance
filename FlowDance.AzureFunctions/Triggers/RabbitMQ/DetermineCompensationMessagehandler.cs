@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using FlowDance.Common.Commands;
 using FlowDance.AzureFunctions.Services;
+using Microsoft.DurableTask.Client;
 
 namespace FlowDance.AzureFunctions.Triggers.RabbitMQ
 {
@@ -18,11 +19,15 @@ namespace FlowDance.AzureFunctions.Triggers.RabbitMQ
         }
 
         [Function("DetermineCompensationMessagehandler")]
-        public void Run([RabbitMQTrigger("FlowDance.DetermineCompensation", ConnectionStringSetting = "FlowDanceRabbitMqConnection")] string queueItem)
+        public void Run(
+                [RabbitMQTrigger("FlowDance.DetermineCompensation", 
+                ConnectionStringSetting = "FlowDanceRabbitMqConnection")] string queueItem,
+                [DurableClient] DurableTaskClient orchestrationClient,
+                FunctionContext context)
         {
             var determineCompensationCommand = JsonConvert.DeserializeObject<DetermineCompensation>(queueItem);
 
-            _determineCompensationService.DetermineCompensation(determineCompensationCommand.TraceId.ToString());
+            _determineCompensationService.DetermineCompensation(determineCompensationCommand.TraceId.ToString(), orchestrationClient);
 
             _logger.LogInformation($"C# Queue trigger function processed: {queueItem}");
         }

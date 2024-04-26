@@ -1,4 +1,4 @@
-﻿using FlowDance.Common.Events;
+﻿using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 
 namespace FlowDance.AzureFunctions.Services
@@ -14,7 +14,7 @@ namespace FlowDance.AzureFunctions.Services
             _storage = storage;
         }
 
-        public void DetermineCompensation(string streamName)
+        public void DetermineCompensation(string streamName, DurableTaskClient orchestrationClient)
         {
             // Build a list of Spans from Span events.
             var spanEventList = _storage.ReadAllSpanEventsFromStream(streamName);
@@ -31,6 +31,9 @@ namespace FlowDance.AzureFunctions.Services
                 //if (spanClosed.Any())
                 //    throw new Exception("Spans can´t be add after the root SpanEvent has been closed");
             }
+
+            // ToDo: spanEventList need tags for serialization 
+            string instanceId = orchestrationClient.ScheduleNewOrchestrationInstanceAsync(nameof(Sagas.CompensatingSaga), spanEventList).Result;
         }
     }
 }
