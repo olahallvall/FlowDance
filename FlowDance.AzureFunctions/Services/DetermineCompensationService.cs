@@ -15,7 +15,11 @@ namespace FlowDance.AzureFunctions.Services
 
         public void DetermineCompensation(string streamName)
         {
-            _logger.LogInformation("Steam worked !");
+            // Build a list of Spans from Span events.
+            var spanEventList = _storage.ReadAllSpanEventsFromStream(streamName);
+
+
+            _logger.LogInformation("Stream worked !");
         }
     }
 }

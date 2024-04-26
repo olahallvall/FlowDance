@@ -18,7 +18,6 @@ namespace FlowDance.AzureFunctions.Services;
 public class Storage : IStorage
 {
     private readonly ILoggerFactory _loggerFactory;
-    private readonly ILogger<Producer> _producerLogger;
     private readonly ILogger<Consumer> _consumerLogger;
     private readonly ILogger<StreamSystem> _streamLogger;
 
@@ -26,108 +25,19 @@ public class Storage : IStorage
     {
         _loggerFactory = loggerFactory;
 
-        _producerLogger = _loggerFactory.CreateLogger<Producer>();
         _consumerLogger = _loggerFactory.CreateLogger<Consumer>();
         _streamLogger = _loggerFactory.CreateLogger<StreamSystem>();
     }
 
-    public void StoreEvent(SpanEvent spanEvent)
-    {
-        var streamName = spanEvent.TraceId.ToString();
-        var confirmationTaskCompletionSource = new TaskCompletionSource<int>();
-
-        //Check if stream/queue exist. 
-        if (StreamExistOrQueue(streamName))
-        {
-            // Only first spanEvent in stream should be a root spanEvent.
-            if (spanEvent is SpanOpened)
-                ((SpanOpened)spanEvent).IsRootSpan = false;
-
-            // Get StreamSystem
-            var streamSystem = SingletonStreamSystem.GetInstance(_streamLogger).GetStreamSystem();
-
-            // Validate against previous events grouped by the same TraceId. 
-            ValidateStoredSpans(ReadAllSpansFromStream(spanEvent.TraceId.ToString()));
-
-            // Create producer
-            var producer = CreateProducer(streamName, streamSystem, confirmationTaskCompletionSource, _producerLogger);
-
-            // Send a messages     
-            var message = new Message(Encoding.Default.GetBytes(JsonConvert.SerializeObject(spanEvent, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All })));
-            producer.Send(message);
-
-            // Wait for confirmation feedback 
-            confirmationTaskCompletionSource.Task.Wait();
-
-            // Close producer
-            producer.Close();
-        }
-        else // Stream don´t exists.
-        {
-            // SpanClosed should newer create the CreateQueue. Only SpanEventOpened are allowed to do that!  
-            if (spanEvent is SpanClosed)
-                throw new Exception("The event SpanClosed are trying to create a stream for the first time. This not allowed, only SpanEventOpened are allowed to do that!");
-
-            if (spanEvent is SpanOpened)
-                ((SpanOpened)spanEvent).IsRootSpan = true;
-
-            // Create stream/queue
-            CreateStream(streamName);
-
-            // Get StreamSystem
-            var streamSystem = SingletonStreamSystem.GetInstance(_streamLogger).GetStreamSystem();
-
-            // Create producer
-            var producer = CreateProducer(streamName, streamSystem, confirmationTaskCompletionSource, _producerLogger);
-
-            // Send a messages     
-            var message = new Message(Encoding.Default.GetBytes(JsonConvert.SerializeObject(spanEvent, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All })));
-            producer.Send(message);
-
-            // Wait for confirmation feedback 
-            confirmationTaskCompletionSource.Task.Wait();
-
-            // Close producer
-            producer.Close();
-        }
-    }
-
-    public void StoreCommand(DetermineCompensation command)
-    {
-        var channel = SingletonConnection.GetInstance().GetConnection().CreateModel();
-        channel.ConfirmSelect();
-
-        channel.QueueDeclare(queue: "FlowDance.DetermineCompensation",
-            durable: true,
-            exclusive: false,
-            autoDelete: false,
-            arguments: null);
-
-        var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(command));
-
-        channel.BasicPublish(exchange: string.Empty,
-            routingKey: "FlowDance.DetermineCompensation",
-            basicProperties: null,
-            body: body);
-
-        channel.WaitForConfirmsOrDie(TimeSpan.FromSeconds(5));
-
-        channel.Close();
-    }
-
-    public List<SpanEvent> ReadAllSpansFromStream(string streamName)
+    public List<SpanEvent> ReadAllSpanEventsFromStream(string streamName)
     {
         return ReadAllSpansFromStream(streamName, _consumerLogger);
     }
 
     private void ValidateStoredSpans(List<SpanEvent> spanList)
     {
-        
         if (spanList.Any())
         {
-            var sw = new Stopwatch();
-            sw.Start();
-
             // Rule #1 - Can´t add SpanEvent after the root SpanEvent has been closed.
             var spanOpened = spanList[0];
             var spanClosed = from s in spanList
@@ -136,11 +46,7 @@ public class Storage : IStorage
 
             if (spanClosed.Any())
                 throw new Exception("Spans can´t be add after the root SpanEvent has been closed");
-
-            sw.Stop();
-            _streamLogger.LogInformation("A call to ValidateStoredSpans runs for {0} ms.", sw.Elapsed.TotalMilliseconds);
         }
-
     }
 
     /// <summary>
@@ -189,11 +95,8 @@ public class Storage : IStorage
     /// <exception cref="Exception"></exception>
     private List<SpanEvent> ReadAllSpansFromStream(string streamName, ILogger<Consumer> consumerLogger)
     {
-        var sw = new Stopwatch();
-        sw.Start();
-
         var numberOfMessages = GetLastOffset(streamName, consumerLogger) + 1;
-        var spanList = new List<SpanEvent>();
+        var spanEventList = new List<SpanEvent>();
 
         if (numberOfMessages > 0)
         {
@@ -205,14 +108,14 @@ public class Storage : IStorage
                     new ConsumerConfig(streamSystem, streamName)
                     {
                         OffsetSpec = new OffsetTypeFirst(),
-                        ClientProvidedName = "FlowDance.Client.Consumer",
+                        ClientProvidedName = "FlowDance.AzureFunctions.Consumer",
                         MessageHandler = async (stream, consumer, context, message) =>
                         {
                             try
                             {
                                 var messageContent = JsonConvert.DeserializeObject<SpanEvent>(Encoding.UTF8.GetString(message.Data.Contents), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
                                 if (messageContent != null)
-                                    spanList.Add(messageContent);
+                                    spanEventList.Add(messageContent);
 
                                 numberOfMessageReceived++;
 
@@ -231,12 +134,9 @@ public class Storage : IStorage
             consumerTaskCompletionSource.Task.Wait();
 
             consumer.Close();
-
-            sw.Stop();
-            _streamLogger.LogInformation("A call to ReadAllSpansFromStream runs for {0} ms.", sw.Elapsed.TotalMilliseconds);
         }
 
-        return spanList;
+        return spanEventList;
     }
 
     /// <summary>
@@ -249,15 +149,9 @@ public class Storage : IStorage
     {
         try
         {
-            var sw = new Stopwatch();
-            sw.Start();
-
             var channel = SingletonConnection.GetInstance().GetConnection().CreateModel();
             QueueDeclareOk ok = channel.QueueDeclarePassive(name);
             channel.Close();
-
-            sw.Stop();
-            _streamLogger.LogInformation("A call to StreamExistOrQueue runs for {0} ms.", sw.Elapsed.TotalMilliseconds);
         }
         catch (RabbitMQ.Client.Exceptions.OperationInterruptedException ex)
         {
@@ -275,23 +169,6 @@ public class Storage : IStorage
     }
 
     /// <summary>
-    /// Create a stream. 
-    /// </summary>
-    /// <param name="streamName"></param>
-    public void CreateStream(string streamName)
-    {
-        var sw = new Stopwatch();
-        sw.Start();
-
-        var streamSystem = SingletonStreamSystem.GetInstance(_streamLogger).GetStreamSystem();
-        streamSystem.CreateStream(
-            new StreamSpec(streamName) { });
-
-        sw.Stop();
-        _streamLogger.LogInformation("A call to StreamExistOrQueue runs for {0} ms.", sw.Elapsed.TotalMilliseconds);
-    }
-
-    /// <summary>
     /// Delete a stream. 
     /// </summary>
     /// <param name="streamName"></param>
@@ -299,55 +176,5 @@ public class Storage : IStorage
     {
         var streamSystem = SingletonStreamSystem.GetInstance(_streamLogger).GetStreamSystem();
         streamSystem.DeleteStream(streamName);
-    }
-
-    /// <summary>
-    /// Creates a producer. See https://github.com/rabbitmq/rabbitmq-stream-dotnet-client/blob/main/docs/Documentation/ProducerUsage.cs
-    /// </summary>
-    /// <param name="streamName"></param>
-    /// <param name="streamSystem"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentOutOfRangeException"></exception>
-    private Producer CreateProducer(string streamName, StreamSystem streamSystem, TaskCompletionSource<int> confirmationTaskCompletionSource, ILogger<Producer> procuderLogger)
-    {
-        var sw = new Stopwatch();
-        sw.Start();
-
-        var producer = Producer.Create(
-            new ProducerConfig(
-                streamSystem,
-                streamName)
-            {
-                ClientProvidedName = "FlowDance.Client.Producer",
-                ConfirmationHandler = async confirmation =>
-                {
-                    switch (confirmation.Status)
-                    {
-                        case ConfirmationStatus.Confirmed:
-                            Console.WriteLine("Message confirmed");
-                            break;
-                        case ConfirmationStatus.ClientTimeoutError:
-                        case ConfirmationStatus.StreamNotAvailable:
-                        case ConfirmationStatus.InternalError:
-                        case ConfirmationStatus.AccessRefused:
-                        case ConfirmationStatus.PreconditionFailed:
-                        case ConfirmationStatus.PublisherDoesNotExist:
-                        case ConfirmationStatus.UndefinedError:
-                            Console.WriteLine("Message not confirmed with error: {0}", confirmation.Status);
-                            break;
-
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
-                    confirmationTaskCompletionSource.SetResult(1);
-
-                    await Task.CompletedTask;
-                }
-            }, procuderLogger).GetAwaiter().GetResult();
-
-        sw.Stop();
-        _streamLogger.LogInformation("A call to CreateProducer runs for {0} ms.", sw.Elapsed.TotalMilliseconds);
-
-        return producer;
     }
 }

@@ -66,5 +66,15 @@ namespace FlowDance.Test.Legacy.RabbitMqHttpApiClient.API
             string path = $"/api/queues/{virtualHost.Encode()}/{queueName.Encode()}/contents";
             return await DoDeleteCall(path);
         }
+
+        /// <summary>
+        /// Delete a given queue
+        /// </summary>
+        /// <returns>true if all messages is deleted</returns>
+        public async Task<bool> DeleteQueue(string virtualHost, string queueName)
+        {
+            string path = $"/api/queues/{virtualHost.Encode()}/{queueName.Encode()}";
+            return await DoDeleteCall(path);
+        }
     }
 }
