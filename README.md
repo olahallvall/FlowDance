@@ -43,24 +43,34 @@ In short - by replacing **System.Transactions.TransactionScope** with **FlowDanc
 
 ![Synchronous choreography-based call chains supported by FlowDance](Docs/synchronous-choreography-based-call-chains-with-flowdance.png)
 
-In center of **FlowDance**, there is something called a **CompensationSpan**. A **CompensationSpan** carries the information for how a transaction can be compensated.
+At the core of **FlowDance**, there is something called a **CompensationSpan**. A **CompensationSpan** carries the information for how a transaction can be compensated.
 A **CompensationSpan** is initialized using the **SpanOpened** event and closed using the **SpanClosed** event. The image above shows how these two types of events are stored in RabbitMQ.
 
 For every CompensationSpan we use in our code, we will generate two events; SpanOpened and SpanClosed. As a "user" of the CompensationSpan you will never see this events, they are in the background.
+
 When a SpanEvent (SpanOpened or SpanClosed) is created, it´s stored in a **RabbitMQ Stream**. A **Stream** is a persistent and replicated data structure that models an append-only log with non-destructive consumer semantics. 
 Unlike traditional queues, which delete messages once consumed, streams allow consumers to attach at any point in the log and read from there. They provide a powerful way to manage and process messages efficiently. 🐰📜
 
-The initial CompensationSpan is called the Root Span, and it serves as the starting point for subsequent calls. Subsequent CompensationSpans share the same Correlation ID as the Root Span.
+The initial CompensationSpan is called the Root Span, and it serves as the starting point for subsequent calls. Subsequent CompensationSpans share the same Correlation ID / Trace ID as the Root Span.
 
 In the image below, we have replaced `System.Transactions.TransactionScope` with `FlowDance.Client.CompensationSpan`. Instead of using MSDTC, a RabbitMQ is employed to store data related to a Span.
 
 ![Synchronous choreography-based call chains supported by FlowDance](Docs/synchronous-choreography-based-call-chains-with-span.png)
 
-## A CompensationSpan in detail
-
+**A CompensationSpan in detail**
 A CompensationSpan ...
 
-### How to work with Spans in code
+
+## This is Where the Magic Happens
+FlowDance consist of two main parts; FlowDance.Client and FlowDance.AzureFunctions tied together with RabbitMQ.
+
+As a user of FlowDance you add a reference to FlowDance.Client from our code. By doing that you can start using CompensationSpan class.
+
+In FlowDance.AzureFunctions runs a orchestration named **CompensatingSaga**. 
+The **CompensatingSaga** reads all the SpanEvent (SpanOpened or SpanClosed) for Correlation ID / Trace ID and creates a CompensationSpanList.
+Depending on if a Span are marked for compensation in the CompensationSpanList the CompensatingSaga will start to compensate that Span.
+
+## How to work with CompensationSpan in code
 
 Here we create a root span. 
 
@@ -113,13 +123,9 @@ public void RootWithInnerCompensationSpan()
 }
 ```
 
-Semantic Rollback
 
-**Components of FlowDance**:
-    - **Client Library**: The prima ballerina, guiding services in their graceful movements.
-    - **Back-End Service**: A symphony of RabbitMQ and Microsoft Azure Durable Functions.
-        - **Azure Durable Functions**: The conductor, orchestrating communication between services when compensating transaction has to be executed.
-        - **RabbitMQ**: Stores the eventdata from each CompensationSpan in a call chain.
+Semantic Rollback... 
+
 
 
 Remember, FlowDance isn't just about dancing—it's about orchestrating microservices with grace when compensating transaction has to be executed! 🕺💃
