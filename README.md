@@ -17,7 +17,6 @@ FlowDance aims to address several critical aspects in the context of microservic
 **Moving Away from Strong Consistency to Eventual Consistency Using the Compensating Transaction Pattern**:
     In distributed systems, achieving strong consistency (ACID properties) across all services can be challenging.
     FlowDance embraces **eventual consistency**, where operations may temporarily yield inconsistent results.
-
     The **Compensating Transaction Pattern** comes into play when a step in a process fails.
     If a step cannot be fully rolled back (e.g., due to concurrent changes), compensating transactions undo the effects of previous steps.
     This pattern ensures that the system eventually converges to a consistent state, even after partial failures.
@@ -49,8 +48,6 @@ A **CompensationSpan** is initialized using the **SpanOpened** event and closed 
 The initial CompensationSpan is called the Root Span, and it serves as the starting point for subsequent calls. Subsequent CompensationSpans share the same Correlation ID as the Root Span.
 When a SpanEvent is created, it´s stored in a **RabbitMQ Stream**. A **Stream** is a persistent and replicated data structure that models an append-only log with non-destructive consumer semantics. 
 Unlike traditional queues, which delete messages once consumed, streams allow consumers to attach at any point in the log and read from there. They provide a powerful way to manage and process messages efficiently. 🐰📜
-
-![Synchronous choreography-based call chains supported by FlowDance](Docs/spans-saved-in-rabbitmq.png)
 
 In the image below, we have replaced `System.Transactions.TransactionScope` with `FlowDance.Client.CompensationSpan`. Instead of using MSDTC, a RabbitMQ is employed to store data related to a Span.
 
