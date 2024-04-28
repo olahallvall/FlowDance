@@ -39,11 +39,12 @@ In short - by replacing **System.Transactions.TransactionScope** with **FlowDanc
 
 ![Synchronous choreography-based call chains supported by FlowDance](Docs/synchronous-choreography-based-call-chains-with-flowdance.png)
 
-In center of **FlowDance**, there is something called a **Span**. A **Span** carries the information for how a transaction can be compensated.
-A **Span** is initialized using the **SpanOpened** event and closed using the **SpanClosed** event. The image below illustrates a **Span** with a blue bracket.
+In center of **FlowDance**, there is something called a **CompensationSpan**. A **CompensationSpan** carries the information for how a transaction can be compensated.
+A **CompensationSpan** is initialized using the **SpanOpened** event and closed using the **SpanClosed** event. The image below illustrates a **CompensationSpan** with a blue bracket.
 
-The initial Span is called the Root Span, and it serves as the starting point for subsequent calls. Subsequent Spans share the same Correlation ID as the Root Span.
-When **Spans** are created, they are stored in a **RabbitMQ Stream**. A **Stream** is a persistent and replicated data structure that models an append-only log with non-destructive consumer semantics. Unlike traditional queues, which delete messages once consumed, streams allow consumers to attach at any point in the log and read from there. They provide a powerful way to manage and process messages efficiently. 🐰📜
+The initial CompensationSpan is called the Root Span, and it serves as the starting point for subsequent calls. Subsequent CompensationSpans share the same Correlation ID as the Root Span.
+When a SpanEvent is created, it´s stored in a **RabbitMQ Stream**. A **Stream** is a persistent and replicated data structure that models an append-only log with non-destructive consumer semantics. 
+Unlike traditional queues, which delete messages once consumed, streams allow consumers to attach at any point in the log and read from there. They provide a powerful way to manage and process messages efficiently. 🐰📜
 
 ![Synchronous choreography-based call chains supported by FlowDance](Docs/spans-saved-in-rabbitmq.png)
 
@@ -51,9 +52,9 @@ In the image below, we have replaced `System.Transactions.TransactionScope` with
 
 ![Synchronous choreography-based call chains supported by FlowDance](Docs/synchronous-choreography-based-call-chains-with-span.png)
 
-## A Span in detail
+## A CompensationSpan in detail
 
-A Span ...
+A CompensationSpan ...
 
 ### How to work with Spans in code
 
@@ -107,6 +108,8 @@ public void RootWithInnerCompensationSpan()
     }
 }
 ```
+
+Semantic Rollback
 
 **Components of FlowDance**:
     - **Client Library**: The prima ballerina, guiding services in their graceful movements.

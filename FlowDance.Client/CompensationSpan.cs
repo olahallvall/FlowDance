@@ -3,6 +3,7 @@ using FlowDance.Common.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
+using System.Runtime.InteropServices;
 
 namespace FlowDance.Client
 {
@@ -70,7 +71,14 @@ namespace FlowDance.Client
                 if (disposing)
                 {
                     // Create the event - SpanClosed
-                    _spanClosed = new Common.Events.SpanClosed() { TraceId = _spanOpened.TraceId, SpanId = _spanOpened.SpanId, MarkedAsCommitted = _completed, Timestamp = DateTime.Now };
+                    _spanClosed = new Common.Events.SpanClosed()
+                    {
+                        TraceId = _spanOpened.TraceId,
+                        SpanId = _spanOpened.SpanId,
+                        MarkedAsCommitted = _completed,
+                        Timestamp = DateTime.Now,
+                        ExceptionDetected = Marshal.GetExceptionCode() != 0 
+                    };
 
                     // Store the SpanClosed event and calculates IsRootSpan
                     _rabbitMqUtil!.StoreEvent(_spanClosed, _connection, _connection.CreateModel());

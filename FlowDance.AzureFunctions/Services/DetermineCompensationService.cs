@@ -32,8 +32,14 @@ namespace FlowDance.AzureFunctions.Services
                                        select (SpanOpened)so;
 
                 // Pick all SpanOpened event and create a Span for each
-                spanList.AddRange(spanOpenEvents.Select(spanOpenEvent => new Span() {SpanOpened = spanOpenEvent}));
+                spanList.AddRange(spanOpenEvents.Select(spanOpenEvent => new Span()
+                {
+                    SpanOpened = spanOpenEvent,
+                    SpanId = spanOpenEvent.SpanId,
+                    TraceId = spanOpenEvent.TraceId
+                }));
 
+                // Try to find a SpanClosed for each SpanOpened and group them in the same Span-instance. 
                 foreach (var span in spanList)
                 {
                     var spanClosedEvent = (from sc in spanEventList
@@ -46,8 +52,39 @@ namespace FlowDance.AzureFunctions.Services
                     }
                 }
 
-                // Start the Saga
-                string instanceId = orchestrationClient.ScheduleNewOrchestrationInstanceAsync(nameof(Sagas.CompensatingSaga), spanList).Result;
+                // Validate that every Span has a valid SpanOpened and SpanClosed
+                foreach (var span in spanList)
+                {
+                    if (span.SpanOpened == null || span.SpanClosed == null)
+                    {
+                        _logger.LogError("A Span need a valid SpanOpened and SpanClosed instance. Span with spanId {spanId} for TraceId {traceId} are missing one or both!", span.SpanId, span.TraceId);
+                        throw new Exception("A Span need a valid SpanOpened and SpanClosed instance. Span with spanId {spanId} for TraceId {traceId} are missing one or both!");
+                    }
+                }
+
+                // Check if we need to start the Orchestration - if things is ok is unnecessary to start an Orchestration...
+                var startOrchestration = false;
+
+                // Search for Span where MarkedAsCommitted is false
+                var markedAsCommittedSpans = (from s in spanList
+                    where s.SpanClosed.MarkedAsCommitted == false
+                    select s).ToList();
+
+                // Search for Span where ExceptionDetected is true
+                var exceptionDetectedSpans = (from s in spanList
+                    where s.SpanClosed.ExceptionDetected == true
+                    select s).ToList();
+
+                if (markedAsCommittedSpans.Any() || exceptionDetectedSpans.Any())
+                    startOrchestration = true;
+
+                if (startOrchestration)
+                {
+                     string instanceId = orchestrationClient.ScheduleNewOrchestrationInstanceAsync(nameof(Sagas.CompensatingSaga), spanList).Result;
+                     _logger.LogInformation("Starting CompensatingSaga with instanceId {instanceId} for traceId {traceId}", instanceId , spanList[0].SpanOpened.TraceId);
+                }
+                else
+                    _logger.LogInformation("No CompensatingSaga was needed for traceId {traceId}", spanList[0].SpanOpened.TraceId);
             }
         }
     }

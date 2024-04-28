@@ -15,7 +15,21 @@ namespace FlowDance.AzureFunctions.Sagas
 
             logger.LogInformation("Start CompensatingSaga");
 
+            if (spanList == null)
+            {
+                logger.LogWarning("There no Spans in the SpanList! The Orchestrator has noting to work with an will exit.");
+                return;
+            }
 
+            // Reverse the order of Spans 
+            spanList.Reverse();
+            foreach (var span in spanList)
+            {
+                // Call Compensating URL for each Span in reverse order.
+                var compensationUrl = span.SpanOpened.CompensationUrl;
+
+
+            }
         }
     }
 }

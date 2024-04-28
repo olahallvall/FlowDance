@@ -3,5 +3,6 @@
     public class SpanClosed : SpanEvent
     {
         public bool MarkedAsCommitted { get; set; }
+        public bool ExceptionDetected { get; set; }
     }
 }
