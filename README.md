@@ -1,39 +1,43 @@
 # FlowDance
 FlowDance aims to address several critical aspects in the context of microservices architecture. Let's delve into each of these goals:
 
-**Support Interservice Communication Between Microservices (Database-per-Service Pattern)**:
+**Support Inter-service Communication Between Microservices (Database-per-Service Pattern)**:
     In a microservices architecture, each service often manages its own database. The **Database-per-Service Pattern** encourages this separation.
     By adopting this pattern, services can communicate with each other through well-defined APIs, avoiding direct database access.
     This approach enhances modularity, scalability, and isolation, allowing services to evolve independently.
 
-**Replacing Distributed Transactions Calls Driven by MSDTC with Synchronous RPC-Calls Sharing a Correlation ID/Trace ID**:
+**Replacing Distributed Transactions Calls supported by MSDTC**:
     MSDTC (Microsoft Distributed Transaction Coordinator) is commonly used for distributed transactions across multiple databases.
     However, MSDTC introduces complexity, performance overhead, and potential deadlocks.
     FlowDance proposes a shift towards synchronous RPC (Remote Procedure Call) communication.
-    Services share a **Correlation ID** to track related requests across the system.
+    Services share a **Correlation ID / Trace ID** to track related requests across the system.
     Instead of distributed transactions, services coordinate their actions using synchronous calls, simplifying the architecture.
     While strong consistency is essential in some business cases, FlowDance aims to minimize the need for distributed transactions.
 
 **Moving Away from Strong Consistency to Eventual Consistency Using the Compensating Transaction Pattern**:
     In distributed systems, achieving strong consistency (ACID properties) across all services can be challenging.
     FlowDance embraces **eventual consistency**, where operations may temporarily yield inconsistent results.
+
     The **Compensating Transaction Pattern** comes into play when a step in a process fails.
     If a step cannot be fully rolled back (e.g., due to concurrent changes), compensating transactions undo the effects of previous steps.
     This pattern ensures that the system eventually converges to a consistent state, even after partial failures.
 
 ## Where you might be today?
-The team(s) has been working to split the monolith or at least some steps in that direction. To uphold strong Consistency the microservices use Distributed Transactions Calls Driven by MSDTC.   
+The team(s) has been working to split the monolith or at least some steps in that direction. To uphold strong Consistency the microservices use Distributed Transactions Calls supported by MSDTC.
+Some services has been created using the Database-per-Service Pattern but still there are some realy strong bands between the monolith and separated services due distributed transactions and strong consistency.   
 
 ![Distributed monolith](Docs/distributed-monolith.png)
 
 In the picure below shows how easy a call chain gets created in the system. 
 The user is attempting to book a trip that includes a car rental, hotel reservation, and flight.
 The solution employs a microservices architecture, where each component (car, hotel, and flight) has its own dedicated microservice. These microservices are seamlessly integrated using a Distributed Transaction Coordinator (DTC) session.
+If we would add an one or more services to the call chain the transactions scope would increase even more and introduces more complexity, more performance overhead, and potential deadlocks.  
+So the conclusion is the Distributed Transactions with strong consistency don´t scale that easy and increase the risk of complexity, performance overhead, and potential deadlocks.
 
 ![Synchronous choreography-based call chains](Docs/synchronous-choreography-based-call-chains.png)
 
-So how does FlowDance help us out when we still want to base our solution on synchronous RPC-Calls but leaving MSDTC behind?
-Remember that FlowDance wants to support communication between microservices based on synchronous RPC-calls. Event-driven architecture is out of scoop here.
+So how does FlowDance help us out when we still want to base our solution on synchronous RPC-Calls and some sort of compensating transaction but leaving MSDTC behind?
+Event-driven architecture is out of scoop here for a number of reasons!
 
 In short - by replacing **System.Transactions.TransactionScope** with **FlowDance.Client.CompensationSpan** you leaves the world of strong consistency into eventual consistency.
 

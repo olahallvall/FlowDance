@@ -31,7 +31,7 @@ public class CompensationSpanTests
 
         var storage = new Storage(_factory);
 
-        using (CompensationSpan compSpanRoot = new CompensationSpan("http://localhost/TripBookingService/Compensation", traceId, _factory))
+        using (   CompensationSpan compSpanRoot = new CompensationSpan("http://localhost/TripBookingService/Compensation", traceId, _factory))
         {
             compSpanRoot.Complete();
         }
