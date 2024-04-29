@@ -39,7 +39,7 @@ So the conclusion is the Distributed Transactions with strong consistency don´t
 
 ![Synchronous choreography-based call chains](Docs/synchronous-choreography-based-call-chains.png)
 
-##Leaves the world of strong consistency
+## Leaves the world of strong consistency
 So how does FlowDance help us out when we still want to base our solution on synchronous RPC-Calls and some sort of compensating transaction but leaving MSDTC behind?
 Event-driven architecture is out of scoop here for a number of reasons :)
 
@@ -61,7 +61,7 @@ In the image below, we have replaced `System.Transactions.TransactionScope` with
 
 ![Synchronous choreography-based call chains supported by FlowDance](Docs/synchronous-choreography-based-call-chains-with-span.png)
 
-##The Saga Pattern
+## The Saga Pattern
 The Saga Pattern is an architectural approach used to manage data consistency across microservices in distributed transaction scenarios.
 
 Here are the key points:
@@ -72,14 +72,12 @@ Here are the key points:
 The Saga Pattern can basically be devided into two types; choreography and orchestration.
 
 1. Choreography
-
  In choreography, participants (microservices) exchange calls without relying on a centralized point of control.
  There is no central orchestrator; instead, the interactions emerge from the calls exchanged between the participants which results in call chains.
 
 ![Saga - Choreography](Docs/Saga-Synchronous-choreography.png)
 
 2. Orchestration 
-
  In orchestration, an orchestrator (object) takes charge of coordinating the saga. The orchestrator explicitly instructs participants on which local transactions to execute.
  Participants follow the prescribed workflow dictated by the orchestrator.
 
@@ -101,9 +99,6 @@ FlowDance have a saga called CompensatingSaga that will dictated participants wh
 A CompensationSpan ...
 
 
-
-
-## This is Where the Magic Happens
 FlowDance consist of two main parts; FlowDance.Client and FlowDance.AzureFunctions tied together with RabbitMQ.
 
 As a user of FlowDance you add a reference to FlowDance.Client from our code. By doing that you can start using CompensationSpan class.
