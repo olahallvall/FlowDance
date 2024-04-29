@@ -72,14 +72,14 @@ Here are the key points:
 The Saga Pattern can basically be devided into two types; choreography and orchestration.
 
 1. Choreography. 
- In choreography, participants (microservices) exchange calls without relying on a centralized point of control.
- There is no central orchestrator; instead, the interactions emerge from the calls exchanged between the participants which results in call chain.
+   In choreography, participants (microservices) exchange calls without relying on a centralized point of control.
+   There is no central orchestrator; instead, the interactions emerge from the calls exchanged between the participants which results in call chain.
 
 ![Saga - Choreography](Docs/Saga-Synchronous-choreography.png)
 
 2. Orchestration.  
- In orchestration, an orchestrator (object) takes charge of coordinating the saga. The orchestrator explicitly instructs participants on which local transactions to execute.
- Participants follow the prescribed workflow dictated by the orchestrator.
+   In orchestration, an orchestrator (object) takes charge of coordinating the saga. The orchestrator explicitly instructs participants on which local transactions to execute.
+   Participants follow the prescribed workflow dictated by the orchestrator.
 
 ![Saga - Orchestrator](Docs/Saga-Orchestrator.png)
 
@@ -90,7 +90,8 @@ But if you work with a monolith you don't often have that possibility. Our new c
    The CompensationSpan let us keep the call chain (synchronous choreography) we use in the system today. We don´t have to break out a new central orchestrator in our code.
 
 2. In the back-end of FlowDance we host a AzureFunctions and its support for running orchestrations. 
-   FlowDance have a saga called CompensatingSaga that will dictated participants when to make a compensating transaction.       
+   FlowDance have a saga called CompensatingSaga that will dictated participants when to make a compensating transaction. 
+   The CompensatingSaga is generic so as a user of FlowDance you don´t have to deploy a new orchestration. The same CompensatingSaga is always reused.          
 
 ![FlowDance system map](Docs/FlowDance-system-map.png)
 
