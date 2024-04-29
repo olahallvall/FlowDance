@@ -27,8 +27,9 @@ Some services has been created using the Database-per-Service Pattern but still 
 
 ![Distributed monolith](Docs/distributed-monolith.png)
 
-A team may already have started working with a new technology stack, specifically .NET Core. It’s important to note that .NET Core does not support Distributed Transaction Calls as facilitated by MSDTC.   
-That puts our team in a position where they not even can offer any type of controlled consistency. It’s more fire and hope all works as it suppose to🤞. 
+A team may already have started working with a new technology stack, maybe it is .NET Core? It’s important to note that .NET Core does not support Distributed Transaction Calls as facilitated by MSDTC.   
+That puts our team in a position where they not even can offer any type of controlled consistency if part of an overall call chain. 
+It’s more fire and hope all works out as it suppose to🤞. 
 
 In the picure below shows how easy a call chain gets created in the system. 
 The user is attempting to book a trip that includes a car rental, hotel reservation, and flight.
