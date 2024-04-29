@@ -31,6 +31,7 @@ In the picure below shows how easy a call chain gets created in the system.
 The user is attempting to book a trip that includes a car rental, hotel reservation, and flight.
 The solution employs a microservices architecture, where each component (car, hotel, and flight) has its own dedicated microservice. These microservices are seamlessly integrated using a Distributed Transaction Coordinator (DTC) session.
 If we would add an one or more services to the call chain the transactions scope would increase even more and introduces more complexity, more performance overhead, and potential deadlocks.  
+A team may have already started working with a new technology stack, specifically .NET Core. It’s important to note that .NET Core does not support Distributed Transaction Calls as facilitated by MSDTC.   
 
 So the conclusion is the Distributed Transactions with strong consistency don´t scale that easy and increase the risk of complexity, performance overhead, and potential deadlocks.
 
