@@ -23,7 +23,7 @@ FlowDance aims to address several critical aspects in the context of microservic
 
 ## Where you might be today?
 The team(s) has been working to split the monolith or at least some steps in that direction. To uphold strong consistency the microservices use Distributed Transactions Calls supported by MSDTC.
-Some services has been created using the Database-per-Service Pattern but still there are some realy strong bands between the monolith and separated services due distributed transactions and strong consistency.   
+Some services has been created using the Database-per-Service Pattern but still there are some realy strong bands between the monolith and separated services due to distributed transactions and strong consistency.   
 
 ![Distributed monolith](Docs/distributed-monolith.png)
 
