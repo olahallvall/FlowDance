@@ -64,18 +64,19 @@ The Saga Pattern is an architectural approach used to manage data consistency ac
 Here are the key points:
 * The Saga pattern breaks down a transaction into a series of local transactions.
 * Each local transaction is performed by a saga participant (a microservice).
-* After updating the database, the participant publishes an event to trigger the next local transaction.
 * If a local transaction fails, a series of compensating transactions are executed to reverse the changes made by preceding transactions.
 
 The Saga Pattern can basically be devided into two types; choreography and orchestration.
 
 1. Choreography
+
 In choreography, participants (microservices) exchange calls without relying on a centralized point of control.
 There is no central orchestrator; instead, the interactions emerge from the calls exchanged between the participants which results in call chains.
 
 ![Saga - Choreography](Docs/Saga-Synchronous-choreography.png)
 
 2. Orchestration 
+
 In orchestration, an orchestrator (object) takes charge of coordinating the saga. The orchestrator explicitly instructs participants on which local transactions to execute.
 Participants follow the prescribed workflow dictated by the orchestrator.
 
@@ -84,12 +85,13 @@ Participants follow the prescribed workflow dictated by the orchestrator.
 Which one to choose? As always; it depends! 
 
 FlowDance try to take the best of them both. 
+
 The CompensationSpan let us keep the call chain (synchronous choreography) we use in the system today. We don´t have to break out a new central orchestrator in our code.
 
-In the back-end of FlowDance we use AzureFunctions and its support for running orchestrations. 
+In the back-end of FlowDance we host a AzureFunctions and its support for running orchestrations. 
 FlowDance have a saga called CompensatingSaga that will dictated participants when to make a compensating transaction.       
 
-![Synchronous choreography-based call chains supported by FlowDance](Docs/synchronous-choreography-based-call-chains-with-span.png)
+![FlowDance system map](Docs/FlowDance-system-map.png)
 
 
 **A CompensationSpan in detail**
