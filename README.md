@@ -22,7 +22,7 @@ FlowDance aims to address several critical aspects in the context of microservic
     This pattern ensures that the system eventually converges to a consistent state, even after partial failures.
 
 ## Where you might be today?
-The team(s) has been working to split the monolith or at least some steps in that direction. To uphold strong Consistency the microservices use Distributed Transactions Calls supported by MSDTC.
+The team(s) has been working to split the monolith or at least some steps in that direction. To uphold strong consistency the microservices use Distributed Transactions Calls supported by MSDTC.
 Some services has been created using the Database-per-Service Pattern but still there are some realy strong bands between the monolith and separated services due distributed transactions and strong consistency.   
 
 ![Distributed monolith](Docs/distributed-monolith.png)
@@ -31,7 +31,9 @@ In the picure below shows how easy a call chain gets created in the system.
 The user is attempting to book a trip that includes a car rental, hotel reservation, and flight.
 The solution employs a microservices architecture, where each component (car, hotel, and flight) has its own dedicated microservice. These microservices are seamlessly integrated using a Distributed Transaction Coordinator (DTC) session.
 If we would add an one or more services to the call chain the transactions scope would increase even more and introduces more complexity, more performance overhead, and potential deadlocks.  
+
 A team may have already started working with a new technology stack, specifically .NET Core. It’s important to note that .NET Core does not support Distributed Transaction Calls as facilitated by MSDTC.   
+That puts you in a position where you not even can offer any type of consistency. It’s more fire and hope all works as it suppose to🤞. 
 
 So the conclusion is the Distributed Transactions with strong consistency don´t scale that easy and increase the risk of complexity, performance overhead, and potential deadlocks.
 
