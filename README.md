@@ -58,12 +58,14 @@ In the image below, we have replaced `System.Transactions.TransactionScope` with
 ![Synchronous choreography-based call chains supported by FlowDance](Docs/synchronous-choreography-based-call-chains-with-span.png)
 
 **The Saga Pattern**
+
 The Saga Pattern is an architectural approach used to manage data consistency across microservices in distributed transaction scenarios.
+
 Here are the key points:
-*The Saga pattern breaks down a transaction into a series of local transactions.
-*Each local transaction is performed by a saga participant (a microservice).
-*After updating the database, the participant publishes an event to trigger the next local transaction.
-*If a local transaction fails, a series of compensating transactions are executed to reverse the changes made by preceding transactions.
+* The Saga pattern breaks down a transaction into a series of local transactions.
+* Each local transaction is performed by a saga participant (a microservice).
+* After updating the database, the participant publishes an event to trigger the next local transaction.
+* If a local transaction fails, a series of compensating transactions are executed to reverse the changes made by preceding transactions.
 
 The Saga Pattern can basically be devided into two types; choreography and orchestration.
 
