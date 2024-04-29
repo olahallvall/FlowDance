@@ -39,7 +39,7 @@ So the conclusion is the Distributed Transactions with strong consistency don´t
 
 ![Synchronous choreography-based call chains](Docs/synchronous-choreography-based-call-chains.png)
 
-## Leaves the world of strong consistency
+## Leaving the world of strong consistency
 So how does FlowDance help us out when we still want to base our solution on synchronous RPC-Calls and some sort of compensating transaction but leaving MSDTC behind?
 Event-driven architecture is out of scoop here for a number of reasons :)
 
@@ -71,26 +71,26 @@ Here are the key points:
 
 The Saga Pattern can basically be devided into two types; choreography and orchestration.
 
-1. Choreography
+1. Choreography. 
  In choreography, participants (microservices) exchange calls without relying on a centralized point of control.
- There is no central orchestrator; instead, the interactions emerge from the calls exchanged between the participants which results in call chains.
+ There is no central orchestrator; instead, the interactions emerge from the calls exchanged between the participants which results in call chain.
 
 ![Saga - Choreography](Docs/Saga-Synchronous-choreography.png)
 
-2. Orchestration 
+2. Orchestration.  
  In orchestration, an orchestrator (object) takes charge of coordinating the saga. The orchestrator explicitly instructs participants on which local transactions to execute.
  Participants follow the prescribed workflow dictated by the orchestrator.
 
 ![Saga - Orchestrator](Docs/Saga-Orchestrator.png)
 
-Which one to choose? As always; it depends! 
+Which one to choose? As always; it depends! When starting a greenfield project, you have the opportunity to design your system architecture from scratch. 
+But if you work with a monolith you don't often have that possibility. Our new code have to co-exist with the old code and the design (intentionally or unintentionally) build in.       
 
-FlowDance try to take the best of them both. 
+1. FlowDance try to take the best of them both. 
+   The CompensationSpan let us keep the call chain (synchronous choreography) we use in the system today. We don´t have to break out a new central orchestrator in our code.
 
-The CompensationSpan let us keep the call chain (synchronous choreography) we use in the system today. We don´t have to break out a new central orchestrator in our code.
-
-In the back-end of FlowDance we host a AzureFunctions and its support for running orchestrations. 
-FlowDance have a saga called CompensatingSaga that will dictated participants when to make a compensating transaction.       
+2. In the back-end of FlowDance we host a AzureFunctions and its support for running orchestrations. 
+   FlowDance have a saga called CompensatingSaga that will dictated participants when to make a compensating transaction.       
 
 ![FlowDance system map](Docs/FlowDance-system-map.png)
 
