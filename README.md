@@ -86,8 +86,9 @@ The Saga Pattern can basically be devided into two types; choreography and orche
 Which one to choose? As always; it depends! When starting a greenfield project, you have the opportunity to design your system architecture from scratch. 
 But if you work with a monolith you don't often have that possibility. Our new code have to co-exist with the old code and the design (intentionally or unintentionally) build in.       
 
-1. FlowDance try to take the best of them both. 
-   The CompensationSpan let us keep the call chain (synchronous choreography) we use in the system today. We don´t have to break out a new central orchestrator in our code.
+**FlowDance try to take the best out of them both**
+
+1. The CompensationSpan let us keep the call chain (synchronous choreography) we use in the system today. We don´t have to break out a new central orchestrator in our code.
 
 2. In the back-end of FlowDance we host a AzureFunctions and its support for running orchestrations. 
    FlowDance have a saga called CompensatingSaga that will dictated participants when to make a compensating transaction. 
