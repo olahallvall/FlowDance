@@ -27,18 +27,19 @@ Some services has been created using the Database-per-Service Pattern but still 
 
 ![Distributed monolith](Docs/distributed-monolith.png)
 
+A team may have already started working with a new technology stack, specifically .NET Core. It’s important to note that .NET Core does not support Distributed Transaction Calls as facilitated by MSDTC.   
+That puts you in a position where you not even can offer any type of consistency. It’s more fire and hope all works as it suppose to🤞. 
+
 In the picure below shows how easy a call chain gets created in the system. 
 The user is attempting to book a trip that includes a car rental, hotel reservation, and flight.
 The solution employs a microservices architecture, where each component (car, hotel, and flight) has its own dedicated microservice. These microservices are seamlessly integrated using a Distributed Transaction Coordinator (DTC) session.
 If we would add an one or more services to the call chain the transactions scope would increase even more and introduces more complexity, more performance overhead, and potential deadlocks.  
 
-A team may have already started working with a new technology stack, specifically .NET Core. It’s important to note that .NET Core does not support Distributed Transaction Calls as facilitated by MSDTC.   
-That puts you in a position where you not even can offer any type of consistency. It’s more fire and hope all works as it suppose to🤞. 
-
 So the conclusion is the Distributed Transactions with strong consistency don´t scale that easy and increase the risk of complexity, performance overhead, and potential deadlocks.
 
 ![Synchronous choreography-based call chains](Docs/synchronous-choreography-based-call-chains.png)
 
+##Leaves the world of strong consistency
 So how does FlowDance help us out when we still want to base our solution on synchronous RPC-Calls and some sort of compensating transaction but leaving MSDTC behind?
 Event-driven architecture is out of scoop here for a number of reasons :)
 
@@ -60,8 +61,7 @@ In the image below, we have replaced `System.Transactions.TransactionScope` with
 
 ![Synchronous choreography-based call chains supported by FlowDance](Docs/synchronous-choreography-based-call-chains-with-span.png)
 
-**The Saga Pattern**
-
+##The Saga Pattern
 The Saga Pattern is an architectural approach used to manage data consistency across microservices in distributed transaction scenarios.
 
 Here are the key points:
@@ -73,15 +73,15 @@ The Saga Pattern can basically be devided into two types; choreography and orche
 
 1. Choreography
 
-In choreography, participants (microservices) exchange calls without relying on a centralized point of control.
-There is no central orchestrator; instead, the interactions emerge from the calls exchanged between the participants which results in call chains.
+ In choreography, participants (microservices) exchange calls without relying on a centralized point of control.
+ There is no central orchestrator; instead, the interactions emerge from the calls exchanged between the participants which results in call chains.
 
 ![Saga - Choreography](Docs/Saga-Synchronous-choreography.png)
 
 2. Orchestration 
 
-In orchestration, an orchestrator (object) takes charge of coordinating the saga. The orchestrator explicitly instructs participants on which local transactions to execute.
-Participants follow the prescribed workflow dictated by the orchestrator.
+ In orchestration, an orchestrator (object) takes charge of coordinating the saga. The orchestrator explicitly instructs participants on which local transactions to execute.
+ Participants follow the prescribed workflow dictated by the orchestrator.
 
 ![Saga - Orchestrator](Docs/Saga-Orchestrator.png)
 
