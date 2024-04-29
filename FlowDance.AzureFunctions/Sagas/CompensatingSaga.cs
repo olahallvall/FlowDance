@@ -13,13 +13,13 @@ namespace FlowDance.AzureFunctions.Sagas
             var logger = context.CreateReplaySafeLogger(nameof(CompensatingSaga));
             var spanList = context.GetInput<List<Span>>();
 
-            logger.LogInformation("Start CompensatingSaga");
-
-            if (spanList == null)
+            if (spanList == null || spanList.Count == 0)
             {
-                logger.LogWarning("There no Spans in the SpanList! The Orchestrator has noting to work with an will exit.");
+                logger.LogWarning("There no Spans in the SpanList! The Orchestrator has noting to work with and will exit.");
                 return;
             }
+
+            logger.LogInformation("Start CompensatingSaga for traceId {traceId}", spanList.First().TraceId);
 
             // Reverse the order of Spans 
             spanList.Reverse();

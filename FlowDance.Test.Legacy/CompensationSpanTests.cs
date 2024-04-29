@@ -1,6 +1,7 @@
 using System;
 using FlowDance.Client.Legacy;
 using FlowDance.Client.Legacy.RabbitMq;
+using FlowDance.Test.Legacy.RabbitMqHttpApiClient.API;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -10,7 +11,8 @@ namespace FlowDance.Test.Legacy
     public class CompensationSpanTests
     {
         private static ILoggerFactory _loggerFactory;
-     
+        private RabbitMqApi _rabbitMqApi = new RabbitMqApi("http://localhost:15672", "guest", "guest");
+
         [ClassInitialize()]
         public static void ClassInit(TestContext context)
         {
@@ -25,7 +27,7 @@ namespace FlowDance.Test.Legacy
         {
             var traceId = Guid.NewGuid();
 
-            using (CompensationSpan compSpan = new CompensationSpan("http://localhost/TripBookingService/Compensation", traceId, _loggerFactory))
+            using (var compSpan = new CompensationSpan("http://localhost/TripBookingService/Compensation", traceId, _loggerFactory))
             {
                 /* Perform transactional work here */
                 // DoSomething()
@@ -37,17 +39,16 @@ namespace FlowDance.Test.Legacy
         [TestMethod]
         public void RootWithInnerCompensationSpan()
         {
-
             var traceId = Guid.NewGuid();
 
             // The top-most compensation scope is referred to as the root scope.
             // Root span
-            using (CompensationSpan compSpanRoot = new CompensationSpan("http://localhost/TripBookingService/Compensation", traceId, _loggerFactory))
+            using (var compSpanRoot = new CompensationSpan("http://localhost/TripBookingService/Compensation", traceId, _loggerFactory))
             {
                 /* Perform transactional work here */
 
                 // Inner scope
-                using (CompensationSpan compSpanInner = new CompensationSpan("http://localhost/CarService/Compensation", traceId, _loggerFactory))
+                using (var compSpanInner = new CompensationSpan("http://localhost/CarService/Compensation", traceId, _loggerFactory))
                 {
                     /* Perform transactional work here */
 
@@ -59,19 +60,16 @@ namespace FlowDance.Test.Legacy
         }
 
         [TestMethod]
+        [ExpectedException(typeof(Exception))]
         public void RootMethodWithTwoInnerMethodCompensationSpan()
         {
             var guid = Guid.NewGuid();
             RootMethod(guid);
-
-            //Assert.AreEqual(storage.ReadAllSpansFromStream(guid.ToString(), null).Count(), 4);
-
-            //storage.DeleteStream(guid.ToString());
         }
 
         private void RootMethod(Guid guid)
         {
-            using (CompensationSpan compSpan = new CompensationSpan("http://localhost/HotelService/Compensation", guid, _loggerFactory))
+            using (var compSpan = new CompensationSpan("http://localhost/HotelService/Compensation", guid, _loggerFactory))
             {
                 /* Perform transactional work here */
                 InnerMethod(guid);
@@ -81,29 +79,32 @@ namespace FlowDance.Test.Legacy
 
         private void InnerMethod(Guid guid)
         {
-            using (CompensationSpan compSpan = new CompensationSpan("http://localhost/HotelService/Compensation", guid, _loggerFactory))
+            using (var compSpan = new CompensationSpan("http://localhost/HotelService/Compensation", guid, _loggerFactory))
             {
                 /* Perform transactional work here */
+                throw new Exception("Something bad has happened!");
 
                 compSpan.Complete();
             }
         }
 
         [TestMethod]
+        [ExpectedException(typeof(Exception))]
         public void MultipleRootCompensationSpanUsingSameTraceId()
         {
             var traceId = Guid.NewGuid();
 
             // Root
-            using (CompensationSpan compSpanRoot = new CompensationSpan("http://localhost/HotelService/Compensation", traceId, _loggerFactory))
+            using (var compSpanRoot = new CompensationSpan("http://localhost/HotelService/Compensation", traceId, _loggerFactory))
             {
                 /* Perform transactional work here */
+                throw new Exception("Something bad has happened!");
 
                 compSpanRoot.Complete();
             }
 
             // Root
-            using (CompensationSpan compSpanRoot = new CompensationSpan("http://localhost/HotelService/Compensation", traceId, _loggerFactory))
+            using (var compSpanRoot = new CompensationSpan("http://localhost/HotelService/Compensation", traceId, _loggerFactory))
             {
                 /* Perform transactional work here */
 
@@ -113,32 +114,17 @@ namespace FlowDance.Test.Legacy
 
         [TestMethod]
         [ExpectedException(typeof(Exception))]
-        public void CompensationSpanThrowingException()
-        {
-            var traceId = Guid.NewGuid();
-
-            using (CompensationSpan compSpanRoot = new CompensationSpan("http://localhost/HotelService/Compensation", traceId, _loggerFactory))
-            {
-                /* Perform transactional work here */
-                throw new Exception("Something bad has happened!");
-
-                // Will not run
-                compSpanRoot.Complete();
-            }
-        }
-
-        [TestMethod]
         public void RootMethodWithTwoInlineCompensationSpan()
         {
             var traceId = Guid.NewGuid();
 
             // Root
-            using (CompensationSpan compSpanRoot = new CompensationSpan("http://localhost/HotelService/Compensation", traceId, _loggerFactory))
+            using (var compSpanRoot = new CompensationSpan("http://localhost/HotelService/Compensation", traceId, _loggerFactory))
             {
                 /* Perform transactional work here */
 
                 // Inner scope 1
-                using (CompensationSpan compSpanInner = new CompensationSpan("http://localhost/HotelService/Compensation1", traceId, _loggerFactory))
+                using (var compSpanInner = new CompensationSpan("http://localhost/HotelService/Compensation1", traceId, _loggerFactory))
                 {
                     /* Perform transactional work here */
 
@@ -146,22 +132,16 @@ namespace FlowDance.Test.Legacy
                 }
 
                 // Inner scope 2
-                using (CompensationSpan compSpanInner = new CompensationSpan("http://localhost/HotelService/Compensation2", traceId, _loggerFactory))
+                using (var compSpanInner = new CompensationSpan("http://localhost/HotelService/Compensation2", traceId, _loggerFactory))
                 {
                     /* Perform transactional work here */
+                    throw new Exception("Something bad has happened!");
 
                     compSpanInner.Complete();
                 }
 
                 compSpanRoot.Complete();
             }
-
-            var storage = new Storage(_loggerFactory);
-            //Assert.AreEqual(storage.ReadAllSpansFromStream(guid.ToString(), null).Count(), 6);
-
-            //storage.DeleteStream(guid.ToString());
         }
     }
-
-
 }

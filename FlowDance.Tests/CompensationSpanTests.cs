@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 
 using FlowDance.Client;
 using FlowDance.Client.RabbitMq;
+using FlowDance.Tests.RabbitMqHttpApiClient.API;
 
 namespace FlowDance.Tests;
 
@@ -11,6 +12,7 @@ public class CompensationSpanTests
 {
     private static ILoggerFactory _factory = null!;
     private static IConfigurationRoot _config = null!;
+    private RabbitMqApi _rabbitMqApi = new RabbitMqApi("http://localhost:15672", "guest", "guest");
 
     [ClassInitialize()]
     public static void ClassInit(TestContext context)
@@ -31,10 +33,16 @@ public class CompensationSpanTests
 
         var storage = new Storage(_factory);
 
-        using (CompensationSpan compSpanRoot = new CompensationSpan("http://localhost/TripBookingService/Compensation", traceId, _factory))
+        using (var compSpanRoot = new CompensationSpan("http://localhost/TripBookingService/Compensation", traceId, _factory))
         {
             compSpanRoot.Complete();
         }
+
+        Thread.Sleep(2000);
+
+        var numberOfMessages = _rabbitMqApi.GetQueueMessages("/", traceId.ToString()).Result.Count();
+        Assert.Equals(2, numberOfMessages);
+
     }
 
     [TestMethod]
@@ -44,11 +52,12 @@ public class CompensationSpanTests
 
         // The top-most compensation scope is referred to as the root scope.
         // Root scope
-        using (CompensationSpan compSpanRoot = new CompensationSpan("http://localhost/TripBookingService/Compensation", traceId, _factory))
+        using (var compSpanRoot = new CompensationSpan("http://localhost/TripBookingService/Compensation", traceId, _factory))
         {
             // Inner scope
-            using (CompensationSpan compSpanInnerCar = new CompensationSpan("http://localhost/CarService/Compensation", traceId, _factory))
+            using (var compSpanInnerCar = new CompensationSpan("http://localhost/CarService/Compensation", traceId, _factory))
             {
+
                 compSpanInnerCar.Complete();
             }
 
@@ -57,6 +66,7 @@ public class CompensationSpanTests
     }
 
     [TestMethod]
+    [ExpectedException(typeof(Exception))]
     public void RootMethodWithTwoInnerMethodCompensationSpan()
     {
         var traceId = Guid.NewGuid();
@@ -65,7 +75,7 @@ public class CompensationSpanTests
 
     private void RootMethod(Guid traceId)
     {
-        using (CompensationSpan compSpanRoot = new CompensationSpan("http://localhost/TripBookingService/Compensation", traceId, _factory))
+        using (var compSpanRoot = new CompensationSpan("http://localhost/TripBookingService/Compensation", traceId, _factory))
         {
             /* Perform transactional work here */
             InnerMethod(traceId);
@@ -76,29 +86,32 @@ public class CompensationSpanTests
 
     private void InnerMethod(Guid traceId)
     {
-        using (CompensationSpan compSpanInner = new CompensationSpan("http://localhost/CarService/Compensation", traceId, _factory))
+        using (var compSpanInner = new CompensationSpan("http://localhost/CarService/Compensation", traceId, _factory))
         {
             /* Perform transactional work here */
+            throw new Exception("Something bad has happened!");
 
             compSpanInner.Complete();
         }
     }
 
     [TestMethod]
+    [ExpectedException(typeof(Exception))]
     public void MultipleRootCompensationSpanUsingSameTraceId()
     {
         var newGuid = Guid.NewGuid();
 
         // Root
-        using (CompensationSpan compSpanRoot = new CompensationSpan("http://localhost/HotelService/Compensation", newGuid, _factory))
+        using (var compSpanRoot = new CompensationSpan("http://localhost/HotelService/Compensation", newGuid, _factory))
         {
             /* Perform transactional work here */
+            throw new Exception("Something bad has happened!");
 
             compSpanRoot.Complete();
         }
 
         // Root
-        using (CompensationSpan compSpanRoot = new CompensationSpan("http://localhost/HotelService/Compensation", newGuid, _factory))
+        using (var compSpanRoot = new CompensationSpan("http://localhost/HotelService/Compensation", newGuid, _factory))
         {
             /* Perform transactional work here */
 
@@ -108,32 +121,17 @@ public class CompensationSpanTests
 
     [TestMethod]
     [ExpectedException(typeof(Exception))]
-    public void CompensationSpanThrowingException()
-    {
-        var traceId = Guid.NewGuid();
-
-        using (CompensationSpan compSpanRoot = new CompensationSpan("http://localhost/HotelService/Compensation", traceId, _factory))
-        {
-            /* Perform transactional work here */
-            throw new Exception("Something bad has happened!");
-
-            // Will not run
-            compSpanRoot.Complete();
-        }
-    }
-
-    [TestMethod]
     public void RootMethodWithTwoInlineCompensationSpan()
     {
         var traceId = Guid.NewGuid();
 
         // Root
-        using (CompensationSpan compSpanRoot = new CompensationSpan("http://localhost/TripBookingService/Compensation", traceId, _factory))
+        using (var compSpanRoot = new CompensationSpan("http://localhost/TripBookingService/Compensation", traceId, _factory))
         {
             /* Perform transactional work here */
 
             // Inner scope 1
-            using (CompensationSpan compSpanInner = new CompensationSpan("http://localhost/CarService/Compensation", traceId, _factory))
+            using (var compSpanInner = new CompensationSpan("http://localhost/CarService/Compensation", traceId, _factory))
             {
                 /* Perform transactional work here */
 
@@ -141,9 +139,10 @@ public class CompensationSpanTests
             }
 
               // Inner scope 2
-            using (CompensationSpan compSpanInner = new CompensationSpan("http://localhost/HotelService/Compensation2", traceId, _factory))
+            using (var compSpanInner = new CompensationSpan("http://localhost/HotelService/Compensation2", traceId, _factory))
             {
                 /* Perform transactional work here */
+                throw new Exception("Something bad has happened!");
 
                 compSpanInner.Complete();
             }
