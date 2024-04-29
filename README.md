@@ -94,6 +94,9 @@ But if you work with a monolith you don't often have that possibility. Our new c
    FlowDance have a saga called CompensatingSaga that will dictated participants when to make a compensating transaction. 
    The CompensatingSaga is generic so as a user of FlowDance you don´t have to deploy a new orchestration. The same CompensatingSaga is always reused.          
 
+In the picure below shows how Choreography and Orchestrator works together. On the left side CompensationSpans generates SpanEvents. 
+On the right side the CompensatingSaga consumes the SpanEvents and dictated participants when to make a compensating transaction. 
+
 ![FlowDance system map](Docs/FlowDance-system-map.png)
 
 
