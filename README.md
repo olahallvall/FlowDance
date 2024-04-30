@@ -106,7 +106,7 @@ On the right side, the CompensatingSaga consumes the SpanEvents and dictated par
 A CompensationSpan tries to mimic the System.Transactions.TransactionScope class as much as possiple from a developer's perspective. 
 FlowDance goal is help the developer replace System.Transactions.TransactionScope with FlowDance.Client.CompensationSpan as smooth as possible. 
 
-![FlowDance Span in Detail](Docs/Span-in-details)
+![FlowDance Span in Detail](Docs/Span-in-details.png)
 
 ## Component overview
 
