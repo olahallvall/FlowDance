@@ -62,6 +62,12 @@ In the image below, we have replaced `System.Transactions.TransactionScope` with
 
 ![Synchronous choreography-based call chains supported by FlowDance](Docs/synchronous-choreography-based-call-chains-with-span.png)
 
+### Semantic Rollback
+Semantic rollback refers to the process of reverting changes in a way that aligns with how things works in real life.
+Imagine you accidentally knock over a cup of coffee. The warm liquid spills out and spreads across the surface. You might say, “Oops! I spilled my coffee all over the table.”
+
+To clean up the mess, grab some paper towels or a cloth.
+
 ## The Saga Pattern
 The Saga Pattern is an architectural approach used to manage data consistency across microservices in distributed transaction scenarios.
 
@@ -107,16 +113,6 @@ A CompensationSpan tries to mimic the System.Transactions.TransactionScope class
 FlowDance goal is help the developer replace System.Transactions.TransactionScope with FlowDance.Client.CompensationSpan as smooth as possible. 
 
 ![FlowDance Span in Detail](Docs/Span-in-details.png)
-
-## Component overview
-
-FlowDance consist of two main parts; FlowDance.Client and FlowDance.AzureFunctions tied together with RabbitMQ.
-
-As a user of FlowDance you add a reference to FlowDance.Client from our code. By doing that you can start using CompensationSpan class.
-
-In FlowDance.AzureFunctions runs a orchestration named **CompensatingSaga**. 
-The **CompensatingSaga** reads all the SpanEvent (SpanOpened or SpanClosed) for Correlation ID / Trace ID and creates a CompensationSpanList.
-Depending on if a Span are marked for compensation in the CompensationSpanList the CompensatingSaga will start to compensate that Span.
 
 ## How to work with CompensationSpan in code
 
@@ -170,10 +166,15 @@ public void RootWithInnerCompensationSpan()
     }
 }
 ```
+## Component overview
 
+FlowDance consist of two main parts; FlowDance.Client and FlowDance.AzureFunctions tied together with RabbitMQ.
 
-Semantic Rollback... 
+As a user of FlowDance you add a reference to FlowDance.Client from our code. By doing that you can start using CompensationSpan class.
 
+In FlowDance.AzureFunctions runs a orchestration named **CompensatingSaga**. 
+The **CompensatingSaga** reads all the SpanEvent (SpanOpened or SpanClosed) for Correlation ID / Trace ID and creates a CompensationSpanList.
+Depending on if a Span are marked for compensation in the CompensationSpanList the CompensatingSaga will start to compensate that Span.
 
 
 Remember, FlowDance isn't just about dancing—it's about orchestrating microservices with grace when compensating transaction has to be executed! 🕺💃
