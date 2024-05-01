@@ -92,7 +92,7 @@ The Saga Pattern can basically be devided into two types; **choreography** and *
 
 Which one to choose? As always; it depends! When starting a greenfield project, you have the opportunity to design your system architecture from scratch. 
 But if you work with a distibuted monolith you don't often have that possibility. Our new code have to co-exist with the old code and the design (intentionally or unintentionally) build in.
-Maybe the use case is to simple to throw an Orchestrator on it too! Way adding a third part (the Orchestrator) when the use case is as simple as Service A calls Service B?        
+Maybe the use case is to simple to throw an Orchestrator on it too! Why adding a third part (the Orchestrator) when the use case is as simple as Service A calls Service B?        
 
 **FlowDance tries to extract the best from both**
 
