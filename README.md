@@ -29,7 +29,7 @@ Some services has been created using the Database-per-Service Pattern but still 
 
 A team may already have started working with a new technology stack, maybe it is .NET Core? It’s important to note that .NET Core does not support Distributed Transaction Calls as facilitated by MSDTC.   
 That put our team in a position where they not even can offer any type of controlled consistency if there code i a part of an overall call chain. 
-It’s more fire and hope all works out as it suppose to 🤞. 
+It’s more fire and hope all works out as it suppose to🤞. 
 
 In the picure below shows how easy a call chain gets created in the system. 
 The user is attempting to book a trip that includes a car rental, hotel reservation, and flight.
@@ -66,7 +66,13 @@ In the image below, we have replaced `System.Transactions.TransactionScope` with
 Semantic rollback refers to the process of reverting changes in a way that aligns with how things works in real life.
 Imagine you accidentally knock over a cup of coffee. The warm liquid spills out and spreads across the surface. You might say, “Oops! I spilled my coffee all over the table.”
 
-To clean up the mess, grab some paper towels or a cloth.
+You can´t undo this! We don´t have an Ctrl+Z in real life. You can leave it as is it or you can compensate. Which one you prefer to do, you can't undone the event. It has happened wherever you like it or not.    
+
+Distributed Transactions Calls supported by MSDTC offers a Ctrl+Z due to how ACID works. 
+In an Eventual Consistency-based solution, involving multiple parts, ACID is no longer available to us. We have to compensate manually.     
+The Data that has been added, deleted or changed needs to be compensated for. It´s requires domain knowledge how to "rollback" the action that has been performed in the system. Maybe our code have to call another system during the rollback? And that system have to call another system... Complex it is! 
+
+**Compensating transaction is probably the hardest thing with a Eventual Consistency-based solution**
 
 ## The Saga Pattern
 The Saga Pattern is an architectural approach used to manage data consistency across microservices in distributed transaction scenarios.
