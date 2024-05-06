@@ -182,12 +182,10 @@ In FlowDance.AzureFunctions runs a orchestration named **CompensatingSaga**.
 The **CompensatingSaga** reads all the SpanEvent (SpanOpened or SpanClosed) for Correlation ID / Trace ID and creates a CompensationSpanList.
 Depending on if a Span are marked for compensation in the CompensationSpanList the CompensatingSaga will start to compensate that Span.
 
-
-Remember, FlowDance isn't just about dancing—it's about orchestrating microservices with grace when compensating transaction has to be executed! 🕺💃
-
 # You need
 * Visual Studio 2022 or later
 * Azure Functions Core Tools (Azure Functions Core Tools lets you develop and test your functions on your local computer)
+* RabbitMQ with Streams activted (rabbitmq-plugins enable rabbitmq_stream)
  
 
 # Inspiration
