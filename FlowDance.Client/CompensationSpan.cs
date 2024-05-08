@@ -1,5 +1,6 @@
 using FlowDance.Client.RabbitMq;
 using FlowDance.Common.Interfaces;
+using FlowDance.Common.Events;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
@@ -18,8 +19,8 @@ namespace FlowDance.Client
     {
         private bool _disposedValue;
 
-        private readonly Common.Events.SpanOpened _spanOpened;
-        private Common.Events.SpanClosed _spanClosed;
+        private readonly SpanOpened _spanOpened;
+        private SpanClosed _spanClosed;
         private bool _completed;
         private readonly Storage _rabbitMqUtil;
         private readonly IConnection _connection;
@@ -41,7 +42,7 @@ namespace FlowDance.Client
             _rabbitMqUtil = new Storage(loggerFactory);
 
             // Create the event - SpanEventOpened
-            _spanOpened = new Common.Events.SpanOpened()
+            _spanOpened = new SpanOpened()
             {
                 TraceId = traceId,
                 SpanId = Guid.NewGuid(),
@@ -71,7 +72,7 @@ namespace FlowDance.Client
                 if (disposing)
                 {
                     // Create the event - SpanClosed
-                    _spanClosed = new Common.Events.SpanClosed()
+                    _spanClosed = new SpanClosed()
                     {
                         TraceId = _spanOpened.TraceId,
                         SpanId = _spanOpened.SpanId,
@@ -81,7 +82,7 @@ namespace FlowDance.Client
                     };
 
                     // Store the SpanClosed event and calculates IsRootSpan
-                    _rabbitMqUtil!.StoreEvent(_spanClosed, _connection, _connection.CreateModel());
+                    _rabbitMqUtil.StoreEvent(_spanClosed, _connection, _connection.CreateModel());
 
                     // Check if this is a RootSpan, if so determine compensation.
                     if (_spanOpened.IsRootSpan)

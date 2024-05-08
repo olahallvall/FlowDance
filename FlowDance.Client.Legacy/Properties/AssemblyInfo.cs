@@ -6,9 +6,9 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("FlowDance.Client.Legacy")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Client library for FlowDance using .net framework 4.7")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("FlowDance")]
 [assembly: AssemblyProduct("FlowDance.Client.Legacy")]
 [assembly: AssemblyCopyright("Copyright ©  2024")]
 [assembly: AssemblyTrademark("")]

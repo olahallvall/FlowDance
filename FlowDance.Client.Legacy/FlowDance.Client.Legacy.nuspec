@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package >
+  <metadata>
+    <id>FlowDance.Client.Legacy</id>
+    <version>1.0.0</version>
+    <title>FlowDance.Client.Legacy</title>
+    <authors>FlowDance</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <!-- <icon>icon.png</icon> -->
+    <description>FlowDance.Client</description>
+    <copyright>$copyright$</copyright>
+	<readme>docs\README.md</readme>
+  </metadata>
+  <files>
+    <file src="..\README.md" target="docs\" />
+    </files>
+</package>

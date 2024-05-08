@@ -38,11 +38,8 @@ public class CompensationSpanTests
             compSpanRoot.Complete();
         }
 
-        Thread.Sleep(2000);
-
-        var numberOfMessages = _rabbitMqApi.GetQueueMessages("/", traceId.ToString()).Result.Count();
-        Assert.Equals(2, numberOfMessages);
-
+        Thread.Sleep(10000);
+        Assert.AreEqual(2, _rabbitMqApi.GetQueueByVhostAndName("/", traceId.ToString()).Result.MessagesReady);
     }
 
     [TestMethod]
@@ -63,6 +60,9 @@ public class CompensationSpanTests
 
             compSpanRoot.Complete();
         }
+
+        Thread.Sleep(10000);
+        Assert.AreEqual(4, _rabbitMqApi.GetQueueByVhostAndName("/", traceId.ToString()).Result.MessagesReady);
     }
 
     [TestMethod]
@@ -149,5 +149,9 @@ public class CompensationSpanTests
             
             compSpanRoot.Complete();
         }
+
+        Thread.Sleep(10000);
+        Assert.AreEqual(2, _rabbitMqApi.GetQueueByVhostAndName("/", traceId.ToString()).Result.MessagesReady);
+        //var result = _rabbitMqApi.DeleteQueue("/", traceId.ToString()).Result;
     }
 }

@@ -118,6 +118,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="FlowDance.Client.Legacy.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

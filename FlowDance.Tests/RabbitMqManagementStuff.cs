@@ -27,5 +27,19 @@ namespace FlowDance.Tests
                 }
             }
         }
+
+        [TestMethod]
+        public void CountNumberOfMessages()
+        {
+            var rabbitMqApi = new RabbitMqApi("http://localhost:15672", "guest", "guest");
+
+            var queue = rabbitMqApi.GetQueueByVhostAndName("/", "63be8788-7283-455b-9f76-050eba9168ba").Result;
+            if(queue != null)
+            {
+                var numberOfMessages = queue.MessagesReady;
+            }
+
+                
+        }
     }
 }

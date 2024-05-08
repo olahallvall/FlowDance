@@ -3,6 +3,7 @@ using System.Configuration;
 using System.Runtime.InteropServices;
 using FlowDance.Client.Legacy.RabbitMq;
 using FlowDance.Common.Interfaces;
+using FlowDance.Common.Events;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
@@ -19,8 +20,8 @@ namespace FlowDance.Client.Legacy
     {
         private bool _disposedValue;
 
-        private readonly Common.Events.SpanOpened _spanOpened;
-        private Common.Events.SpanClosed _spanClosed;
+        private readonly SpanOpened _spanOpened;
+        private SpanClosed _spanClosed;
         private bool _completed;
         private readonly Storage _rabbitMqUtil;
         private readonly IConnection _connection;
@@ -46,7 +47,7 @@ namespace FlowDance.Client.Legacy
             _rabbitMqUtil = new Storage(loggerFactory);
 
             // Create the event - SpanEventOpened
-            _spanOpened = new Common.Events.SpanOpened()
+            _spanOpened = new SpanOpened()
             {
                 TraceId = traceId,
                 SpanId = Guid.NewGuid(),
@@ -75,7 +76,7 @@ namespace FlowDance.Client.Legacy
             {
                 if (disposing)
                 {
-                    _spanClosed = new Common.Events.SpanClosed()
+                    _spanClosed = new SpanClosed()
                     {
                         TraceId = _spanOpened.TraceId,
                         SpanId = _spanOpened.SpanId,
@@ -85,7 +86,7 @@ namespace FlowDance.Client.Legacy
                     };
 
                     // Store the SpanClosed event and calculates IsRootSpan
-                    _rabbitMqUtil!.StoreEvent(_spanClosed, _connection, _connection.CreateModel());
+                    _rabbitMqUtil.StoreEvent(_spanClosed, _connection, _connection.CreateModel());
 
                     // Check if this is a RootSpan, if so determine compensation.
                     if (_spanOpened.IsRootSpan)

@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using FlowDance.Client.Legacy;
 using FlowDance.Client.Legacy.RabbitMq;
 using FlowDance.Test.Legacy.RabbitMqHttpApiClient.API;
@@ -34,6 +35,9 @@ namespace FlowDance.Test.Legacy
 
                 compSpan.Complete();
             }
+
+            Thread.Sleep(10000);
+            Assert.AreEqual(2, _rabbitMqApi.GetQueueByVhostAndName("/", traceId.ToString()).Result.MessagesReady);
         }
 
         [TestMethod]
@@ -57,6 +61,9 @@ namespace FlowDance.Test.Legacy
                  
                 compSpanRoot.Complete();
             }
+
+            Thread.Sleep(10000);
+            Assert.AreEqual(4, _rabbitMqApi.GetQueueByVhostAndName("/", traceId.ToString()).Result.MessagesReady);
         }
 
         [TestMethod]
