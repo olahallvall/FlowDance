@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 using FlowDance.Client.Legacy;
-using FlowDance.Client.Legacy.RabbitMq;
+using FlowDance.Common.Models;
 using FlowDance.Test.Legacy.RabbitMqHttpApiClient.API;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -28,7 +28,7 @@ namespace FlowDance.Test.Legacy
         {
             var traceId = Guid.NewGuid();
 
-            using (var compSpan = new CompensationSpan("http://localhost/TripBookingService/Compensation", traceId, _loggerFactory))
+            using (var compSpan = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation"), traceId, _loggerFactory))
             {
                 /* Perform transactional work here */
                 // DoSomething()
@@ -47,12 +47,12 @@ namespace FlowDance.Test.Legacy
 
             // The top-most compensation scope is referred to as the root scope.
             // Root span
-            using (var compSpanRoot = new CompensationSpan("http://localhost/TripBookingService/Compensation", traceId, _loggerFactory))
+            using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation"), traceId, _loggerFactory))
             {
                 /* Perform transactional work here */
 
                 // Inner scope
-                using (var compSpanInner = new CompensationSpan("http://localhost/CarService/Compensation", traceId, _loggerFactory))
+                using (var compSpanInner = new CompensationSpan(new HttpCompensatingAction("http://localhost/CarService/Compensation"), traceId, _loggerFactory))
                 {
                     /* Perform transactional work here */
 
@@ -76,7 +76,7 @@ namespace FlowDance.Test.Legacy
 
         private void RootMethod(Guid guid)
         {
-            using (var compSpan = new CompensationSpan("http://localhost/HotelService/Compensation", guid, _loggerFactory))
+            using (var compSpan = new CompensationSpan(new HttpCompensatingAction("http://localhost/CarService/Compensation"), guid, _loggerFactory))
             {
                 /* Perform transactional work here */
                 InnerMethod(guid);
@@ -86,7 +86,7 @@ namespace FlowDance.Test.Legacy
 
         private void InnerMethod(Guid guid)
         {
-            using (var compSpan = new CompensationSpan("http://localhost/HotelService/Compensation", guid, _loggerFactory))
+            using (var compSpan = new CompensationSpan(new HttpCompensatingAction("http://localhost/HotelService/Compensation"), guid, _loggerFactory))
             {
                 /* Perform transactional work here */
                 throw new Exception("Something bad has happened!");
@@ -102,7 +102,7 @@ namespace FlowDance.Test.Legacy
             var traceId = Guid.NewGuid();
 
             // Root
-            using (var compSpanRoot = new CompensationSpan("http://localhost/HotelService/Compensation", traceId, _loggerFactory))
+            using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/HotelService/Compensation"), traceId, _loggerFactory))
             {
                 /* Perform transactional work here */
                 throw new Exception("Something bad has happened!");
@@ -111,7 +111,7 @@ namespace FlowDance.Test.Legacy
             }
 
             // Root
-            using (var compSpanRoot = new CompensationSpan("http://localhost/HotelService/Compensation", traceId, _loggerFactory))
+            using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/HotelService/Compensation"), traceId, _loggerFactory))
             {
                 /* Perform transactional work here */
 
@@ -126,12 +126,12 @@ namespace FlowDance.Test.Legacy
             var traceId = Guid.NewGuid();
 
             // Root
-            using (var compSpanRoot = new CompensationSpan("http://localhost/HotelService/Compensation", traceId, _loggerFactory))
+            using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/HotelService/Compensation"), traceId, _loggerFactory))
             {
                 /* Perform transactional work here */
 
                 // Inner scope 1
-                using (var compSpanInner = new CompensationSpan("http://localhost/HotelService/Compensation1", traceId, _loggerFactory))
+                using (var compSpanInner = new CompensationSpan(new HttpCompensatingAction("http://localhost/HotelService/Compensation1"), traceId, _loggerFactory))
                 {
                     /* Perform transactional work here */
 
@@ -139,7 +139,7 @@ namespace FlowDance.Test.Legacy
                 }
 
                 // Inner scope 2
-                using (var compSpanInner = new CompensationSpan("http://localhost/HotelService/Compensation2", traceId, _loggerFactory))
+                using (var compSpanInner = new CompensationSpan(new HttpCompensatingAction("http://localhost/HotelService/Compensation2"), traceId, _loggerFactory))
                 {
                     /* Perform transactional work here */
                     throw new Exception("Something bad has happened!");

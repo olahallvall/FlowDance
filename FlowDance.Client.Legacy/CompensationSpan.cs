@@ -6,6 +6,7 @@ using FlowDance.Common.Interfaces;
 using FlowDance.Common.Events;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
+using FlowDance.Common.Models;
 
 namespace FlowDance.Client.Legacy
 {
@@ -31,7 +32,7 @@ namespace FlowDance.Client.Legacy
         {
         }
 
-        public CompensationSpan(string compensationUrl, Guid traceId, ILoggerFactory loggerFactory, [System.Runtime.CompilerServices.CallerMemberName] string callingFunctionName = "")
+        public CompensationSpan(HttpCompensatingAction httpAction, Guid traceId, ILoggerFactory loggerFactory, [System.Runtime.CompilerServices.CallerMemberName] string callingFunctionName = "")
         {
             var connectionFactory = new ConnectionFactory
             {
@@ -51,7 +52,36 @@ namespace FlowDance.Client.Legacy
             {
                 TraceId = traceId,
                 SpanId = Guid.NewGuid(),
-                CompensationUrl = compensationUrl,
+                CompensatingAction = httpAction,
+                CallingFunctionName = callingFunctionName,
+                Timestamp = DateTime.Now
+            };
+
+            // Store the SpanEventOpened event
+            _rabbitMqUtil.StoreEvent(_spanOpened, _connection, _channel);
+        }
+
+        public CompensationSpan(AmqpCompensatingAction amqpAction, Guid traceId, ILoggerFactory loggerFactory, [System.Runtime.CompilerServices.CallerMemberName] string callingFunctionName = "")
+        {
+            var connectionFactory = new ConnectionFactory
+            {
+                HostName = ConfigurationManager.AppSettings["RabbitMqConnection.HostName"],
+                UserName = ConfigurationManager.AppSettings["RabbitMqConnection.Username"],
+                Password = ConfigurationManager.AppSettings["RabbitMqConnection.Password"],
+                VirtualHost = ConfigurationManager.AppSettings["RabbitMqConnection.VirtualHost"]
+            };
+
+            _connection = connectionFactory.CreateConnection();
+            _channel = _connection.CreateModel();
+
+            _rabbitMqUtil = new Storage(loggerFactory);
+
+            // Create the event - SpanEventOpened
+            _spanOpened = new SpanOpened()
+            {
+                TraceId = traceId,
+                SpanId = Guid.NewGuid(),
+                CompensatingAction = amqpAction,
                 CallingFunctionName = callingFunctionName,
                 Timestamp = DateTime.Now
             };

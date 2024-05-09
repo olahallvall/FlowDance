@@ -25,8 +25,27 @@ namespace FlowDance.AzureFunctions.Sagas
             spanList.Reverse();
             foreach (var span in spanList)
             {
-                // Call Compensating URL for each Span in reverse order.
-                var compensationUrl = span.SpanOpened.CompensationUrl;
+
+                switch (span.SpanOpened.CompensatingAction)
+                {
+                    case HttpCompensatingAction:
+                        {
+
+                        };
+                        break;
+
+                    case AmqpCompensatingAction:
+                        {
+
+                        };
+                        break;
+
+                    default:
+                        // code block
+                        break;
+                }
+                
+
 
 
             }

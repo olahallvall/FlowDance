@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using System.Runtime.InteropServices;
+using FlowDance.Common.Models;
 
 namespace FlowDance.Client
 {
@@ -30,7 +31,7 @@ namespace FlowDance.Client
         {
         }
 
-        public CompensationSpan(string compensationUrl, Guid traceId, ILoggerFactory loggerFactory, [System.Runtime.CompilerServices.CallerMemberName] string callingFunctionName = "")
+        public CompensationSpan(HttpCompensatingAction httpAction, Guid traceId, ILoggerFactory loggerFactory, [System.Runtime.CompilerServices.CallerMemberName] string callingFunctionName = "")
         {
             var config = new ConfigurationBuilder().AddJsonFile($"appsettings.json").Build();
             var connectionFactory = new ConnectionFactory();
@@ -46,7 +47,32 @@ namespace FlowDance.Client
             {
                 TraceId = traceId,
                 SpanId = Guid.NewGuid(),
-                CompensationUrl = compensationUrl,
+                CompensatingAction = httpAction,
+                CallingFunctionName = callingFunctionName,
+                Timestamp = DateTime.Now
+            };
+
+            // Store the SpanEventOpened event
+            _rabbitMqUtil.StoreEvent(_spanOpened, _connection, _channel);
+        }
+
+        public CompensationSpan(AmqpCompensatingAction amqpAction, Guid traceId, ILoggerFactory loggerFactory, [System.Runtime.CompilerServices.CallerMemberName] string callingFunctionName = "")
+        {
+            var config = new ConfigurationBuilder().AddJsonFile($"appsettings.json").Build();
+            var connectionFactory = new ConnectionFactory();
+            config.GetSection("RabbitMqConnection").Bind(connectionFactory);
+
+            _connection = connectionFactory.CreateConnection();
+            _channel = _connection.CreateModel();
+
+            _rabbitMqUtil = new Storage(loggerFactory);
+
+            // Create the event - SpanEventOpened
+            _spanOpened = new SpanOpened()
+            {
+                TraceId = traceId,
+                SpanId = Guid.NewGuid(),
+                CompensatingAction = amqpAction,
                 CallingFunctionName = callingFunctionName,
                 Timestamp = DateTime.Now
             };

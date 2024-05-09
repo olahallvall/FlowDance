@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using FlowDance.Client;
 using FlowDance.Client.RabbitMq;
 using FlowDance.Tests.RabbitMqHttpApiClient.API;
+using FlowDance.Common.Models;
 
 namespace FlowDance.Tests;
 
@@ -33,7 +34,7 @@ public class CompensationSpanTests
 
         var storage = new Storage(_factory);
 
-        using (var compSpanRoot = new CompensationSpan("http://localhost/TripBookingService/Compensation", traceId, _factory))
+        using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation"), traceId, _factory))
         {
             compSpanRoot.Complete();
         }
@@ -49,10 +50,10 @@ public class CompensationSpanTests
 
         // The top-most compensation scope is referred to as the root scope.
         // Root scope
-        using (var compSpanRoot = new CompensationSpan("http://localhost/TripBookingService/Compensation", traceId, _factory))
+        using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation"), traceId, _factory))
         {
             // Inner scope
-            using (var compSpanInnerCar = new CompensationSpan("http://localhost/CarService/Compensation", traceId, _factory))
+            using (var compSpanInnerCar = new CompensationSpan(new HttpCompensatingAction("http://localhost/CarService/Compensation"), traceId, _factory))
             {
 
                 compSpanInnerCar.Complete();
@@ -75,7 +76,7 @@ public class CompensationSpanTests
 
     private void RootMethod(Guid traceId)
     {
-        using (var compSpanRoot = new CompensationSpan("http://localhost/TripBookingService/Compensation", traceId, _factory))
+        using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation"), traceId, _factory))
         {
             /* Perform transactional work here */
             InnerMethod(traceId);
@@ -86,7 +87,7 @@ public class CompensationSpanTests
 
     private void InnerMethod(Guid traceId)
     {
-        using (var compSpanInner = new CompensationSpan("http://localhost/CarService/Compensation", traceId, _factory))
+        using (var compSpanInner = new CompensationSpan(new HttpCompensatingAction("http://localhost/CarService/Compensation"), traceId, _factory))
         {
             /* Perform transactional work here */
             throw new Exception("Something bad has happened!");
@@ -102,7 +103,7 @@ public class CompensationSpanTests
         var newGuid = Guid.NewGuid();
 
         // Root
-        using (var compSpanRoot = new CompensationSpan("http://localhost/HotelService/Compensation", newGuid, _factory))
+        using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/HotelService/Compensation"), newGuid, _factory))
         {
             /* Perform transactional work here */
             throw new Exception("Something bad has happened!");
@@ -111,7 +112,7 @@ public class CompensationSpanTests
         }
 
         // Root
-        using (var compSpanRoot = new CompensationSpan("http://localhost/HotelService/Compensation", newGuid, _factory))
+        using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/CarService/Compensation"), newGuid, _factory))
         {
             /* Perform transactional work here */
 
@@ -126,12 +127,12 @@ public class CompensationSpanTests
         var traceId = Guid.NewGuid();
 
         // Root
-        using (var compSpanRoot = new CompensationSpan("http://localhost/TripBookingService/Compensation", traceId, _factory))
+        using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation"), traceId, _factory))
         {
             /* Perform transactional work here */
 
             // Inner scope 1
-            using (var compSpanInner = new CompensationSpan("http://localhost/CarService/Compensation", traceId, _factory))
+            using (var compSpanInner = new CompensationSpan(new HttpCompensatingAction("http://localhost/CarService/Compensation"), traceId, _factory))
             {
                 /* Perform transactional work here */
 
@@ -139,7 +140,7 @@ public class CompensationSpanTests
             }
 
               // Inner scope 2
-            using (var compSpanInner = new CompensationSpan("http://localhost/HotelService/Compensation2", traceId, _factory))
+            using (var compSpanInner = new CompensationSpan(new HttpCompensatingAction("http://localhost/HotelService/Compensation"), traceId, _factory))
             {
                 /* Perform transactional work here */
                 throw new Exception("Something bad has happened!");
