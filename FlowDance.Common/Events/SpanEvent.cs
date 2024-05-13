@@ -2,6 +2,9 @@
 
 namespace FlowDance.Common.Events
 {
+    /// <summary>
+    /// Base class for a Span event associated with creation or closing of a CompensationSpan.  
+    /// </summary>
     public class SpanEvent
     {
         public Guid TraceId { get; set; }
@@ -10,5 +13,4 @@ namespace FlowDance.Common.Events
 
         public DateTime Timestamp { get; set; }
     }
-
 }

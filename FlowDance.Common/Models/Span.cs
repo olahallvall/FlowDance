@@ -3,11 +3,13 @@ using System;
 
 namespace FlowDance.Common.Models
 {
+    /// <summary>
+    /// Represent a Span. Includes both events; SpanOpened and SpanClosed.  
+    /// </summary>
     public class Span
     {
         public Guid TraceId { get; set; }
         public Guid SpanId { get; set; }
-
         public SpanOpened SpanOpened { get; set; }
         public SpanClosed SpanClosed { get; set; }
     }

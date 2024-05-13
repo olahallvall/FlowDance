@@ -2,6 +2,7 @@
 using FlowDance.Common.Models;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace FlowDance.AzureFunctions.Services
 {
@@ -80,7 +81,9 @@ namespace FlowDance.AzureFunctions.Services
 
                 if (startOrchestration)
                 {
-                     string instanceId = orchestrationClient.ScheduleNewOrchestrationInstanceAsync(nameof(Sagas.CompensatingSaga), spanList).Result;
+                    var json = JsonConvert.SerializeObject(spanList, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All });
+                     string instanceId = orchestrationClient.ScheduleNewOrchestrationInstanceAsync(nameof(Sagas.CompensatingSaga), json).Result;
+
                      _logger.LogInformation("Starting CompensatingSaga with instanceId {instanceId} for traceId {traceId}", instanceId , spanList[0].SpanOpened.TraceId);
                 }
                 else

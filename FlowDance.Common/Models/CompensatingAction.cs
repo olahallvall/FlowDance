@@ -1,11 +1,9 @@
-﻿using System;
-
-namespace FlowDance.Common.Models
+﻿namespace FlowDance.Common.Models
 {
-    public abstract class CompensatingAction
+    /// <summary>
+    /// Base class for a compensating action.  
+    /// </summary>
+    public class CompensatingAction 
     {
-        public CompensatingAction()
-        {
-        }
     }
 }

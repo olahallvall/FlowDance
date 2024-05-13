@@ -2,6 +2,9 @@
 
 namespace FlowDance.Common.Events
 {
+    /// <summary>
+    /// Holds the data associated with the creation of a CompensationSpan.  
+    /// </summary>
     public class SpanOpened : SpanEvent
     {
         public bool IsRootSpan { get; set; }

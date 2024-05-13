@@ -2,6 +2,7 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace FlowDance.AzureFunctions.Sagas
 {
@@ -11,8 +12,11 @@ namespace FlowDance.AzureFunctions.Sagas
         public async Task RunOrchestrator([OrchestrationTrigger] TaskOrchestrationContext context)
         {
             var logger = context.CreateReplaySafeLogger(nameof(CompensatingSaga));
-            var spanList = context.GetInput<List<Span>>();
+            var json = context.GetInput<string>();
 
+            logger.LogInformation("{json}", json);
+
+            var spanList = JsonConvert.DeserializeObject<List<Span>>(json, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
             if (spanList == null || spanList.Count == 0)
             {
                 logger.LogWarning("There no Spans in the SpanList! The Orchestrator has noting to work with and will exit.");
@@ -44,10 +48,6 @@ namespace FlowDance.AzureFunctions.Sagas
                         // code block
                         break;
                 }
-                
-
-
-
             }
         }
     }

@@ -1,22 +1,40 @@
-﻿using System;
+﻿using System.Collections.Generic;
 
 namespace FlowDance.Common.Models
 {
+    /// <summary>
+    /// Compensating action for RabbitMQ.  
+    /// </summary>
     public class AmqpCompensatingAction : CompensatingAction
     {
-        private readonly string _virtualHost;
-        private readonly string _queueName;
+        public string VirtualHost;
+        public string QueueName;
+        public string MessageData;
+        public Dictionary<string, string> Headers;
 
-        private AmqpCompensatingAction()
+        public AmqpCompensatingAction()
         {
         }
-        
+
         public AmqpCompensatingAction(string virtualHost, string queueName)
         {
-            _virtualHost = virtualHost;
-            _queueName = queueName;
+            VirtualHost = virtualHost;
+            QueueName = queueName;
         }
 
-        public string Message { get; set; }
+        public AmqpCompensatingAction(string virtualHost, string queueName, string messageData)
+        {
+            VirtualHost = virtualHost;
+            QueueName = queueName;
+            MessageData = messageData;
+        }
+
+        public AmqpCompensatingAction(string virtualHost, string queueName, string messageData, Dictionary<string, string> headers)
+        {
+            VirtualHost = virtualHost;
+            QueueName = queueName;
+            MessageData = messageData;
+            Headers = headers;
+        }
     }
 }

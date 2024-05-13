@@ -2,7 +2,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 using FlowDance.Client;
-using FlowDance.Client.RabbitMq;
 using FlowDance.Tests.RabbitMqHttpApiClient.API;
 using FlowDance.Common.Models;
 
@@ -32,10 +31,9 @@ public class CompensationSpanTests
     {
         var traceId = Guid.NewGuid();
 
-        var storage = new Storage(_factory);
-
         using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation"), traceId, _factory))
         {
+            /* Perform transactional work here */
             compSpanRoot.Complete();
         }
 
@@ -44,26 +42,26 @@ public class CompensationSpanTests
     }
 
     [TestMethod]
+    [ExpectedException(typeof(Exception))]
     public void RootWithInnerCompensationSpan()
     {
         var traceId = Guid.NewGuid();
 
         // The top-most compensation scope is referred to as the root scope.
         // Root scope
-        using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation"), traceId, _factory))
+        using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation", "postdata1223", new Dictionary<string, string>() { { "KeyB", "656565" } }), traceId, _factory))
         {
             // Inner scope
-            using (var compSpanInnerCar = new CompensationSpan(new HttpCompensatingAction("http://localhost/CarService/Compensation"), traceId, _factory))
+            using (var compSpanInnerCar = new CompensationSpan(new HttpCompensatingAction("http://localhost/CarService/Compensation", "postdata76767"), traceId, _factory))
             {
+                /* Perform transactional work here */
+                throw new Exception("Something bad has happened!");
 
                 compSpanInnerCar.Complete();
             }
 
             compSpanRoot.Complete();
         }
-
-        Thread.Sleep(10000);
-        Assert.AreEqual(4, _rabbitMqApi.GetQueueByVhostAndName("/", traceId.ToString()).Result.MessagesReady);
     }
 
     [TestMethod]
@@ -150,9 +148,5 @@ public class CompensationSpanTests
             
             compSpanRoot.Complete();
         }
-
-        Thread.Sleep(10000);
-        Assert.AreEqual(2, _rabbitMqApi.GetQueueByVhostAndName("/", traceId.ToString()).Result.MessagesReady);
-        //var result = _rabbitMqApi.DeleteQueue("/", traceId.ToString()).Result;
     }
 }

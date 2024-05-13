@@ -1,27 +1,36 @@
-﻿using System;
-using System.Net.Http;
-using System.Net.Http.Headers;
+﻿using System.Collections.Generic;
 
 namespace FlowDance.Common.Models
 {
+    /// <summary>
+    /// Compensating action for HTTP. Use the HTTP POST method when interacting with the endpoint as stated in the Url property.  
+    /// </summary>
     public class HttpCompensatingAction : CompensatingAction
     {
-        private readonly string _url;
-        private HttpCompensatingAction()
+        public string Url;
+        public string PostData;
+        public Dictionary<string, string> Headers;
+
+        public HttpCompensatingAction() 
         {
         }
-        
+ 
         public HttpCompensatingAction(string url)
         {
-            _url = url;
+            Url = url;
         }
 
-        public string Url { get { return _url; } }
-     
-        public StringContent Content { get; set; }
+        public HttpCompensatingAction(string url, string postData)
+        {
+            Url = url;
+            PostData = postData;
+        }
 
-        public HttpRequestHeaders Headers { get; set; }
-
-        
+        public HttpCompensatingAction(string url, string postData, Dictionary<string, string> headers)
+        {
+            Url = url;
+            PostData = postData;
+            Headers = headers;
+        }
     }
 }
