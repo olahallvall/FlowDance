@@ -17,8 +17,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowDance.AzureFunctions", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowDance.Tests", "FlowDance.Tests\FlowDance.Tests.csproj", "{1DF738A8-B9EA-4BD3-9704-C30F99C9FC19}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowDance.Client.Legacy", "FlowDance.Client.Legacy\FlowDance.Client.Legacy.csproj", "{2AD48324-72B9-49ED-A2AC-972D762373CE}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowDance.Test.Legacy", "FlowDance.Test.Legacy\FlowDance.Test.Legacy.csproj", "{D1E92428-0F99-4FC8-985E-4A6B4AF399AD}"
 EndProject
 Global
@@ -43,10 +41,6 @@ Global
 		{1DF738A8-B9EA-4BD3-9704-C30F99C9FC19}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1DF738A8-B9EA-4BD3-9704-C30F99C9FC19}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1DF738A8-B9EA-4BD3-9704-C30F99C9FC19}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2AD48324-72B9-49ED-A2AC-972D762373CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2AD48324-72B9-49ED-A2AC-972D762373CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2AD48324-72B9-49ED-A2AC-972D762373CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2AD48324-72B9-49ED-A2AC-972D762373CE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D1E92428-0F99-4FC8-985E-4A6B4AF399AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D1E92428-0F99-4FC8-985E-4A6B4AF399AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D1E92428-0F99-4FC8-985E-4A6B4AF399AD}.Release|Any CPU.ActiveCfg = Release|Any CPU

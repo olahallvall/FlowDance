@@ -14,8 +14,6 @@ namespace FlowDance.AzureFunctions.Sagas
             var logger = context.CreateReplaySafeLogger(nameof(CompensatingSaga));
             var json = context.GetInput<string>();
 
-            logger.LogInformation("{json}", json);
-
             var spanList = JsonConvert.DeserializeObject<List<Span>>(json, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
             if (spanList == null || spanList.Count == 0)
             {

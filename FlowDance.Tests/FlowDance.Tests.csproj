@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FlowDance.Client\FlowDance.Client.csproj" />
+    <ProjectReference Include="..\FlowDance.Common\FlowDance.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>
