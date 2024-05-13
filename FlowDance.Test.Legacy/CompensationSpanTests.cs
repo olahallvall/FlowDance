@@ -1,7 +1,6 @@
 using System;
 using FlowDance.Client;
 using FlowDance.Common.Models;
-using FlowDance.Test.Legacy.RabbitMqHttpApiClient.API;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -11,8 +10,7 @@ namespace FlowDance.Test.Legacy
     public class CompensationSpanTests
     {
         private static ILoggerFactory _loggerFactory;
-        private RabbitMqApi _rabbitMqApi = new RabbitMqApi("http://localhost:15672", "guest", "guest");
-
+       
         [ClassInitialize()]
         public static void ClassInit(TestContext context)
         {
