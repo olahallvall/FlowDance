@@ -77,9 +77,11 @@ The Data that has been added, deleted or changed needs to be compensated for. It
 #### Compensating actions
 FlowDance supports two types of Compensating actions; 
 * **HttpCompensatingAction**
+
   Support synchronously REST API calls via http.
   
 * **AmqpCompensatingAction**
+
   Support asynchronous message-based communication via the amqp protocol over RabbitMQ.
 
 ## The Saga Pattern
