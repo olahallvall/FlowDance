@@ -78,6 +78,11 @@ The Data that has been added, deleted or changed needs to be compensated for. It
 FlowDance supports two types of Compensating actions; 
 * **HttpCompensatingAction**<br>
   Support synchronously REST API calls via http.
+  ```csharp
+  public HttpCompensatingAction(string url)
+  public HttpCompensatingAction(string url, string postData)
+  public HttpCompensatingAction(string url, string postData, Dictionary<string, string> headers)
+  ```
   
 * **AmqpCompensatingAction**<br>
   Support asynchronous message-based communication via the amqp protocol over RabbitMQ.
