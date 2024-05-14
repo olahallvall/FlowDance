@@ -1,5 +1,6 @@
 version: "3.2"
 services:
+
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
@@ -24,5 +25,3 @@ services:
       - ./data:/var/opt/mssql/data
       - ./log:/var/opt/mssql/log
       - ./secrets:/var/opt/mssql/secrets
-
-# docker exec rabbitmq rabbitmq-plugins enable rabbitmq_stream
