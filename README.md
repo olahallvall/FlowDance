@@ -72,16 +72,14 @@ Distributed Transactions Calls supported by MSDTC offers a Ctrl+Z due to how ACI
 In an Eventual Consistency-based solution, involving multiple parts, ACID is no longer available to us. We have to compensate manually.     
 The Data that has been added, deleted or changed needs to be compensated for. It´s requires domain knowledge how to "rollback" the action that has been performed in the system. Maybe our code have to call another system during the rollback? And that system have to call another system... Complex it is! 
 
-**Compensating transaction/action is probably the hardest thing with a Eventual Consistency-based solution**
+*Compensating transaction/action is probably the hardest thing with an Eventual Consistency-based solution*
 
 #### Compensating actions
 FlowDance supports two types of Compensating actions; 
-* **HttpCompensatingAction**
-
+* **HttpCompensatingAction**<br>
   Support synchronously REST API calls via http.
   
-* **AmqpCompensatingAction**
-
+* **AmqpCompensatingAction**<br>
   Support asynchronous message-based communication via the amqp protocol over RabbitMQ.
 
 ## The Saga Pattern
