@@ -86,6 +86,11 @@ FlowDance supports two types of Compensating actions;
   
 * **AmqpCompensatingAction**<br>
   Support asynchronous message-based communication via the amqp protocol over RabbitMQ.
+  ```csharp
+  public AmqpCompensatingAction(string virtualHost, string queueName)
+  public AmqpCompensatingAction(string virtualHost, string queueName, string messageData)
+  public AmqpCompensatingAction(string virtualHost, string queueName, string messageData, Dictionary<string, string> headers)
+  ```
 
 ## The Saga Pattern
 The Saga Pattern is an architectural approach used to manage data consistency across microservices in distributed transaction scenarios.
