@@ -14,18 +14,33 @@ namespace FlowDance.Common.Models
         public HttpCompensatingAction() 
         {
         }
- 
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="url"></param>
         public HttpCompensatingAction(string url)
         {
             Url = url;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="postData"></param>
         public HttpCompensatingAction(string url, string postData)
         {
             Url = url;
             PostData = postData;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="postData"></param>
+        /// <param name="headers"></param>
         public HttpCompensatingAction(string url, string postData, Dictionary<string, string> headers)
         {
             Url = url;

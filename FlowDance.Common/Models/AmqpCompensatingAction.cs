@@ -16,12 +16,23 @@ namespace FlowDance.Common.Models
         {
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="virtualHost"></param>
+        /// <param name="queueName"></param>
         public AmqpCompensatingAction(string virtualHost, string queueName)
         {
             VirtualHost = virtualHost;
             QueueName = queueName;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="virtualHost"></param>
+        /// <param name="queueName"></param>
+        /// <param name="messageData"></param>
         public AmqpCompensatingAction(string virtualHost, string queueName, string messageData)
         {
             VirtualHost = virtualHost;
@@ -29,6 +40,13 @@ namespace FlowDance.Common.Models
             MessageData = messageData;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="virtualHost"></param>
+        /// <param name="queueName"></param>
+        /// <param name="messageData"></param>
+        /// <param name="headers"></param>
         public AmqpCompensatingAction(string virtualHost, string queueName, string messageData, Dictionary<string, string> headers)
         {
             VirtualHost = virtualHost;
