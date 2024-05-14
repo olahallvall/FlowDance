@@ -72,7 +72,7 @@ Distributed Transactions Calls supported by MSDTC offers a Ctrl+Z due to how ACI
 In an Eventual Consistency-based solution, involving multiple parts, ACID is no longer available to us. We have to compensate manually.     
 The Data that has been added, deleted or changed needs to be compensated for. It´s requires domain knowledge how to "rollback" the action that has been performed in the system. Maybe our code have to call another system during the rollback? And that system have to call another system... Complex it is! 
 
-*Compensating transaction/action is probably the hardest thing with an Eventual Consistency-based solution*
+*Compensating action is probably the hardest thing with an Eventual Consistency-based solution!*
 
 #### Compensating actions
 FlowDance supports two types of Compensating actions; 
@@ -91,6 +91,7 @@ FlowDance supports two types of Compensating actions;
   public AmqpCompensatingAction(string virtualHost, string queueName, string messageData)
   public AmqpCompensatingAction(string virtualHost, string queueName, string messageData, Dictionary<string, string> headers)
   ```
+You can use the postData and messageData as it fit you needs. If don´t set your own data/json, the Correlation ID / Trace ID will be added by default.
 
 ## The Saga Pattern
 The Saga Pattern is an architectural approach used to manage data consistency across microservices in distributed transaction scenarios.
