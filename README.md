@@ -72,7 +72,15 @@ Distributed Transactions Calls supported by MSDTC offers a Ctrl+Z due to how ACI
 In an Eventual Consistency-based solution, involving multiple parts, ACID is no longer available to us. We have to compensate manually.     
 The Data that has been added, deleted or changed needs to be compensated for. It´s requires domain knowledge how to "rollback" the action that has been performed in the system. Maybe our code have to call another system during the rollback? And that system have to call another system... Complex it is! 
 
-**Compensating transaction is probably the hardest thing with a Eventual Consistency-based solution**
+**Compensating transaction/action is probably the hardest thing with a Eventual Consistency-based solution**
+
+#### Compensating actions
+FlowDance supports two types of Compensating actions; 
+* **HttpCompensatingAction**
+  Support synchronously REST API calls via http.
+  
+* **AmqpCompensatingAction**
+  Support asynchronous message-based communication via the amqp protocol over RabbitMQ.
 
 ## The Saga Pattern
 The Saga Pattern is an architectural approach used to manage data consistency across microservices in distributed transaction scenarios.
@@ -131,7 +139,7 @@ public void RootCompensationSpan()
     var traceId = Guid.NewGuid();
 
     using (CompensationSpan compSpan = 
-            new CompensationSpan("http://localhost/TripBookingService/Compensation", traceId, _loggerFactory))
+            new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation"), traceId, _loggerFactory))
     {
         /* Perform transactional work here */
         // DoSomething()
@@ -153,14 +161,14 @@ public void RootWithInnerCompensationSpan()
     // The top-most compensation span is referred to as the root span.
     // Root scope
     using (CompensationSpan compSpanRoot = 
-            new CompensationSpan("http://localhost/TripBookingService/Compensation", traceId, _loggerFactory))
+            new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation"), traceId, _loggerFactory))
     {
         /* Perform transactional work here */
         // DoSomething()
 
         // Inner span
         using (CompensationSpan compSpanInner = 
-                new CompensationSpan("http://localhost/CarService/Compensation", traceId, _loggerFactory))
+                new CompensationSpan(new HttpCompensatingAction("http://localhost/CarService/Compensation"), traceId, _loggerFactory))
         {
             /* Perform transactional work here */
             // DoSomething()
