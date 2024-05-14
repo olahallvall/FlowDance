@@ -92,7 +92,7 @@ FlowDance supports two types of Compensating actions;
   public AmqpCompensatingAction(string virtualHost, string queueName, string messageData, Dictionary<string, string> headers)
   ```
 You can use the postData and messageData as it fit your needs. If don´t set your own data/json, the Correlation ID / Trace ID will be added by default.
-By default Correlation ID / Trace ID will bee added as a header on both http and message. 
+By default Correlation ID / Trace ID will be added as a header (X-Correlation-Id) on both http and message transport. 
 
 ## The Saga Pattern
 The Saga Pattern is an architectural approach used to manage data consistency across microservices in distributed transaction scenarios.
