@@ -21,43 +21,38 @@ namespace FlowDance.Client
     {
         private bool _disposedValue;
 
-        private readonly SpanOpened _spanOpened;
+        private SpanOpened _spanOpened;
         private SpanClosed _spanClosed;
         private bool _completed;
-        private readonly Storage _rabbitMqUtil;
-        private readonly IConnection _connection;
-        private readonly IModel _channel;
+        private Storage _rabbitMqUtil;
+        private IConnection _connection;
+        private IModel _channel;
 
-        private CompensationSpan()
-        {
-        }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="httpAction"></param>
+        /// <param name="traceId"></param>
+        /// <param name="loggerFactory"></param>
+        /// <param name="callingFunctionName"></param>
         public CompensationSpan(HttpCompensatingAction httpAction, Guid traceId, ILoggerFactory loggerFactory, [System.Runtime.CompilerServices.CallerMemberName] string callingFunctionName = "")
         {
-            var config = new ConfigurationBuilder().AddJsonFile($"appsettings.json").Build();
-            var connectionFactory = new ConnectionFactory();
-            config.GetSection("RabbitMqConnection").Bind(connectionFactory);
-
-            _connection = connectionFactory.CreateConnection();
-            _channel = _connection.CreateModel();
-
-            _rabbitMqUtil = new Storage(loggerFactory);
-
-            // Create the event - SpanEventOpened
-            _spanOpened = new SpanOpened()
-            {
-                TraceId = traceId,
-                SpanId = Guid.NewGuid(),
-                CompensatingAction = httpAction,
-                CallingFunctionName = callingFunctionName,
-                Timestamp = DateTime.Now
-            };
-
-            // Store the SpanEventOpened event
-            _rabbitMqUtil.StoreEvent(_spanOpened, _connection, _channel);
+            StoreSpanOpened(httpAction, traceId, loggerFactory, callingFunctionName);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="amqpAction"></param>
+        /// <param name="traceId"></param>
+        /// <param name="loggerFactory"></param>
+        /// <param name="callingFunctionName"></param>
         public CompensationSpan(AmqpCompensatingAction amqpAction, Guid traceId, ILoggerFactory loggerFactory, [System.Runtime.CompilerServices.CallerMemberName] string callingFunctionName = "")
+        {
+            StoreSpanOpened(amqpAction, traceId, loggerFactory, callingFunctionName);  
+        }
+
+        private void StoreSpanOpened(CompensatingAction compensatingAction, Guid traceId, ILoggerFactory loggerFactory, string callingFunctionName)
         {
             var config = new ConfigurationBuilder().AddJsonFile($"appsettings.json").Build();
             var connectionFactory = new ConnectionFactory();
@@ -73,13 +68,36 @@ namespace FlowDance.Client
             {
                 TraceId = traceId,
                 SpanId = Guid.NewGuid(),
-                CompensatingAction = amqpAction,
+                CompensatingAction = compensatingAction,
                 CallingFunctionName = callingFunctionName,
                 Timestamp = DateTime.Now
             };
 
             // Store the SpanEventOpened event
             _rabbitMqUtil.StoreEvent(_spanOpened, _connection, _channel);
+        }
+
+        private void StoreSpanClosed(Guid traceId, Guid spanId, bool completed)
+        {
+            // Create the event - SpanClosed
+            _spanClosed = new SpanClosed()
+            {
+                TraceId = traceId,
+                SpanId = spanId,
+                MarkedAsCommitted = completed,
+                Timestamp = DateTime.Now,
+                ExceptionDetected = Marshal.GetExceptionCode() != 0
+            };
+
+            // Store the SpanClosed event and calculates IsRootSpan
+            _rabbitMqUtil.StoreEvent(_spanClosed, _connection, _connection.CreateModel());
+
+            // Check if this is a RootSpan, if so determine compensation.
+            if (_spanOpened.IsRootSpan)
+            {
+                var determineCompensation = new Common.Commands.DetermineCompensation { TraceId = _spanOpened.TraceId };
+                _rabbitMqUtil.StoreCommand(determineCompensation, _channel);
+            }
         }
 
         /// <summary>
@@ -98,25 +116,7 @@ namespace FlowDance.Client
             {
                 if (disposing)
                 {
-                    // Create the event - SpanClosed
-                    _spanClosed = new SpanClosed()
-                    {
-                        TraceId = _spanOpened.TraceId,
-                        SpanId = _spanOpened.SpanId,
-                        MarkedAsCommitted = _completed,
-                        Timestamp = DateTime.Now,
-                        ExceptionDetected = Marshal.GetExceptionCode() != 0 
-                    };
-
-                    // Store the SpanClosed event and calculates IsRootSpan
-                    _rabbitMqUtil.StoreEvent(_spanClosed, _connection, _connection.CreateModel());
-
-                    // Check if this is a RootSpan, if so determine compensation.
-                    if (_spanOpened.IsRootSpan)
-                    {
-                        var determineCompensation = new Common.Commands.DetermineCompensation { TraceId = _spanOpened.TraceId };
-                        _rabbitMqUtil.StoreCommand(determineCompensation, _channel);
-                    }
+                    StoreSpanClosed(_spanOpened.TraceId, _spanOpened.SpanId, _completed);
                 }
 
                 if (_connection.IsOpen)
