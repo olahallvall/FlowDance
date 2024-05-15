@@ -21,7 +21,11 @@ FlowDance aims to address several critical aspects in the context of microservic
     If a step cannot be fully rolled back (e.g., due to concurrent changes), compensating transactions undo the effects of previous steps.
     This pattern ensures that the system eventually converges to a consistent state, even after partial failures.
 
+ # Documentation and Examples
+
 For more info please see [FlowDance.Documentation](https://olahallvall.github.io/FlowDance.Documentation/)
+
+Here are some sample apps [FlowDance.Examples](https://github.com/olahallvall/FlowDance.Examples)
 
 # You need
 * Visual Studio 2022 or later
@@ -38,4 +42,3 @@ For more info please see [FlowDance.Documentation](https://olahallvall.github.io
 * Wait until both RabbitMQ and SQL Server has started.
 * Run the command: **docker exec rabbitmq rabbitmq-plugins enable rabbitmq_stream**
 * Download and install [Azure Functions Core Tools](https://go.microsoft.com/fwlink/?linkid=2174087)
-* 
