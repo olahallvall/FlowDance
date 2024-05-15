@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace FlowDance.Common.Models
+namespace FlowDance.Common.CompensatingActions
 {
     /// <summary>
     /// Compensating action for HTTP. Use the HTTP POST method when interacting with the endpoint as stated in the Url property.  
@@ -11,10 +11,10 @@ namespace FlowDance.Common.Models
         public string PostData;
         public Dictionary<string, string> Headers;
 
-        public HttpCompensatingAction() 
+        public HttpCompensatingAction()
         {
         }
-        
+
         /// <summary>
         /// 
         /// </summary>

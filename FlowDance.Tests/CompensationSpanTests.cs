@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 using FlowDance.Client;
 using FlowDance.Tests.RabbitMqHttpApiClient.API;
-using FlowDance.Common.Models;
+using FlowDance.Common.CompensatingActions;
 
 namespace FlowDance.Tests;
 

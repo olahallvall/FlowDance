@@ -1,6 +1,6 @@
 using System;
 using FlowDance.Client;
-using FlowDance.Common.Models;
+using FlowDance.Common.CompensatingActions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

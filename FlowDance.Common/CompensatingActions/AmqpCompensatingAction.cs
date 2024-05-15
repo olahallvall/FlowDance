@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace FlowDance.Common.Models
+namespace FlowDance.Common.CompensatingActions
 {
     /// <summary>
     /// Compensating action for RabbitMQ.  

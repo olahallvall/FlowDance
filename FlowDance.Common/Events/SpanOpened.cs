@@ -1,4 +1,4 @@
-﻿using FlowDance.Common.Models;
+﻿using FlowDance.Common.CompensatingActions;
 
 namespace FlowDance.Common.Events
 {

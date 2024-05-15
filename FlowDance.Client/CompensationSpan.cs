@@ -5,7 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using System.Runtime.InteropServices;
-using FlowDance.Common.Models;
+using FlowDance.Common.CompensatingActions;
 using System;
 
 namespace FlowDance.Client
