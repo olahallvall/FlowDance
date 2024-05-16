@@ -7,6 +7,8 @@ using RabbitMQ.Client;
 using System.Runtime.InteropServices;
 using FlowDance.Common.CompensatingActions;
 using System;
+using System.Runtime.Serialization;
+using System.IO;
 
 namespace FlowDance.Client
 {
@@ -27,6 +29,7 @@ namespace FlowDance.Client
         private Storage _rabbitMqUtil;
         private IConnection _connection;
         private IModel _channel;
+        private readonly ILogger<CompensationSpan> _logger;
 
         /// <summary>
         /// 
@@ -37,6 +40,8 @@ namespace FlowDance.Client
         /// <param name="callingFunctionName"></param>
         public CompensationSpan(HttpCompensatingAction httpAction, Guid traceId, ILoggerFactory loggerFactory, [System.Runtime.CompilerServices.CallerMemberName] string callingFunctionName = "")
         {
+            _logger = loggerFactory.CreateLogger<CompensationSpan>();
+
             StoreSpanOpened(httpAction, traceId, loggerFactory, callingFunctionName);
         }
 
@@ -49,11 +54,19 @@ namespace FlowDance.Client
         /// <param name="callingFunctionName"></param>
         public CompensationSpan(AmqpCompensatingAction amqpAction, Guid traceId, ILoggerFactory loggerFactory, [System.Runtime.CompilerServices.CallerMemberName] string callingFunctionName = "")
         {
+            _logger = loggerFactory.CreateLogger<CompensationSpan>();
+
             StoreSpanOpened(amqpAction, traceId, loggerFactory, callingFunctionName);  
         }
 
         private void StoreSpanOpened(CompensatingAction compensatingAction, Guid traceId, ILoggerFactory loggerFactory, string callingFunctionName)
         {
+            if(!File.Exists($"appsettings.json"))
+            {
+                _logger.LogError("Can´t read the appsettings.json file. Please add one with RabbitMQ config in it - https://github.com/AntonyVorontsov/RabbitMQ.Client.Core.DependencyInjection/blob/master/docs/rabbit-configuration.md");
+                throw new FileNotFoundException("Can´t read the appsettings.json file. Please add one with RabbitMQ config in it");
+            }
+
             var config = new ConfigurationBuilder().AddJsonFile($"appsettings.json").Build();
             var connectionFactory = new ConnectionFactory();
             config.GetSection("RabbitMqConnection").Bind(connectionFactory);
