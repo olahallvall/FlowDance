@@ -1,4 +1,5 @@
 {
+ ## https://learn.microsoft.com/en-us/Azure/azure-functions/durable/durable-functions-storage-providers
   "version": "2.0",
   "logging": {
     "applicationInsights": {
