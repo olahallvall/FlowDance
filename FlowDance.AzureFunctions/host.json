@@ -1,5 +1,7 @@
 {
  ## https://learn.microsoft.com/en-us/Azure/azure-functions/durable/durable-functions-storage-providers
+ ## Microsoft.Azure.Functions.Worker.Extensions.DurableTask.SqlServer
+ 
   "version": "2.0",
   "logging": {
     "applicationInsights": {
