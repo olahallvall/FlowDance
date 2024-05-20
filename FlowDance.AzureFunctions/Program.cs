@@ -12,6 +12,8 @@ var host = new HostBuilder()
         
         services.AddTransient<IDetermineCompensation, DetermineCompensationService>();
         services.AddTransient<IStorage, Storage>();
+
+        services.AddHttpClient();
     })
     .Build();
 

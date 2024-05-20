@@ -61,12 +61,6 @@ namespace FlowDance.Client
 
         private void StoreSpanOpened(CompensatingAction compensatingAction, Guid traceId, ILoggerFactory loggerFactory, string callingFunctionName)
         {
-            if(!File.Exists($"appsettings.json"))
-            {
-                _logger.LogError("Can´t read the appsettings.json file. Please add one with RabbitMQ config in it - https://github.com/AntonyVorontsov/RabbitMQ.Client.Core.DependencyInjection/blob/master/docs/rabbit-configuration.md");
-                throw new FileNotFoundException("Can´t read the appsettings.json file. Please add one with RabbitMQ config in it");
-            }
-
             var config = new ConfigurationBuilder().AddJsonFile($"appsettings.json").Build();
             var connectionFactory = new ConnectionFactory();
             config.GetSection("RabbitMqConnection").Bind(connectionFactory);

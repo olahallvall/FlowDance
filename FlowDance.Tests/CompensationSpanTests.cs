@@ -149,4 +149,19 @@ public class CompensationSpanTests
             compSpanRoot.Complete();
         }
     }
+
+    [TestMethod]
+    public void LooooooongRunningSpan()
+    {
+        var traceId = Guid.NewGuid();
+
+        using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation"), traceId, _factory))
+        {
+            /* Perform transactional work here */
+            compSpanRoot.Complete();
+        }
+
+        Thread.Sleep(360000); // 6 minutes
+        Assert.AreEqual(2, _rabbitMqApi.GetQueueByVhostAndName("/", traceId.ToString()).Result.MessagesReady);
+    }
 }
