@@ -59,7 +59,7 @@ namespace FlowDance.AzureFunctions.Sagas
                                 var httpRequest = new HttpRequestMessage(HttpMethod.Post, compensatingAction.Url);
 
                                 if (compensatingAction.PostData == null)
-                                    compensatingAction.PostData = span.TraceId.ToString();
+                                    compensatingAction.PostData = JsonConvert.SerializeObject(span.TraceId.ToString());
 
                                 // Set content/body
                                 httpRequest.Content = new StringContent(compensatingAction.PostData, Encoding.UTF8, $"application/json");
