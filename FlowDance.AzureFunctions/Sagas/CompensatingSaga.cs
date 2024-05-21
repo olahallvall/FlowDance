@@ -11,6 +11,7 @@ namespace FlowDance.AzureFunctions.Sagas
 {
     /// <summary>
     /// Generic Saga for compensate.  
+    // See https://learn.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-code-constraints?tabs=csharp
     /// </summary>
     public class CompensatingSaga
     {
