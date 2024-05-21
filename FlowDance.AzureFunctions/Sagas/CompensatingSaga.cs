@@ -11,6 +11,8 @@ namespace FlowDance.AzureFunctions.Sagas
 {
     /// <summary>
     /// Generic Saga for compensate.  
+    // See https://learn.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-code-constraints?tabs=csharp
+    // https://www.tpeczek.com/2021/09/handling-transient-errors-in-durable.html
     /// </summary>
     public class CompensatingSaga
     {
@@ -88,6 +90,8 @@ namespace FlowDance.AzureFunctions.Sagas
                                 try
                                 {
                                     var response = await httpClient.SendAsync(httpRequest).ConfigureAwait(false);
+                                    var statusCode = response.StatusCode;
+                                    
                                     logger.LogInformation("IsSuccessStatusCode: {IsSuccessStatusCode}", response.IsSuccessStatusCode);
                                 }
                                 // Filter by InnerException.
