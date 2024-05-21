@@ -60,7 +60,7 @@ namespace FlowDance.AzureFunctions.Sagas
                                     compensatingAction.PostData = span.TraceId.ToString();
 
                                 // Set content/body
-                                httpRequest.Content = new StringContent(compensatingAction.PostData, Encoding.UTF8);
+                                httpRequest.Content = new StringContent(compensatingAction.PostData, Encoding.UTF8, $"application/json");
 
                                 // Set headers
                                 if (compensatingAction.Headers != null)
@@ -87,9 +87,7 @@ namespace FlowDance.AzureFunctions.Sagas
                                 // Send HTTP POST
                                 try
                                 {
-                                    //var response = await httpClient.SendAsync(httpRequest).ConfigureAwait(false);
-                                    var response = await httpClient.PostAsync(compensatingAction.Url, null).ConfigureAwait(false);
-
+                                    var response = await httpClient.SendAsync(httpRequest).ConfigureAwait(false);
                                     logger.LogInformation("IsSuccessStatusCode: {IsSuccessStatusCode}", response.IsSuccessStatusCode);
                                 }
                                 // Filter by InnerException.

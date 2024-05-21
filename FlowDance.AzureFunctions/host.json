@@ -14,7 +14,8 @@
         "default": "Warning",
         "Host.Aggregator": "Trace",
         "Host.Results": "Information",
-        "Function": "Information"
+        "Function": "Information",
+        "System.Net.Http.HttpClient": "Trace"
       }
     }
   }
