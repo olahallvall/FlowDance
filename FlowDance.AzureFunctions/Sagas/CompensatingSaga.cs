@@ -1,27 +1,22 @@
-﻿using FlowDance.Common.CompensatingActions;
+﻿using FlowDance.AzureFunctions.Functions;
+using FlowDance.Common.CompensatingActions;
 using FlowDance.Common.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System.Net.Http.Headers;
-using System.Text;
+using System.Collections.Generic;
 
 namespace FlowDance.AzureFunctions.Sagas
 {
     /// <summary>
     /// Generic Saga for compensate.  
     // See https://learn.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-code-constraints?tabs=csharp
-    // https://www.tpeczek.com/2021/09/handling-transient-errors-in-durable.html
     /// </summary>
     public class CompensatingSaga
     {
-        //private readonly HttpClient _httpClient;
-        private readonly IHttpClientFactory _httpClientFactory;
-
-        public CompensatingSaga(IHttpClientFactory httpClientFactory)
+        public CompensatingSaga()
         {
-            _httpClientFactory = httpClientFactory;
         }
 
         [Function(nameof(CompensatingSaga))]
@@ -42,88 +37,26 @@ namespace FlowDance.AzureFunctions.Sagas
             // Reverse the order of Spans 
             spanList.Reverse();
 
-            //  Parallel function execution of CompensatingAction
-            var tasks = new List<Task>();
+            // Start to CallActivity...
+            var tasks = new List<Task<string>>();
             foreach (var span in spanList)
             {
                 switch (span.SpanOpened.CompensatingAction)
                 {
                     case HttpCompensatingAction:
                         {
-                            tasks.Add(Task.Run(async () => {
+                            var httpRetryPolicy = TaskOptions.FromRetryPolicy(new RetryPolicy(
+                                      maxNumberOfAttempts: 3,
+                                      firstRetryInterval: TimeSpan.FromSeconds(30)));
 
-                                var httpClient = _httpClientFactory.CreateClient();
-                                httpClient.Timeout = TimeSpan.FromMilliseconds(30000);
-
-                                var compensatingAction = (HttpCompensatingAction)span.SpanOpened.CompensatingAction;
-                                var httpRequest = new HttpRequestMessage(HttpMethod.Post, compensatingAction.Url);
-
-                                if (compensatingAction.PostData == null)
-                                    compensatingAction.PostData = JsonConvert.SerializeObject(span.TraceId.ToString());
-
-                                // Set content/body
-                                httpRequest.Content = new StringContent(compensatingAction.PostData, Encoding.UTF8, $"application/json");
-
-                                // Set headers
-                                if (compensatingAction.Headers != null)
-                                {
-                                    foreach (var header in compensatingAction.Headers)
-                                    {
-                                        httpRequest.Headers.Authorization = new AuthenticationHeaderValue(header.Key, header.Value);
-                                    }
-
-                                    // Always add a this headers
-                                    if (!compensatingAction.Headers.ContainsKey("x-correlation-id"))
-                                        httpRequest.Headers.Authorization = new AuthenticationHeaderValue("x-correlation-id", span.TraceId.ToString());
-
-                                    if (!compensatingAction.Headers.ContainsKey("calling-function-name"))
-                                        httpRequest.Headers.Authorization = new AuthenticationHeaderValue("calling-function-name", span.SpanOpened.CallingFunctionName);
-
-                                }
-                                else
-                                {
-                                    httpRequest.Headers.Authorization = new AuthenticationHeaderValue("x-correlation-id", span.TraceId.ToString());
-                                    httpRequest.Headers.Authorization = new AuthenticationHeaderValue("calling-function-name", span.SpanOpened.CallingFunctionName);
-                                }
-
-                                // Send HTTP POST
-                                try
-                                {
-                                    var response = await httpClient.SendAsync(httpRequest).ConfigureAwait(false);
-                                    var statusCode = response.StatusCode;
-                                    
-                                    logger.LogInformation("IsSuccessStatusCode: {IsSuccessStatusCode}", response.IsSuccessStatusCode);
-                                }
-                                // Filter by InnerException.
-                                catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
-                                {
-                                    // Handle timeout.
-                                    Console.WriteLine("Timed out: " + ex.Message);
-                                }
-                                catch (TaskCanceledException ex)
-                                {
-                                    // Handle cancellation.
-                                    Console.WriteLine("Canceled: " + ex.Message);
-                                }
-                                catch (Exception ex)
-                                {
-                                    // Handles all exceptions.
-                                    Console.WriteLine(ex.Message);
-                                    throw;
-                                }
-
-                                return Task.CompletedTask;
-                            }));
-                           
+                            string spanJson = JsonConvert.SerializeObject(span, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All });
+                            tasks.Add(context.CallActivityAsync<string>(nameof(HttpCompensating.HttpCompensate), spanJson, httpRetryPolicy));
                         };
                         break;
 
                     case AmqpCompensatingAction:
                         {
-                            tasks.Add(Task.Run(() =>
-                            {
-                                Thread.Sleep(1000);  // This is just a placeholder method
-                            }));
+                         
 
                         };
                         break;
@@ -135,8 +68,18 @@ namespace FlowDance.AzureFunctions.Sagas
                 }
             }
 
+            // Wait for all to complete.
             await Task.WhenAll(tasks);
-            //var results = tasks.Select(x => x.Result);
+
+            var spanListAfterProcessing = new List<Span>();
+            foreach (var task in tasks)
+            {
+                var span = JsonConvert.DeserializeObject<Span>(task.Result, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
+                spanListAfterProcessing.Add(span);
+            }
+
+            // Compare mayby?
+            var antal = spanListAfterProcessing.Count;
         }
     }
 }
