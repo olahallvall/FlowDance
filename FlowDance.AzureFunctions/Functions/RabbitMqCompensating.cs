@@ -68,7 +68,7 @@ namespace FlowDance.AzureFunctions.Functions
 
             // Store the messages
             channel.BasicPublish(exchange: string.Empty,
-                    routingKey: streamName,
+                    routingKey: compensatingAction.QueueName,
                     basicProperties: props,
                     body: Encoding.Default.GetBytes(JsonConvert.SerializeObject(compensatingAction.MessageData));
 
