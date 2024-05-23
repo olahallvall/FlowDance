@@ -57,7 +57,8 @@ namespace FlowDance.AzureFunctions.Sagas
                                       maxNumberOfAttempts: 3,
                                       firstRetryInterval: TimeSpan.FromSeconds(15)));
 
-
+                            string spanJson = JsonConvert.SerializeObject(span, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All });
+                            tasks.Add(context.CallActivityAsync<bool>(nameof(RabbitMqCompensating.RabbitMqCompensate), spanJson, httpRetryPolicy));                            
                         };
                         break;
 
