@@ -16,7 +16,7 @@ namespace FlowDance.AzureFunctions.Functions
         {
         }
 
-        [Function(nameof(HttpCompensate))]
+        [Function(nameof(RabbitMqCompensating))]
         public async Task<bool> RabbitMqCompensate([ActivityTrigger] string spanJson, FunctionContext executionContext)
         {
             var logger = executionContext.GetLogger("RabbitMqCompensating");
@@ -28,7 +28,7 @@ namespace FlowDance.AzureFunctions.Functions
             }
             var httpClient = _httpClientFactory.CreateClient();
 
-            var compensatingAction = (HttpCompensatingAction)span.SpanOpened.CompensatingAction;
+            var compensatingAction = (AmqpCompensatingAction)span.SpanOpened.CompensatingAction;
             var httpRequest = new HttpRequestMessage(HttpMethod.Post, compensatingAction.Url);
 
             if (compensatingAction.PostData == null)
