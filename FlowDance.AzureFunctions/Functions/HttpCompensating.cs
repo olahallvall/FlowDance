@@ -62,7 +62,7 @@ namespace FlowDance.AzureFunctions.Functions
             var response = await httpClient.SendAsync(httpRequest);
             if (!response.IsSuccessStatusCode)
             {  
-                // These StatusCode will not been retried.
+                // These StatusCode will not be retried.
                 if(response.StatusCode == HttpStatusCode.Forbidden || HttpStatusCode.NotFound)
                 {
                     logger.LogInformation("A HTTP POST to {url} returns {statuscode}. No retry!", compensatingAction.Url, response.StatusCode));
