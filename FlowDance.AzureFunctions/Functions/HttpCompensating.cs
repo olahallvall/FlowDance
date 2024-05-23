@@ -18,7 +18,7 @@ namespace FlowDance.AzureFunctions.Functions
         }
 
         [Function(nameof(HttpCompensate))]
-        public async Task<string> HttpCompensate([ActivityTrigger] string spanJson, FunctionContext executionContext)
+        public async Task<bool> HttpCompensate([ActivityTrigger] string spanJson, FunctionContext executionContext)
         {
             var logger = executionContext.GetLogger("HttpCompensate");
             var span = JsonConvert.DeserializeObject<Span>(spanJson, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
@@ -61,34 +61,14 @@ namespace FlowDance.AzureFunctions.Functions
             }
 
             // Send HTTP POST
-            try
+            var response = await httpClient.SendAsync(httpRequest).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
             {
-                var response = await httpClient.SendAsync(httpRequest).ConfigureAwait(false);
-                if (!response.IsSuccessStatusCode)
-                {
-                    //throw new HttpRequestException(("A HTTP POST to {url} returns {statuscode}", compensatingAction.Url, response.StatusCode), null);
-                    throw new HttpRequestException("A HTTP POST to {url} returns {statuscode}", null);
-                }
+                //throw new HttpRequestException(("A HTTP POST to {url} returns {statuscode}", compensatingAction.Url, response.StatusCode), null);
+                throw new HttpRequestException("A HTTP POST to {url} returns {statuscode}", null);
             }
-            // Filter by InnerException.
-            catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
-            {
-                // Handle timeout.
-                Console.WriteLine("Timed out: " + ex.Message);
-            }
-            catch (TaskCanceledException ex)
-            {
-                // Handle cancellation.
-                Console.WriteLine("Canceled: " + ex.Message);
-            }
-            catch (Exception ex)
-            {
-                // Handles all exceptions.
-                Console.WriteLine(ex.Message);
-                throw;
-            }
-
-            return JsonConvert.SerializeObject(span, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All });
+         
+            return true;
         }
     }
 }
