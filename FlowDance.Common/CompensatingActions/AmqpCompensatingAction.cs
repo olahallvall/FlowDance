@@ -7,7 +7,6 @@ namespace FlowDance.Common.CompensatingActions
     /// </summary>
     public class AmqpCompensatingAction : CompensatingAction
     {
-        public string VirtualHost;
         public string QueueName;
         public string MessageData;
         public Dictionary<string, string> Headers;
@@ -19,23 +18,19 @@ namespace FlowDance.Common.CompensatingActions
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="virtualHost"></param>
         /// <param name="queueName"></param>
-        public AmqpCompensatingAction(string virtualHost, string queueName)
-        {
-            VirtualHost = virtualHost;
+        public AmqpCompensatingAction(string queueName)
+        {    
             QueueName = queueName;
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="virtualHost"></param>
         /// <param name="queueName"></param>
         /// <param name="messageData"></param>
-        public AmqpCompensatingAction(string virtualHost, string queueName, string messageData)
+        public AmqpCompensatingAction(string queueName, string messageData)
         {
-            VirtualHost = virtualHost;
             QueueName = queueName;
             MessageData = messageData;
         }
@@ -43,13 +38,11 @@ namespace FlowDance.Common.CompensatingActions
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="virtualHost"></param>
         /// <param name="queueName"></param>
         /// <param name="messageData"></param>
         /// <param name="headers"></param>
-        public AmqpCompensatingAction(string virtualHost, string queueName, string messageData, Dictionary<string, string> headers)
-        {
-            VirtualHost = virtualHost;
+        public AmqpCompensatingAction(string queueName, string messageData, Dictionary<string, string> headers)
+        {            
             QueueName = queueName;
             MessageData = messageData;
             Headers = headers;
