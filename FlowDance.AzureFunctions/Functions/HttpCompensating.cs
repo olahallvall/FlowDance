@@ -61,11 +61,13 @@ namespace FlowDance.AzureFunctions.Functions
             }
 
             // Send HTTP POST
-            var response = await httpClient.SendAsync(httpRequest).ConfigureAwait(false);
+            var response = await httpClient.SendAsync(httpRequest);
             if (!response.IsSuccessStatusCode)
             {
                 //throw new HttpRequestException(("A HTTP POST to {url} returns {statuscode}", compensatingAction.Url, response.StatusCode), null);
                 // Don´t retry when 403 --- messageOfTheDayApiException.StatusCode == HttpStatusCode.Forbidden
+                return true;
+                
                 throw new HttpRequestException("A HTTP POST to {url} returns {statuscode}", null);
             }
          
