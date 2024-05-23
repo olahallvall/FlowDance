@@ -62,11 +62,15 @@ namespace FlowDance.AzureFunctions.Functions
 
             var response = await httpClient.SendAsync(httpRequest);
             if (!response.IsSuccessStatusCode)
-            {                
-                if(response.StatusCode == HttpStatusCode.Forbidden || response.StatusCode == HttpStatusCode.TooManyRequests)
+            {  
+                // These StatusCode will not been retried.
+                if(response.StatusCode == HttpStatusCode.Forbidden || HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.TooManyRequests)
+                {
+                    logger.LogInformation("A HTTP POST to {url} returns {statuscode}. No retry!", compensatingAction.Url, response.StatusCode));
                     return false;
-
-                logger.LogError("A HTTP POST to {url} returns {statuscode}.", compensatingAction.Url, response.StatusCode));
+                }
+                    
+                logger.LogError("A HTTP POST to {url} returns {statuscode}. Retrying if client code configured for retry (RetryPolicy).", compensatingAction.Url, response.StatusCode));
                 throw new Exception(string.Format("A HTTP POST to {url} returns {statuscode}.", compensatingAction.Url, response.StatusCode));
             }
          
