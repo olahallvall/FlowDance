@@ -44,7 +44,7 @@ namespace FlowDance.AzureFunctions.Sagas
                         {
                             var httpRetryPolicy = TaskOptions.FromRetryPolicy(new RetryPolicy(
                                       maxNumberOfAttempts: 3,
-                                      firstRetryInterval: TimeSpan.FromSeconds(30)));
+                                      firstRetryInterval: TimeSpan.FromSeconds(15)));
 
                             string spanJson = JsonConvert.SerializeObject(span, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All });
                             tasks.Add(context.CallActivityAsync<bool>(nameof(HttpCompensating.HttpCompensate), spanJson, httpRetryPolicy));
@@ -53,7 +53,10 @@ namespace FlowDance.AzureFunctions.Sagas
 
                     case AmqpCompensatingAction:
                         {
-                         
+                             var amqpRetryPolicy = TaskOptions.FromRetryPolicy(new RetryPolicy(
+                                      maxNumberOfAttempts: 3,
+                                      firstRetryInterval: TimeSpan.FromSeconds(15)));
+
 
                         };
                         break;
@@ -61,7 +64,6 @@ namespace FlowDance.AzureFunctions.Sagas
                     default:
                         // code block
                         break;
-
                 }
             }
             
