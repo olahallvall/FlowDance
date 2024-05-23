@@ -52,7 +52,6 @@ namespace FlowDance.AzureFunctions.Functions
 
                 if (!compensatingAction.Headers.ContainsKey("calling-function-name"))
                     httpRequest.Headers.Authorization = new AuthenticationHeaderValue("calling-function-name", span.SpanOpened.CallingFunctionName);
-
             }
             else
             {
@@ -64,7 +63,7 @@ namespace FlowDance.AzureFunctions.Functions
             if (!response.IsSuccessStatusCode)
             {  
                 // These StatusCode will not been retried.
-                if(response.StatusCode == HttpStatusCode.Forbidden || HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.TooManyRequests)
+                if(response.StatusCode == HttpStatusCode.Forbidden || HttpStatusCode.NotFound)
                 {
                     logger.LogInformation("A HTTP POST to {url} returns {statuscode}. No retry!", compensatingAction.Url, response.StatusCode));
                     return false;
