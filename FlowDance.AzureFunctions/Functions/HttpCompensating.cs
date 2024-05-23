@@ -65,6 +65,7 @@ namespace FlowDance.AzureFunctions.Functions
             if (!response.IsSuccessStatusCode)
             {
                 //throw new HttpRequestException(("A HTTP POST to {url} returns {statuscode}", compensatingAction.Url, response.StatusCode), null);
+                // Don´t retry when 403 --- messageOfTheDayApiException.StatusCode == HttpStatusCode.Forbidden
                 throw new HttpRequestException("A HTTP POST to {url} returns {statuscode}", null);
             }
          
