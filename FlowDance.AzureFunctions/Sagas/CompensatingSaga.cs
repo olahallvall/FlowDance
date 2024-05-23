@@ -34,9 +34,6 @@ namespace FlowDance.AzureFunctions.Sagas
 
             logger.LogInformation("Start CompensatingSaga for traceId {traceId}", spanList.First().TraceId);
 
-            // Reverse the order of Spans 
-            spanList.Reverse();
-
             // Start to CallActivity...
             var tasks = new List<Task<string>>();
             foreach (var span in spanList)
@@ -50,7 +47,7 @@ namespace FlowDance.AzureFunctions.Sagas
                                       firstRetryInterval: TimeSpan.FromSeconds(30)));
 
                             string spanJson = JsonConvert.SerializeObject(span, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All });
-                            tasks.Add(context.CallActivityAsync<string>(nameof(HttpCompensating.HttpCompensate), spanJson, httpRetryPolicy));
+                            tasks.Add(context.CallActivityAsync<bool>(nameof(HttpCompensating.HttpCompensate), spanJson, httpRetryPolicy));
                         };
                         break;
 
@@ -67,19 +64,11 @@ namespace FlowDance.AzureFunctions.Sagas
 
                 }
             }
-
+            
             // Wait for all to complete.
             await Task.WhenAll(tasks);
 
-            var spanListAfterProcessing = new List<Span>();
-            foreach (var task in tasks)
-            {
-                var span = JsonConvert.DeserializeObject<Span>(task.Result, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
-                spanListAfterProcessing.Add(span);
-            }
-
-            // Compare mayby?
-            var antal = spanListAfterProcessing.Count;
+            logger.LogInformation("Ending CompensatingSaga for traceId {traceId}", spanList.First().TraceId);
         }
     }
 }
