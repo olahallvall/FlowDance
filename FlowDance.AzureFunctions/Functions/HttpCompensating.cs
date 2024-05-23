@@ -25,7 +25,7 @@ namespace FlowDance.AzureFunctions.Functions
             if (span == null)
             {
                 logger.LogError("There no Span data! The function HttpCompensate has noting to work with and will exit.");
-                throw new HttpRequestException("There no Span data! The function HttpCompensate has noting to work with and will exit.", null);
+                throw new Exception("There no Span data! The function HttpCompensate has nothing to work with and will end.");
             }
             var httpClient = _httpClientFactory.CreateClient();
 
@@ -60,15 +60,14 @@ namespace FlowDance.AzureFunctions.Functions
                 httpRequest.Headers.Authorization = new AuthenticationHeaderValue("calling-function-name", span.SpanOpened.CallingFunctionName);
             }
 
-            // Send HTTP POST
             var response = await httpClient.SendAsync(httpRequest);
             if (!response.IsSuccessStatusCode)
-            {
-                //throw new HttpRequestException(("A HTTP POST to {url} returns {statuscode}", compensatingAction.Url, response.StatusCode), null);
-                // Don´t retry when 403 --- messageOfTheDayApiException.StatusCode == HttpStatusCode.Forbidden
-                return true;
-                
-                throw new HttpRequestException("A HTTP POST to {url} returns {statuscode}", null);
+            {                
+                if(response.StatusCode == HttpStatusCode.Forbidden || response.StatusCode == HttpStatusCode.TooManyRequests)
+                    return false;
+
+                logger.LogError("A HTTP POST to {url} returns {statuscode}.", compensatingAction.Url, response.StatusCode));
+                throw new Exception(string.Format("A HTTP POST to {url} returns {statuscode}.", compensatingAction.Url, response.StatusCode));
             }
          
             return true;
