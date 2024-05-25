@@ -1,17 +1,16 @@
 ﻿using FlowDance.Common.CompensatingActions;
 using FlowDance.Common.Models;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System.Net.Http.Headers;
+using RabbitMQ.Client;
 using System.Text;
 
 namespace FlowDance.AzureFunctions.Functions
 {
     public class RabbitMqCompensating
     {
-        private readonly IHttpClientFactory _httpClientFactory;
-
         public RabbitMqCompensating()
         {
         }
@@ -36,7 +35,7 @@ namespace FlowDance.AzureFunctions.Functions
             var compensatingAction = (AmqpCompensatingAction)span.SpanOpened.CompensatingAction;
         
             if (compensatingAction.MessageData == null)
-                compensatingAction.MessageData = span.TraceId.ToString();
+                compensatingAction.MessageData = JsonConvert.SerializeObject(span.TraceId.ToString());
             
             IBasicProperties props = channel.CreateBasicProperties();    
             props.Headers = new Dictionary<string, object>();
@@ -70,7 +69,7 @@ namespace FlowDance.AzureFunctions.Functions
             channel.BasicPublish(exchange: string.Empty,
                     routingKey: compensatingAction.QueueName,
                     basicProperties: props,
-                    body: Encoding.Default.GetBytes(JsonConvert.SerializeObject(compensatingAction.MessageData));
+                    body: Encoding.Default.GetBytes(compensatingAction.MessageData));
 
             channel.WaitForConfirmsOrDie(TimeSpan.FromSeconds(5));
          

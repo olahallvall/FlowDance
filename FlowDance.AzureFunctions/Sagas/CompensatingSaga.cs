@@ -35,7 +35,7 @@ namespace FlowDance.AzureFunctions.Sagas
             logger.LogInformation("Start CompensatingSaga for traceId {traceId}", spanList.First().TraceId);
 
             // Start to CallActivity...
-            var tasks = new List<Task<string>>();
+            var tasks = new List<Task<bool>>();
             foreach (var span in spanList)
             {
                 switch (span.SpanOpened.CompensatingAction)
@@ -58,7 +58,7 @@ namespace FlowDance.AzureFunctions.Sagas
                                       firstRetryInterval: TimeSpan.FromSeconds(15)));
 
                             string spanJson = JsonConvert.SerializeObject(span, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All });
-                            tasks.Add(context.CallActivityAsync<bool>(nameof(RabbitMqCompensating.RabbitMqCompensate), spanJson, httpRetryPolicy));                            
+                            tasks.Add(context.CallActivityAsync<bool>(nameof(RabbitMqCompensating.RabbitMqCompensate), spanJson, amqpRetryPolicy));                            
                         };
                         break;
 
