@@ -8,7 +8,7 @@ namespace FlowDance.Common.CompensatingActions
     public class AmqpCompensatingAction : CompensatingAction
     {
         public string QueueName;
-        public string MessageData;
+        public string CompensationData;
         public Dictionary<string, string> Headers;
 
         public AmqpCompensatingAction()
@@ -28,23 +28,23 @@ namespace FlowDance.Common.CompensatingActions
         /// 
         /// </summary>
         /// <param name="queueName"></param>
-        /// <param name="messageData"></param>
-        public AmqpCompensatingAction(string queueName, string messageData)
+        /// <param name="compensationData"></param>
+        public AmqpCompensatingAction(string queueName, string compensationData)
         {
             QueueName = queueName;
-            MessageData = messageData;
+            CompensationData = compensationData;
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="queueName"></param>
-        /// <param name="messageData"></param>
+        /// <param name="compensationData"></param>
         /// <param name="headers"></param>
-        public AmqpCompensatingAction(string queueName, string messageData, Dictionary<string, string> headers)
+        public AmqpCompensatingAction(string queueName, string compensationData, Dictionary<string, string> headers)
         {            
             QueueName = queueName;
-            MessageData = messageData;
+            CompensationData = compensationData;
             Headers = headers;
         }
     }
