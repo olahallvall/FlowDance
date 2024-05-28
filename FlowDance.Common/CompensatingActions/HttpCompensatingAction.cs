@@ -8,7 +8,7 @@ namespace FlowDance.Common.CompensatingActions
     public class HttpCompensatingAction : CompensatingAction
     {
         public string Url;
-        public string PostData;
+        public string CompensationData;
         public Dictionary<string, string> Headers;
 
         public HttpCompensatingAction()
@@ -28,23 +28,23 @@ namespace FlowDance.Common.CompensatingActions
         /// 
         /// </summary>
         /// <param name="url"></param>
-        /// <param name="postData"></param>
-        public HttpCompensatingAction(string url, string postData)
+        /// <param name="compensationData"></param>
+        public HttpCompensatingAction(string url, string compensationData)
         {
             Url = url;
-            PostData = postData;
+            CompensationData = compensationData;
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="url"></param>
-        /// <param name="postData"></param>
+        /// <param name="compensationData"></param>
         /// <param name="headers"></param>
-        public HttpCompensatingAction(string url, string postData, Dictionary<string, string> headers)
+        public HttpCompensatingAction(string url, string compensationData, Dictionary<string, string> headers)
         {
             Url = url;
-            PostData = postData;
+            CompensationData = compensationData;
             Headers = headers;
         }
     }
