@@ -29,6 +29,7 @@ namespace FlowDance.Client
         private Storage _rabbitMqUtil;
         private IConnection _connection;
         private IModel _channel;
+        private string _compensationData;
         private readonly ILogger<CompensationSpan> _logger;
 
         /// <summary>
@@ -117,6 +118,18 @@ namespace FlowDance.Client
             _completed = true;
         }
 
+        /// <summary>
+        /// When you are satisfied that all operations within the span are completed successfully, you should call this method only once to 
+        /// inform that transaction manager that the state across all resources is consistent, and the transaction can be committed. 
+        /// It is very good practice to put the call as the last statement in the using block. If not, the Span will be called for compensation. 
+        /// </summary>
+        /// <param name="compensationData">Overrides the initial CompensationData.</param>
+        public void Complete(string compensationData)
+        {
+            _completed = true;
+            _compensationData = compensationData;
+        }
+        
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
