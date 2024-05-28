@@ -7,5 +7,6 @@
     {
         public bool MarkedAsCommitted { get; set; }
         public bool ExceptionDetected { get; set; }
+        public string CompensationData { get; set; }        
     }
 }
