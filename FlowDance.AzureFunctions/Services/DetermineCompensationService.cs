@@ -29,8 +29,8 @@ namespace FlowDance.AzureFunctions.Services
 
                 // Construct a SpanList from SpanEventList
                 var spanOpenEvents = from so in spanEventList
-                                       where so.GetType() == typeof(SpanOpened)
-                                       select (SpanOpened)so;
+                                     where so.GetType() == typeof(SpanOpened)
+                                     select (SpanOpened)so;
 
                 // Pick all SpanOpened event and create a Span for each
                 spanList.AddRange(spanOpenEvents.Select(spanOpenEvent => new Span()
@@ -51,6 +51,17 @@ namespace FlowDance.AzureFunctions.Services
                     {
                         span.SpanClosed = spanClosedEvent.First();
                     }
+
+                    // Find and add all CompensationData event belonging to this Span.
+                    var spanCompensationDataEvents = from so in spanEventList
+                                                     where so.GetType() == typeof(SpanCompensationData) && so.SpanId == span.SpanOpened.SpanId
+                                                     select (SpanCompensationData)so;
+
+                    foreach(SpanCompensationData compensationData in spanCompensationDataEvents)
+                    {
+                        span.CompensationData.Add(compensationData); 
+                    }
+
                 }
 
                 // Validate that every Span has a valid SpanOpened and SpanClosed

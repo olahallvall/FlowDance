@@ -34,8 +34,8 @@ namespace FlowDance.AzureFunctions.Functions
             var channel = connection.CreateModel();
             var compensatingAction = (AmqpCompensatingAction)span.SpanOpened.CompensatingAction;
         
-            if (compensatingAction.MessageData == null)
-                compensatingAction.MessageData = JsonConvert.SerializeObject(span.TraceId.ToString());
+            if (compensatingAction.CompensationData == null)
+                compensatingAction.CompensationData = JsonConvert.SerializeObject(span.TraceId.ToString());
             
             IBasicProperties props = channel.CreateBasicProperties();    
             props.Headers = new Dictionary<string, object>();
@@ -69,7 +69,7 @@ namespace FlowDance.AzureFunctions.Functions
             channel.BasicPublish(exchange: string.Empty,
                     routingKey: compensatingAction.QueueName,
                     basicProperties: props,
-                    body: Encoding.Default.GetBytes(compensatingAction.MessageData));
+                    body: Encoding.Default.GetBytes(compensatingAction.CompensationData));
 
             channel.WaitForConfirmsOrDie(TimeSpan.FromSeconds(5));
          

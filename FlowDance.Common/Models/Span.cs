@@ -1,5 +1,6 @@
 ﻿using FlowDance.Common.Events;
 using System;
+using System.Collections.Generic;
 
 namespace FlowDance.Common.Models
 {
@@ -12,5 +13,6 @@ namespace FlowDance.Common.Models
         public Guid SpanId { get; set; }
         public SpanOpened SpanOpened { get; set; }
         public SpanClosed SpanClosed { get; set; }
+        public List<SpanCompensationData> CompensationData { get; set; } = new List<SpanCompensationData>();
     }
 }

@@ -33,12 +33,14 @@ public class CompensationSpanTests
 
         using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation"), traceId, _factory))
         {
+            compSpanRoot.AddCompensationData("ddfdfdfdfdfdfd23233", "QC");
+
             /* Perform transactional work here */
             compSpanRoot.Complete();
         }
 
         Thread.Sleep(10000);
-        Assert.AreEqual(2, _rabbitMqApi.GetQueueByVhostAndName("/", traceId.ToString()).Result.MessagesReady);
+        Assert.AreEqual(3, _rabbitMqApi.GetQueueByVhostAndName("/", traceId.ToString()).Result.MessagesReady);
     }
 
     [TestMethod]
@@ -49,11 +51,16 @@ public class CompensationSpanTests
 
         // The top-most compensation scope is referred to as the root scope.
         // Root scope
-        using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation", "postdata1223", new Dictionary<string, string>() { { "KeyB", "656565" } }), traceId, _factory))
+        using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation", new Dictionary<string, string>() { { "KeyB", "656565" } }), traceId, _factory))
         {
+            compSpanRoot.AddCompensationData("ddfdfdfdfdfdfd", "Trip");
+
             // Inner scope
-            using (var compSpanInnerCar = new CompensationSpan(new HttpCompensatingAction("http://localhost/CarService/Compensation", "postdata76767"), traceId, _factory))
+            using (var compSpanInnerCar = new CompensationSpan(new HttpCompensatingAction("http://localhost/CarService/Compensation"), traceId, _factory))
             {
+
+                compSpanInnerCar.AddCompensationData("hghghg");
+
                 /* Perform transactional work here */
                 throw new Exception("Something bad has happened!");
 

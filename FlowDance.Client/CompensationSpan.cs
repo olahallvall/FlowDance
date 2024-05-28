@@ -7,8 +7,6 @@ using RabbitMQ.Client;
 using System.Runtime.InteropServices;
 using FlowDance.Common.CompensatingActions;
 using System;
-using System.Runtime.Serialization;
-using System.IO;
 
 namespace FlowDance.Client
 {
@@ -29,7 +27,6 @@ namespace FlowDance.Client
         private Storage _rabbitMqUtil;
         private IConnection _connection;
         private IModel _channel;
-        private string _compensationData;
         private readonly ILogger<CompensationSpan> _logger;
 
         /// <summary>
@@ -108,6 +105,38 @@ namespace FlowDance.Client
             }
         }
 
+        private void StoreSpanCompensationData(Guid traceId, Guid spanId, string compensationData, string compensationDataIdentifier)
+        {
+            // Create the event - SpanCompensationData
+            var spanCompensationData = new SpanCompensationData()
+            {
+                TraceId = traceId,
+                SpanId = spanId,
+                Timestamp = DateTime.Now,
+                CompensationData = compensationData,
+                Identifier = compensationDataIdentifier
+            };
+
+            // Store the SpanCompensationData event 
+            _rabbitMqUtil.StoreEvent(spanCompensationData, _connection, _connection.CreateModel());
+        }
+
+        /// <summary>
+        /// Add a CompensationData event to the stream of events. You can have multiple CompensationData events for a span.
+        /// </summary>
+        public void AddCompensationData(string compensationData, string compensationDataIdentifier)
+        {
+            StoreSpanCompensationData(_spanOpened.TraceId, _spanOpened.SpanId, compensationData, compensationDataIdentifier);
+        }
+
+        /// <summary>
+        /// Add a CompensationData event to the stream of events. You can have multiple CompensationData events for a span.
+        /// </summary>
+        public void AddCompensationData(string compensationData)
+        {
+            StoreSpanCompensationData(_spanOpened.TraceId, _spanOpened.SpanId, compensationData, String.Empty);
+        }
+
         /// <summary>
         /// When you are satisfied that all operations within the span are completed successfully, you should call this method only once to 
         /// inform that transaction manager that the state across all resources is consistent, and the transaction can be committed. 
@@ -123,11 +152,12 @@ namespace FlowDance.Client
         /// inform that transaction manager that the state across all resources is consistent, and the transaction can be committed. 
         /// It is very good practice to put the call as the last statement in the using block. If not, the Span will be called for compensation. 
         /// </summary>
-        /// <param name="compensationData">Overrides the initial CompensationData.</param>
-        public void Complete(string compensationData)
+        /// <param name="compensationData"></param>
+        public void Complete(string compensationData, string compensationDataIdentifier)
         {
+            StoreSpanCompensationData(_spanOpened.TraceId, _spanOpened.SpanId, compensationData, compensationDataIdentifier);
+
             _completed = true;
-            _compensationData = compensationData;
         }
         
         protected virtual void Dispose(bool disposing)
