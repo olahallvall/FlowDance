@@ -53,15 +53,14 @@ namespace FlowDance.AzureFunctions.Services
                     }
 
                     // Find and add all CompensationData event belonging to this Span.
-                    var spanCompensationDataEvents = from so in spanEventList
-                                                     where so.GetType() == typeof(SpanCompensationData) && so.SpanId == span.SpanOpened.SpanId
-                                                     select (SpanCompensationData)so;
+                    var spanCompensationDataEvents = from cd in spanEventList
+                                                     where cd.GetType() == typeof(SpanCompensationData) && cd.SpanId == span.SpanOpened.SpanId
+                                                     select (SpanCompensationData)cd;
 
                     foreach(SpanCompensationData compensationData in spanCompensationDataEvents)
                     {
                         span.CompensationData.Add(compensationData); 
                     }
-
                 }
 
                 // Validate that every Span has a valid SpanOpened and SpanClosed

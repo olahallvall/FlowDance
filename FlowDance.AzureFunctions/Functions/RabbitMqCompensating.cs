@@ -33,11 +33,11 @@ namespace FlowDance.AzureFunctions.Functions
             var connection = connectionFactory.CreateConnection();
             var channel = connection.CreateModel();
             var compensatingAction = (AmqpCompensatingAction)span.SpanOpened.CompensatingAction;
-        
-            if (compensatingAction.CompensationData == null)
-                compensatingAction.CompensationData = JsonConvert.SerializeObject(span.TraceId.ToString());
-            
-            IBasicProperties props = channel.CreateBasicProperties();    
+
+            if (!span.CompensationData.Any())
+                span.CompensationData.Add(new Common.Events.SpanCompensationData() { CompensationData = span.TraceId.ToString(), Identifier = "default" });
+
+            IBasicProperties props = channel.CreateBasicProperties();
             props.Headers = new Dictionary<string, object>();
             
             // Set headers
@@ -69,7 +69,7 @@ namespace FlowDance.AzureFunctions.Functions
             channel.BasicPublish(exchange: string.Empty,
                     routingKey: compensatingAction.QueueName,
                     basicProperties: props,
-                    body: Encoding.Default.GetBytes(compensatingAction.CompensationData));
+                    body: Encoding.Default.GetBytes(JsonConvert.SerializeObject(span.CompensationData)));
 
             channel.WaitForConfirmsOrDie(TimeSpan.FromSeconds(5));
          

@@ -33,10 +33,10 @@ namespace FlowDance.AzureFunctions.Functions
             var httpRequest = new HttpRequestMessage(HttpMethod.Post, compensatingAction.Url);
 
             if (!span.CompensationData.Any())
-                span.CompensationData.Add(new Common.Events.SpanCompensationData() { CompensationData = JsonConvert.SerializeObject(span.TraceId.ToString()), Identifier = "default"));
+                span.CompensationData.Add(new Common.Events.SpanCompensationData() { CompensationData = span.TraceId.ToString(), Identifier = "default" } );
 
             // Set content/body
-            httpRequest.Content = new StringContent(span.CompensationData, Encoding.UTF8, $"application/json");
+            httpRequest.Content = new StringContent(JsonConvert.SerializeObject(span.CompensationData), Encoding.UTF8, $"application/json");
 
             // Set headers
             if (compensatingAction.Headers != null)

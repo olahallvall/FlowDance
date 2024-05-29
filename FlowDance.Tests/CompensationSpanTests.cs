@@ -33,14 +33,14 @@ public class CompensationSpanTests
 
         using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation"), traceId, _factory))
         {
-            compSpanRoot.AddCompensationData("ddfdfdfdfdfdfd23233", "QC");
+            compSpanRoot.AddCompensationData("SomeDataYouWantToByAbleToRollbackTo", "QC");
 
             /* Perform transactional work here */
-            compSpanRoot.Complete();
+            compSpanRoot.Complete("SomeDataYouWantToByAbleToRollbackTo1", "QC1");
         }
 
         Thread.Sleep(10000);
-        Assert.AreEqual(3, _rabbitMqApi.GetQueueByVhostAndName("/", traceId.ToString()).Result.MessagesReady);
+        Assert.AreEqual(4, _rabbitMqApi.GetQueueByVhostAndName("/", traceId.ToString()).Result.MessagesReady);
     }
 
     [TestMethod]
@@ -53,21 +53,23 @@ public class CompensationSpanTests
         // Root scope
         using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation", new Dictionary<string, string>() { { "KeyB", "656565" } }), traceId, _factory))
         {
-            compSpanRoot.AddCompensationData("ddfdfdfdfdfdfd", "Trip");
+            compSpanRoot.AddCompensationData("SomeDataYouWantToByAbleToRollbackToForTheTrip", "TripBegin");
 
             // Inner scope
             using (var compSpanInnerCar = new CompensationSpan(new HttpCompensatingAction("http://localhost/CarService/Compensation"), traceId, _factory))
             {
-
-                compSpanInnerCar.AddCompensationData("hghghg");
-
                 /* Perform transactional work here */
+
+                compSpanInnerCar.AddCompensationData("SomeDataYouWantToByAbleToRollbackToForTheCar1", "Car1");
+
+                compSpanInnerCar.AddCompensationData("SomeDataYouWantToByAbleToRollbackToForTheCar11", "Car11");
+
                 throw new Exception("Something bad has happened!");
 
-                compSpanInnerCar.Complete();
+                compSpanInnerCar.Complete("SomeDataYouWantToByAbleToRollbackToForTheCar2", "Car2");
             }
 
-            compSpanRoot.Complete();
+            compSpanRoot.Complete("SomeDataYouWantToByAbleToRollbackToForTheTrip", "TripEnd");
         }
     }
 
