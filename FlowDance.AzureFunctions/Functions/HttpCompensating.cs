@@ -3,7 +3,6 @@ using FlowDance.Common.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System.Net.Http.Headers;
 using System.Text;
 
 namespace FlowDance.AzureFunctions.Functions
@@ -43,20 +42,20 @@ namespace FlowDance.AzureFunctions.Functions
             {
                 foreach (var header in compensatingAction.Headers)
                 {
-                    httpRequest.Headers.Authorization = new AuthenticationHeaderValue(header.Key, header.Value);
+                    httpRequest.Headers.Add(header.Key, header.Value);
                 }
 
                 // Always add a this headers
                 if (!compensatingAction.Headers.ContainsKey("x-correlation-id"))
-                    httpRequest.Headers.Authorization = new AuthenticationHeaderValue("x-correlation-id", span.TraceId.ToString());
+                    httpRequest.Headers.Add("x-correlation-id", span.TraceId.ToString());
 
-                if (!compensatingAction.Headers.ContainsKey("calling-function-name"))
-                    httpRequest.Headers.Authorization = new AuthenticationHeaderValue("calling-function-name", span.SpanOpened.CallingFunctionName);
+                if (!compensatingAction.Headers.ContainsKey("x-calling-function-name"))
+                    httpRequest.Headers.Add("x-calling-function-name", span.SpanOpened.CallingFunctionName);
             }
             else
             {
-                httpRequest.Headers.Authorization = new AuthenticationHeaderValue("x-correlation-id", span.TraceId.ToString());
-                httpRequest.Headers.Authorization = new AuthenticationHeaderValue("calling-function-name", span.SpanOpened.CallingFunctionName);
+                httpRequest.Headers.Add("x-correlation-id", span.TraceId.ToString());
+                httpRequest.Headers.Add("x-calling-function-name", span.SpanOpened.CallingFunctionName);
             }
 
             var response = await httpClient.SendAsync(httpRequest);

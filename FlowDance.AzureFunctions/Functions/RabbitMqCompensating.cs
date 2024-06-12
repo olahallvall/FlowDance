@@ -53,13 +53,13 @@ namespace FlowDance.AzureFunctions.Functions
                 if (!compensatingAction.Headers.ContainsKey("x-correlation-id"))
                     props.Headers.Add("x-correlation-id", span.TraceId.ToString());
 
-                if (!compensatingAction.Headers.ContainsKey("calling-function-name"))
-                    props.Headers.Add("calling-function-name", span.SpanOpened.CallingFunctionName);
+                if (!compensatingAction.Headers.ContainsKey("x-calling-function-name"))
+                    props.Headers.Add("x-calling-function-name", span.SpanOpened.CallingFunctionName);
             }
             else
             {
                 props.Headers.Add("x-correlation-id", span.TraceId.ToString());
-                props.Headers.Add("calling-function-name", span.SpanOpened.CallingFunctionName);
+                props.Headers.Add("x-calling-function-name", span.SpanOpened.CallingFunctionName);
             }
 
             // So we can Confirm
