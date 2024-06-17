@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>FlowDance.Client.AspNetCore</Title>
-    <PackageReadmeFile></PackageReadmeFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/olahallvall/FlowDance</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Version>1.0.10-alpha</Version>
@@ -30,6 +30,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="RabbitMQ.Client" Version="6.8.1" />
     <PackageReference Include="Teronis.MSBuild.Packaging.ProjectBuildInPackage" Version="1.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -37,8 +39,15 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\FlowDance.Client\FlowDance.Client.csproj" PrivateAssets="all"/>
-    <ProjectReference Include="..\FlowDance.Common\FlowDance.Common.csproj" PrivateAssets="all"/>
+    <ProjectReference Include="..\FlowDance.Client\FlowDance.Client.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\FlowDance.Common\FlowDance.Common.csproj" PrivateAssets="all" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

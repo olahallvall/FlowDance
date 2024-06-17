@@ -11,7 +11,7 @@ namespace FlowDance.Client.AspNetCore.ActionFilters
     public class CompensationSpanAttribute : ActionFilterAttribute
     {
         public required string CompensatingActionUrl { get; set; }
-        public required CompensationSpanOption CompensationSpanOption { get; set; }
+        public CompensationSpanOption CompensationSpanOption { get; set; }
 
         public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
@@ -31,26 +31,31 @@ namespace FlowDance.Client.AspNetCore.ActionFilters
             var loggerFactory = serviceProvider.GetService<ILoggerFactory>();
             ILogger<CompensationSpanAttribute> logger = loggerFactory.CreateLogger<CompensationSpanAttribute>();
 
-
             // Get x-correlation-id
             Guid traceId;
             if (CompensationSpanOption == CompensationSpanOption.RequiresNew)
-                traceId = Guid.NewGuid();
-            else
             {
-                var b1 = context.HttpContext.Request.Headers.TryGetValue("x-correlation-id", out var correlationId);
-                var b2 = Guid.TryParse(correlationId, out traceId);
+                traceId = Guid.NewGuid();
             }
+            else if (CompensationSpanOption == CompensationSpanOption.Required)
+            {
+                context.HttpContext.Request.Headers.TryGetValue("x-correlation-id", out var correlationId);
+                var isValid = Guid.TryParse(correlationId, out traceId);
+                if (!isValid)
+                    throw new Exception("TraceId (" + correlationId + ") are not a valid Guid.");
+            }
+            else
+                throw new Exception("Missing CompensationSpanOption.");
 
             ICompensationSpan compensationSpan = null;
             if (CompensatingActionUrl.Contains("http"))
                 compensationSpan = new CompensationSpan(new HttpCompensatingAction(CompensatingActionUrl), traceId, loggerFactory, callingFunctionName);
-            else if(CompensatingActionUrl.Contains("amqp"))
+            else if (CompensatingActionUrl.Contains("amqp"))
                 compensationSpan = new CompensationSpan(new AmqpCompensatingAction(CompensatingActionUrl), traceId, loggerFactory, callingFunctionName);
 
-            if(compensationSpan == null)
+            if (compensationSpan == null)
                 throw new Exception("Can't create a CompensationSpan.");
-            
+
             // Make the CompensationSpan avalible to the Controller.
             // Access this from the controller method using this code; var compensationSpan = HttpContext.Items["CompensationSpan"];
             var controller = (ControllerBase)context.Controller;
