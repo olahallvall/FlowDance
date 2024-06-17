@@ -4,6 +4,18 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Title>FlowDance.Client.AspNetCore</Title>
+    <PackageReadmeFile></PackageReadmeFile>
+    <RepositoryUrl>https://github.com/olahallvall/FlowDance</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Version>1.0.10-alpha</Version>
+    <Authors>ola.hallvall</Authors>
+    <Company>ola.hallvall</Company>
+    <Description>Contains the Client-side component of FlowDance for AspNetCore projects.</Description>
+    <PackageProjectUrl>https://olahallvall.github.io/FlowDance.Documentation/</PackageProjectUrl>
+    <PackageTags>Compensating Transaction; Compensating Action; Saga</PackageTags>
+    <PackageIcon>flowdance128.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,7 +23,22 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FlowDance.Client\FlowDance.Client.csproj" />
+    <None Include="..\flowdance128.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Teronis.MSBuild.Packaging.ProjectBuildInPackage" Version="1.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\FlowDance.Client\FlowDance.Client.csproj" PrivateAssets="all"/>
+    <ProjectReference Include="..\FlowDance.Common\FlowDance.Common.csproj" PrivateAssets="all"/>
   </ItemGroup>
 
 </Project>

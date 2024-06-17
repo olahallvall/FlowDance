@@ -19,7 +19,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowDance.Tests", "FlowDanc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowDance.Test.Legacy", "FlowDance.Test.Legacy\FlowDance.Test.Legacy.csproj", "{D1E92428-0F99-4FC8-985E-4A6B4AF399AD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowDance.Client.AspNetCore", "FlowDance.Client.AspNetCore\FlowDance.Client.AspNetCore.csproj", "{6DF9262C-78B9-45DA-A018-E7035D8A2FCF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowDance.Client.AspNetCore", "FlowDance.Client.AspNetCore\FlowDance.Client.AspNetCore.csproj", "{6DF9262C-78B9-45DA-A018-E7035D8A2FCF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowDance.Tests.AspNetCore", "FlowDance.Tests.AspNetCore\FlowDance.Tests.AspNetCore.csproj", "{5AD1C966-E873-4B10-B6B7-8C84AEA95D7D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{6DF9262C-78B9-45DA-A018-E7035D8A2FCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6DF9262C-78B9-45DA-A018-E7035D8A2FCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6DF9262C-78B9-45DA-A018-E7035D8A2FCF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5AD1C966-E873-4B10-B6B7-8C84AEA95D7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5AD1C966-E873-4B10-B6B7-8C84AEA95D7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5AD1C966-E873-4B10-B6B7-8C84AEA95D7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5AD1C966-E873-4B10-B6B7-8C84AEA95D7D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

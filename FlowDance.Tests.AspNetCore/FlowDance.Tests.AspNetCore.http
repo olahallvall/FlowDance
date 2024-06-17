@@ -1,0 +1,6 @@
+@FlowDance.Tests.AspNetCore_HostAddress = http://localhost:5123
+
+GET {{FlowDance.Tests.AspNetCore_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
