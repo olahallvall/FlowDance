@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using FlowDance.Client;
 using FlowDance.Client.AspNetCore.ActionFilters;
 
 namespace FlowDance.Tests.AspNetCore.Controllers
@@ -24,7 +25,9 @@ namespace FlowDance.Tests.AspNetCore.Controllers
         public IEnumerable<WeatherForecast> Get()
         {
             // Access the CompensationSpan instance from the ActionFilter
-            var compensationSpan = HttpContext.Items["CompensationSpan"];
+            var compensationSpan = HttpContext.Items["CompensationSpan"] as CompensationSpan;
+
+            compensationSpan.AddCompensationData("fffff");
 
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
