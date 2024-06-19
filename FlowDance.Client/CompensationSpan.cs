@@ -30,7 +30,7 @@ namespace FlowDance.Client
         private readonly ILogger<CompensationSpan> _logger;
 
         /// <summary>
-        /// 
+        /// Creates a CompensationSpan that use http/https for accessing the Compensating Action. 
         /// </summary>
         /// <param name="httpAction"></param>
         /// <param name="traceId"></param>
@@ -44,7 +44,7 @@ namespace FlowDance.Client
         }
 
         /// <summary>
-        /// 
+        /// Creates a CompensationSpan that use amqp (RabbitMQ) for accessing the Compensating Action.
         /// </summary>
         /// <param name="amqpAction"></param>
         /// <param name="traceId"></param>
@@ -138,8 +138,13 @@ namespace FlowDance.Client
         }
 
         /// <summary>
-        /// When you are satisfied that all operations within the span are completed successfully, you should call this method only once to 
-        /// inform that transaction manager that the state across all resources is consistent, and the transaction can be committed. 
+        /// Returns the TraceId.
+        /// </summary>
+        public Guid TraceId => _spanOpened.TraceId;
+
+        /// <summary>
+        /// When you are satisfied that all operations within the span are completed successfully, you should call this method to 
+        /// inform that the state across all resources is consistent, and the transaction can be committed. 
         /// It is very good practice to put the call as the last statement in the using block. If not, the Span will be called for compensation. 
         /// </summary>
         public void Complete()
@@ -148,8 +153,8 @@ namespace FlowDance.Client
         }
 
         /// <summary>
-        /// When you are satisfied that all operations within the span are completed successfully, you should call this method only once to 
-        /// inform that transaction manager that the state across all resources is consistent, and the transaction can be committed. 
+        /// When you are satisfied that all operations within the span are completed successfully, you should call this method to 
+        /// inform that the state across all resources is consistent, and the transaction can be committed. 
         /// It is very good practice to put the call as the last statement in the using block. If not, the Span will be called for compensation. 
         /// </summary>
         /// <param name="compensationData"></param>
@@ -178,6 +183,9 @@ namespace FlowDance.Client
             }
         }
 
+        /// <summary>
+        /// If you use the 
+        /// </summary>
         public void Dispose()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method

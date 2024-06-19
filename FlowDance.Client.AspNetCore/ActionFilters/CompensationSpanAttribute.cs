@@ -8,9 +8,24 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FlowDance.Client.AspNetCore.ActionFilters
 {
+    /// <summary>
+    /// The CompensationSpan action filter provides a simple way to add a controller method participating in a flow dance/transaction that can be compensated.
+    /// The Complete method will be automatically called if the controller does not throw an exception.
+    /// 
+    /// To access a <CompensationSpan> instance inside a controller method, you can use this code; var compensationSpan = HttpContext.Items["CompensationSpan"] as CompensationSpan; 
+    /// </summary>
     public class CompensationSpanAttribute : ActionFilterAttribute
     {
+        /// <summary>
+        /// Use a string to point out url/amqp end point to use when compensating. 
+        /// <example>
+        /// <code>
+        /// [CompensationSpan(CompensatingActionUrl = "http://localhost/TripBookingService/Compensation", CompensationSpanOption = CompensationSpanOption.RequiresNew)]
+        /// </code>
+        /// </example>
+        /// </summary>
         public required string CompensatingActionUrl { get; set; }
+
         public CompensationSpanOption CompensationSpanOption { get; set; }
 
         public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
@@ -29,9 +44,9 @@ namespace FlowDance.Client.AspNetCore.ActionFilters
 
             var serviceProvider = context.HttpContext.RequestServices;
             var loggerFactory = serviceProvider.GetService<ILoggerFactory>();
-            ILogger<CompensationSpanAttribute> logger = loggerFactory.CreateLogger<CompensationSpanAttribute>();
+            var logger = loggerFactory.CreateLogger<CompensationSpanAttribute>();
 
-            // Get x-correlation-id
+            // Get traceId
             Guid traceId;
             if (CompensationSpanOption == CompensationSpanOption.RequiresNew)
             {
@@ -42,7 +57,7 @@ namespace FlowDance.Client.AspNetCore.ActionFilters
                 context.HttpContext.Request.Headers.TryGetValue("x-correlation-id", out var correlationId);
                 var isValid = Guid.TryParse(correlationId, out traceId);
                 if (!isValid)
-                    throw new Exception("TraceId (" + correlationId + ") are not a valid Guid.");
+                    throw new Exception("CorrelationId/TraceId (" + correlationId + ") are not a valid Guid.");
             }
             else
                 throw new Exception("Missing CompensationSpanOption.");
@@ -57,7 +72,7 @@ namespace FlowDance.Client.AspNetCore.ActionFilters
                 throw new Exception("Can't create a CompensationSpan.");
 
             // Make the CompensationSpan avalible to the Controller.
-            // Access this from the controller method using this code; var compensationSpan = HttpContext.Items["CompensationSpan"];
+            // Access this from the controller method using this code; var compensationSpan = HttpContext.Items["CompensationSpan"] as CompensationSpan;
             var controller = (ControllerBase)context.Controller;
             controller.HttpContext.Items.Add("CompensationSpan", compensationSpan);
 

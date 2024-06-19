@@ -8,5 +8,6 @@ namespace FlowDance.Common.Interfaces
         void Complete(string compensationData, string compensationDataIdentifier);
         void AddCompensationData(string compensationData);
         void AddCompensationData(string compensationData, string compensationDataIdentifier);
+        Guid TraceId { get; }
     }
 }
