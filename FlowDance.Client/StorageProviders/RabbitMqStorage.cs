@@ -1,39 +1,46 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 using FlowDance.Common.Commands;
 using FlowDance.Common.Events;
+using FlowDance.Common.Interfaces;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
-namespace FlowDance.Client.RabbitMq
+namespace FlowDance.Client.StorageProviders
 {
     /// <summary>
     /// Handles the storing of events and messages to RabbitMQ. 
     /// </summary>
-    public class Storage
+    public class RabbitMqStorage : IStorage
     {
         private readonly ILoggerFactory _loggerFactory;
-        private readonly ILogger<Storage> _logger;
+        private readonly ILogger<RabbitMqStorage> _logger;
 
-        public Storage(ILoggerFactory loggerFactory)
+        public RabbitMqStorage(ILoggerFactory loggerFactory)
         {
             _loggerFactory = loggerFactory;
-            _logger = _loggerFactory.CreateLogger<Storage>();
+            _logger = _loggerFactory.CreateLogger<RabbitMqStorage>();
         }
 
         /// <summary>
         /// Store a SpanEvent (SpanOpened or SpanClosed) to a stream.
         /// </summary>
         /// <param name="spanEvent"></param>
-        /// <param name="connection"></param>
-        /// <param name="channel"></param>
         /// <exception cref="Exception"></exception>
-        public void StoreEvent(SpanEvent spanEvent, IConnection connection, IModel channel)
+        public void StoreEvent(SpanEvent spanEvent)
         {
             try
             {
+                var config = new ConfigurationBuilder().AddJsonFile($"appsettings.json").Build();
+                var connectionFactory = new ConnectionFactory();
+                config.GetSection("RabbitMqConnection").Bind(connectionFactory);
+
+                var connection = connectionFactory.CreateConnection();
+                var channel = connection.CreateModel();
+
                 var streamName = spanEvent.TraceId.ToString();
 
                 //Check if stream/queue exist. 
@@ -76,6 +83,9 @@ namespace FlowDance.Client.RabbitMq
                         body: Encoding.Default.GetBytes(JsonConvert.SerializeObject(spanEvent, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All })));
 
                     channel.WaitForConfirmsOrDie(TimeSpan.FromSeconds(5));
+
+                    if (connection.IsOpen)
+                        connection.Close();
                 }
             }
             catch (Exception ex)
@@ -89,11 +99,17 @@ namespace FlowDance.Client.RabbitMq
         /// Store the DetermineCompensation command to a queue.
         /// </summary>
         /// <param name="command"></param>
-        /// <param name="channel"></param>
-        public void StoreCommand(DetermineCompensation command, IModel channel)
+        public void StoreCommand(DetermineCompensation command)
         {
             try
             {
+                var config = new ConfigurationBuilder().AddJsonFile($"appsettings.json").Build();
+                var connectionFactory = new ConnectionFactory();
+                config.GetSection("RabbitMqConnection").Bind(connectionFactory);
+
+                var connection = connectionFactory.CreateConnection();
+                var channel = connection.CreateModel();
+
                 channel.ConfirmSelect();
 
                 channel.QueueDeclare(queue: "FlowDance.DetermineCompensation",
@@ -110,6 +126,9 @@ namespace FlowDance.Client.RabbitMq
                     body: body);
 
                 channel.WaitForConfirmsOrDie(TimeSpan.FromSeconds(5));
+
+                if (connection.IsOpen)
+                    connection.Close();
             }
             catch (Exception ex)
             {
@@ -122,10 +141,9 @@ namespace FlowDance.Client.RabbitMq
         /// Check if a queue/stream exists. 
         /// </summary>
         /// <param name="name"></param>
-        /// <param name="connection"></param>
         /// <returns>True if stream exists, else false.</returns>
         /// <exception cref="Exception"></exception>
-        public bool StreamExistOrQueue(string name, IConnection connection)
+        private bool StreamExistOrQueue(string name, IConnection connection)
         {
             try
             {
@@ -152,8 +170,7 @@ namespace FlowDance.Client.RabbitMq
         /// Create a stream. 
         /// </summary>
         /// <param name="streamName"></param>
-        /// <param name="channel"></param>
-        public void CreateStream(string streamName, IModel channel)
+        private void CreateStream(string streamName, IModel channel)
         {
             try
             {

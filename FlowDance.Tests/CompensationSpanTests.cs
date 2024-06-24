@@ -1,9 +1,8 @@
+using FlowDance.Client;
+using FlowDance.Common.CompensatingActions;
+using FlowDance.Tests.RabbitMqHttpApiClient.API;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-
-using FlowDance.Client;
-using FlowDance.Tests.RabbitMqHttpApiClient.API;
-using FlowDance.Common.CompensatingActions;
 
 namespace FlowDance.Tests;
 

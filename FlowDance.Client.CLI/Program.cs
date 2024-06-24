@@ -11,7 +11,7 @@ internal class Program
         using ILoggerFactory loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
 
         var storage = new Storage(loggerFactory);
-        var spanEvents = storage.ReadAllSpanEventsFromStream("d4e2ddd9-6a71-410d-b985-023a8412ebda");
+        var spanEvents = storage.ReadAllSpanEventsFromStream("b105028e-db96-4a57-a8f9-b47586055e7b");
 
         string output = JsonConvert.SerializeObject(spanEvents, Formatting.Indented, new JsonSerializerSettings
         {
