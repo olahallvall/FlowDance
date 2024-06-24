@@ -18,12 +18,11 @@ namespace FlowDance.Client
     /// </summary>
     public class CompensationSpan : ICompensationSpan
     {
-        private bool _disposedValue;
         private SpanOpened _spanOpened;
         private SpanClosed _spanClosed;
-        private bool _completed;
         private IStorageProvider _storage;
-        private readonly ILogger<CompensationSpan> _logger;
+        private bool _completed;
+        private bool _disposedValue;
 
         /// <summary>
         /// Creates a CompensationSpan that use http/https for accessing the Compensating Action. 
@@ -34,10 +33,7 @@ namespace FlowDance.Client
         /// <param name="callingFunctionName"></param>
         public CompensationSpan(HttpCompensatingAction httpAction, Guid traceId, ILoggerFactory loggerFactory, [System.Runtime.CompilerServices.CallerMemberName] string callingFunctionName = "")
         {
-            _logger = loggerFactory.CreateLogger<CompensationSpan>();
-
-            CreateSpanStorage(loggerFactory);
-
+            ConfigureSpanStorage(loggerFactory);
             StoreSpanOpened(httpAction, traceId, loggerFactory, callingFunctionName);
         }
 
@@ -50,10 +46,7 @@ namespace FlowDance.Client
         /// <param name="callingFunctionName"></param>
         public CompensationSpan(AmqpCompensatingAction amqpAction, Guid traceId, ILoggerFactory loggerFactory, [System.Runtime.CompilerServices.CallerMemberName] string callingFunctionName = "")
         {
-            _logger = loggerFactory.CreateLogger<CompensationSpan>();
-
-            CreateSpanStorage(loggerFactory);
-
+            ConfigureSpanStorage(loggerFactory);
             StoreSpanOpened(amqpAction, traceId, loggerFactory, callingFunctionName);  
         }
 
@@ -98,7 +91,7 @@ namespace FlowDance.Client
             }
         }
 
-        private static void CreateSpanStorage(ILoggerFactory loggerFactory)
+        private static void ConfigureSpanStorage(ILoggerFactory loggerFactory)
         {
             var storageProviderType = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("StorageProviderType").Value;
             IStorageProvider storage = null;

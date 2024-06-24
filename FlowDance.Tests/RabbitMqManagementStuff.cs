@@ -33,13 +33,23 @@ namespace FlowDance.Tests
         {
             var rabbitMqApi = new RabbitMqApi("http://localhost:15672", "guest", "guest");
 
-            var queue = rabbitMqApi.GetQueueByVhostAndName("/", "63be8788-7283-455b-9f76-050eba9168ba").Result;
+            var queue = rabbitMqApi.GetQueueByVhostAndName("/", "036c3bde-e031-4c25-bc42-be72b7f4cd0d").Result;
             if(queue != null)
             {
                 var numberOfMessages = queue.MessagesReady;
-            }
+            }   
+        }
 
-                
+        [TestMethod]
+        public void DeleteMessageFromQueue()
+        {
+            var rabbitMqApi = new RabbitMqApi("http://localhost:15672", "guest", "guest");
+
+            var queue = rabbitMqApi.GetQueueByVhostAndName("/", "036c3bde-e031-4c25-bc42-be72b7f4cd0d").Result;
+            if (queue != null)
+            {
+                rabbitMqApi.DeleteAllQueueMessages("/", "036c3bde-e031-4c25-bc42-be72b7f4cd0d");
+            }
         }
     }
 }

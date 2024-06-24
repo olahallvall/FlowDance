@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using FlowDance.Client.CLI.RabbitMq;
+using FlowDance.Client.CLI.StorageProviders;
 using Newtonsoft.Json;
 
 namespace FlowDance.Client.CLI;

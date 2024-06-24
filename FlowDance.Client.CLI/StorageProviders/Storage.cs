@@ -7,7 +7,7 @@ using System.Text;
 using System.Net;
 using Newtonsoft.Json;
 
-namespace FlowDance.Client.CLI.RabbitMq
+namespace FlowDance.Client.CLI.StorageProviders
 {
     public class Storage 
     {
@@ -37,19 +37,18 @@ namespace FlowDance.Client.CLI.RabbitMq
         }
 
         /// <summary>
-        /// Get the Offset-number from the last massage in the stream.
-        /// Use this method very carefully!!! The stream needs to have at least one message. If not this method will wait until one message arrives.
+        /// Get the Offset-number from the last massage in the stream. If stream is empty the out variable emptyStream sets to true.  
         /// </summary>
         /// <param name="streamName"></param>
+        /// <param name="streamSystem"></param>
+        /// <param name="emptyStream"></param>
         /// <param name="consumerLogger"></param>
         /// <returns></returns>
-        private ulong GetLastOffset(string streamName, StreamSystem streamSystem, ILogger<Consumer> consumerLogger)
+        private ulong GetLastOffset(string streamName, StreamSystem streamSystem, out bool emptyStream, ILogger<Consumer> consumerLogger)
         {
             var consumerTaskCompletionSource = new TaskCompletionSource<int>();
             ulong lastOffset = 0;
-
-            // https://stackoverflow.com/questions/67267967/timeout-and-stop-a-task
-            // https://stackoverflow.com/questions/22637642/using-cancellationtoken-for-timeout-in-task-run-does-not-work
+            var timeout = new TimeSpan(0, 0, 5);
 
             var consumer = Consumer.Create(
                     new ConsumerConfig(streamSystem, streamName)
@@ -64,31 +63,37 @@ namespace FlowDance.Client.CLI.RabbitMq
                         }
                     }, consumerLogger).GetAwaiter().GetResult();
 
-            // Todo: Add support for CancellationTokenSource and Timer - wait max 5 sec
-            consumerTaskCompletionSource.Task.Wait();
-
+            consumerTaskCompletionSource.Task.Wait(timeout);
             consumer.Close();
+
+            if (!consumerTaskCompletionSource.Task.IsCompleted)
+                emptyStream = true;
+            else
+                emptyStream = false;
 
             return lastOffset;
         }
 
         /// <summary>
         /// Reads all messages from the stream.
-        /// Use this method very carefully!!! The stream needs to have at least one message. If not this method will wait until one message arrives.
         /// </summary>
         /// <param name="streamName"></param>
+        /// <param name="streamSystem"></param>
         /// <param name="consumerLogger"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         private List<SpanEvent> ReadAllSpansFromStream(string streamName, StreamSystem streamSystem, ILogger<Consumer> consumerLogger)
         {
-            var numberOfMessages = GetLastOffset(streamName, streamSystem, consumerLogger) + 1;
+            var lastOffset = GetLastOffset(streamName, streamSystem, out bool emptyStream, consumerLogger);
             var spanEventList = new List<SpanEvent>();
 
-            if (numberOfMessages > 0)
+            if (emptyStream)
+                return spanEventList;
+
+            if (lastOffset >= 0)
             {
                 var consumerTaskCompletionSource = new TaskCompletionSource<int>();
-                int numberOfMessageReceived = 0;
+                int currentOffset = 0;
 
                 var consumer = Consumer.Create(
                         new ConsumerConfig(streamSystem, streamName)
@@ -101,21 +106,18 @@ namespace FlowDance.Client.CLI.RabbitMq
                                 if (messageContent != null)
                                     spanEventList.Add(messageContent);
 
-                                numberOfMessageReceived++;
-
-                                if (numberOfMessageReceived == (int)numberOfMessages)
+                                if (currentOffset == (int)lastOffset)
                                     consumerTaskCompletionSource.SetResult(1);
+
+                                currentOffset++;
 
                                 await Task.CompletedTask;
                             }
                         }, consumerLogger).GetAwaiter().GetResult();
 
-                // Todo: Add support for CancellationTokenSource and Timer - wait max 5 sec
                 consumerTaskCompletionSource.Task.Wait();
-
                 consumer.Close();
             }
-
             return spanEventList;
         }
     }
