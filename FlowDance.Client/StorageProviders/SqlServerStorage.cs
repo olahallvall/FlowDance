@@ -1,14 +1,19 @@
 ﻿using FlowDance.Common.Commands;
 using FlowDance.Common.Events;
 using FlowDance.Common.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace FlowDance.Client.StorageProviders
 {
-    public class SqlServerStorage : IStorage
+    public class SqlServerStorage : IStorageProvider
     {
-        public void CreateStream(string streamName)
+        private readonly ILoggerFactory _loggerFactory;
+        private readonly ILogger<SqlServerStorage> _logger;
+
+        public SqlServerStorage(ILoggerFactory loggerFactory)
         {
-            throw new System.NotImplementedException();
+            _loggerFactory = loggerFactory;
+            _logger = _loggerFactory.CreateLogger<SqlServerStorage>();
         }
 
         public void StoreCommand(DetermineCompensation command)
@@ -17,11 +22,6 @@ namespace FlowDance.Client.StorageProviders
         }
 
         public void StoreEvent(SpanEvent spanEvent)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public bool StreamExistOrQueue(string name)
         {
             throw new System.NotImplementedException();
         }

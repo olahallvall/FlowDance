@@ -14,7 +14,7 @@ namespace FlowDance.Client.StorageProviders
     /// <summary>
     /// Handles the storing of events and messages to RabbitMQ. 
     /// </summary>
-    public class RabbitMqStorage : IStorage
+    public class RabbitMqStorage : IStorageProvider
     {
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger<RabbitMqStorage> _logger;

@@ -2,6 +2,7 @@ using FlowDance.Client.StorageProviders;
 using FlowDance.Common.CompensatingActions;
 using FlowDance.Common.Events;
 using FlowDance.Common.Interfaces;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Runtime.InteropServices;
@@ -21,7 +22,7 @@ namespace FlowDance.Client
         private SpanOpened _spanOpened;
         private SpanClosed _spanClosed;
         private bool _completed;
-        private IStorage _storage;
+        private IStorageProvider _storage;
         private readonly ILogger<CompensationSpan> _logger;
 
         /// <summary>
@@ -34,6 +35,8 @@ namespace FlowDance.Client
         public CompensationSpan(HttpCompensatingAction httpAction, Guid traceId, ILoggerFactory loggerFactory, [System.Runtime.CompilerServices.CallerMemberName] string callingFunctionName = "")
         {
             _logger = loggerFactory.CreateLogger<CompensationSpan>();
+
+            CreateSpanStorage(loggerFactory);
 
             StoreSpanOpened(httpAction, traceId, loggerFactory, callingFunctionName);
         }
@@ -48,6 +51,8 @@ namespace FlowDance.Client
         public CompensationSpan(AmqpCompensatingAction amqpAction, Guid traceId, ILoggerFactory loggerFactory, [System.Runtime.CompilerServices.CallerMemberName] string callingFunctionName = "")
         {
             _logger = loggerFactory.CreateLogger<CompensationSpan>();
+
+            CreateSpanStorage(loggerFactory);
 
             StoreSpanOpened(amqpAction, traceId, loggerFactory, callingFunctionName);  
         }
@@ -90,6 +95,23 @@ namespace FlowDance.Client
             {
                 var determineCompensation = new Common.Commands.DetermineCompensation { TraceId = _spanOpened.TraceId };
                 _storage.StoreCommand(determineCompensation);
+            }
+        }
+
+        private static void CreateSpanStorage(ILoggerFactory loggerFactory)
+        {
+            var storageProviderType = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("StorageProviderType").Value;
+            IStorageProvider storage = null;
+            switch (storageProviderType)
+            {
+                case "RabbitMqStorage":
+                    storage = new RabbitMqStorage(loggerFactory);
+                    break;
+                case "SqlServerStorage":
+                    storage = new SqlServerStorage(loggerFactory);
+                    break;
+                default:
+                    throw new Exception("Invalid StorageProviderType type in appsettings.json");
             }
         }
 
