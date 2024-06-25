@@ -9,7 +9,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowDance.Common", "FlowDan
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1183541A-94AA-436F-8F3A-7F825D836467}"
 	ProjectSection(SolutionItems) = preProject
-		docker-compose.yml = docker-compose.yml
 		README.md = README.md
 	EndProjectSection
 EndProject
@@ -23,7 +22,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowDance.Client.AspNetCore
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowDance.Tests.AspNetCore", "FlowDance.Tests.AspNetCore\FlowDance.Tests.AspNetCore.csproj", "{5AD1C966-E873-4B10-B6B7-8C84AEA95D7D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowDance.Client.CLI", "FlowDance.Client.CLI\FlowDance.Client.CLI.csproj", "{80353B13-372B-4105-8530-312963E58C88}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowDance.Client.CLI", "FlowDance.Client.CLI\FlowDance.Client.CLI.csproj", "{80353B13-372B-4105-8530-312963E58C88}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DockerExternalDep", "DockerExternalDep", "{EE055E23-D87C-466B-97C5-E81F04C115AA}"
+	ProjectSection(SolutionItems) = preProject
+		DockerExternalDep\docker-compose.yml = DockerExternalDep\docker-compose.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -66,6 +70,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{EE055E23-D87C-466B-97C5-E81F04C115AA} = {1183541A-94AA-436F-8F3A-7F825D836467}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8C823089-8A99-439D-8AAF-47A68936FEC1}
