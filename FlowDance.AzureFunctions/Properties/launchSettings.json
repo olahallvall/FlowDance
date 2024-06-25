@@ -2,8 +2,14 @@
   "profiles": {
     "FlowDance.AzureFunctions": {
       "commandName": "Project",
-      "commandLineArgs": "--port 7013",
-      "launchBrowser": false
+      "commandLineArgs": "--port 7013"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "DockerfileRunArguments": "--init",
+      "httpPort": 31344,
+      "useSSL": false
     }
   }
 }

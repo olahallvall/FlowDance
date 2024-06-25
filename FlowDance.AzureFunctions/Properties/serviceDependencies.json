@@ -6,13 +6,6 @@
     "storage1": {
       "type": "storage",
       "connectionId": "AzureWebJobsStorage"
-    },
-    "secrets1": {
-      "type": "secrets"
-    },
-    "rabbitmq1": {
-      "type": "rabbitmq",
-      "connectionId": "FlowDanceRabbitMqConnection"
     }
   }
 }

@@ -6,18 +6,6 @@
     "storage1": {
       "type": "storage.emulator",
       "connectionId": "AzureWebJobsStorage"
-    },
-    "secrets1": {
-      "type": "secrets.user"
-    },
-    "rabbitmq1": {
-      "containerPorts": "5672:5672,15672:15672",
-      "secretStore": "LocalSecretsFile",
-      "containerName": "rabbitmq",
-      "containerImage": "rabbitmq:3-management-alpine",
-      "resourceId": null,
-      "type": "rabbitmq.container",
-      "connectionId": "FlowDanceRabbitMqConnection"
     }
   }
 }
