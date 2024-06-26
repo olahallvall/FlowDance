@@ -4,6 +4,10 @@ using RabbitMQ.Stream.Client.Reliable;
 using Microsoft.Extensions.Logging;
 using System.Text;
 using Newtonsoft.Json;
+using Microsoft.Extensions.Configuration;
+using System.Net;
+using System;
+using System.Configuration;
 
 namespace FlowDance.AzureFunctions.Services;
 
@@ -17,13 +21,47 @@ public class Storage : IStorage
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger<Consumer> _consumerLogger;
     private readonly ILogger<StreamSystem> _streamLogger;
+    private readonly IConfiguration _configuration;
+    private StreamSystem? _streamSystem;
 
-    public Storage(ILoggerFactory loggerFactory)
+    public Storage(ILoggerFactory loggerFactory, IConfiguration configuration)
     {
+        _configuration = configuration;
         _loggerFactory = loggerFactory;
-
         _consumerLogger = _loggerFactory.CreateLogger<Consumer>();
         _streamLogger = _loggerFactory.CreateLogger<StreamSystem>();
+
+        var ep = new IPEndPoint(IPAddress.Loopback, 5552);
+
+        var hostName = _configuration["RabbitMqConnection:HostName"];
+        var hostPort = Int32.Parse(_configuration["RabbitMqConnection:HostStreamPort"]);
+
+        if (hostName != "localhost")
+        {
+            switch (Uri.CheckHostName(hostName))
+            {
+                case UriHostNameType.IPv4:
+                    if (hostName != null) ep = new IPEndPoint(IPAddress.Parse(hostName), hostPort);
+                    break;
+                case UriHostNameType.Dns:
+                    if (hostName != null)
+                    {
+                        var addresses = Dns.GetHostAddresses(hostName);
+                        ep = new IPEndPoint(addresses[0], hostPort);
+                    }
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        _streamSystem = StreamSystem.Create(new StreamSystemConfig()
+        {
+            UserName = _configuration["RabbitMqConnection:Username"],
+            Password = _configuration["RabbitMqConnection:Password"],
+            VirtualHost = _configuration["RabbitMqConnection:VirtualHost"],
+            Endpoints = new List<EndPoint>() { ep }
+        }, _streamLogger).GetAwaiter().GetResult();
     }
 
     public List<SpanEvent> ReadAllSpanEventsFromStream(string streamName)
@@ -41,12 +79,11 @@ public class Storage : IStorage
     private ulong GetLastOffset(string streamName, out bool emptyStream, ILogger<Consumer> consumerLogger)
     {
         var consumerTaskCompletionSource = new TaskCompletionSource<int>();
-        var streamSystem = SingletonStreamSystem.GetInstance(_streamLogger).GetStreamSystem();
         ulong lastOffset = 0;
         var timeout = new TimeSpan(0, 0, 5);
 
         var consumer = Consumer.Create(
-                new ConsumerConfig(streamSystem, streamName)
+                new ConsumerConfig(_streamSystem, streamName)
                 {
                     OffsetSpec = new OffsetTypeLast(),
                     ClientProvidedName = "FlowDance.Client.Consumer",
@@ -87,11 +124,10 @@ public class Storage : IStorage
         if (lastOffset >= 0)
         {
             var consumerTaskCompletionSource = new TaskCompletionSource<int>();
-            var streamSystem = SingletonStreamSystem.GetInstance(_streamLogger).GetStreamSystem();
             int currentOffset = 0;
 
             var consumer = Consumer.Create(
-                    new ConsumerConfig(streamSystem, streamName)
+                    new ConsumerConfig(_streamSystem, streamName)
                     {
                         OffsetSpec = new OffsetTypeFirst(),
                         ClientProvidedName = "FlowDance.AzureFunctions.Consumer",
