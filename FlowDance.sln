@@ -10,6 +10,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1183541A-94AA-436F-8F3A-7F825D836467}"
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
+		vaules_secrets.json = vaules_secrets.json
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowDance.AzureFunctions", "FlowDance.AzureFunctions\FlowDance.AzureFunctions.csproj", "{8117AA55-88D3-44E9-B205-EEB47C77031C}"
