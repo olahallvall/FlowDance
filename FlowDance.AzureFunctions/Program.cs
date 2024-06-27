@@ -10,9 +10,10 @@ var host = new HostBuilder()
     {
         if (hostContext.HostingEnvironment.IsDevelopment())
         {
-            //config.AddJsonFile("local.settings.json");
             config.AddUserSecrets<Program>();
         }
+
+        config.AddEnvironmentVariables();
     })
     .ConfigureServices(services =>
     {

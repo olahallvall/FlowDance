@@ -21,7 +21,7 @@ namespace FlowDance.AzureFunctions.Triggers.RabbitMQ
         [Function("DetermineCompensationMessagehandler")]
         public void Run(
                 [RabbitMQTrigger("FlowDance.DetermineCompensation", 
-                ConnectionStringSetting = "RabbitMqConnection")] string queueItem,
+                ConnectionStringSetting = "RabbitMq_Connection")] string queueItem,
                 [DurableClient] DurableTaskClient orchestrationClient,
                 FunctionContext context)
         {

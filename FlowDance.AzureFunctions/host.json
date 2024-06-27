@@ -7,7 +7,7 @@
     "durableTask": {
       "storageProvider": {
         "type": "mssql",
-        "connectionStringName": "SQLDB_Connection",
+        "connectionStringName": "DurableDB_Connection",
         "createDatabaseIfNotExists": true
       }
     }
