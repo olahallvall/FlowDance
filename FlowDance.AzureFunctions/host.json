@@ -3,6 +3,15 @@
   // Microsoft.Azure.Functions.Worker.Extensions.DurableTask.SqlServer
 
   "version": "2.0",
+  "extensions": {
+    "durableTask": {
+      "storageProvider": {
+        "type": "mssql",
+        "connectionStringName": "SQLDB_Connection",
+        "createDatabaseIfNotExists": true
+      }
+    }
+  },
   "logging": {
     "applicationInsights": {
       "samplingSettings": {
