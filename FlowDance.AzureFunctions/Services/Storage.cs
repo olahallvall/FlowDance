@@ -6,8 +6,6 @@ using System.Text;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Configuration;
 using System.Net;
-using System;
-using System.Configuration;
 
 namespace FlowDance.AzureFunctions.Services;
 
@@ -31,10 +29,14 @@ public class Storage : IStorage
         _consumerLogger = _loggerFactory.CreateLogger<Consumer>();
         _streamLogger = _loggerFactory.CreateLogger<StreamSystem>();
 
+        // The way to connect comes from this repo -
+        // https://github.com/rabbitmq/rabbitmq-stream-dotnet-client/tree/main/docs/ReliableClient
+
         var ep = new IPEndPoint(IPAddress.Loopback, 5552);
 
         var hostName = _configuration["RabbitMqConnection:HostName"];
         var hostPort = Int32.Parse(_configuration["RabbitMqConnection:HostStreamPort"]);
+        var loadBalancer = bool.Parse(_configuration["RabbitMqConnection:LoadBalancer"]);
 
         if (hostName != "localhost")
         {
@@ -55,13 +57,28 @@ public class Storage : IStorage
             }
         }
 
-        _streamSystem = StreamSystem.Create(new StreamSystemConfig()
+        var streamSystemConfig = new StreamSystemConfig()
         {
             UserName = _configuration["RabbitMqConnection:Username"],
             Password = _configuration["RabbitMqConnection:Password"],
             VirtualHost = _configuration["RabbitMqConnection:VirtualHost"],
             Endpoints = new List<EndPoint>() { ep }
-        }, _streamLogger).GetAwaiter().GetResult();
+        };
+
+        if (loadBalancer)
+        {
+            var resolver = new AddressResolver(ep);
+            streamSystemConfig = new StreamSystemConfig()
+            {
+                AddressResolver = resolver,
+                UserName = _configuration["RabbitMqConnection:Username"],
+                Password = _configuration["RabbitMqConnection:Password"],
+                VirtualHost = _configuration["RabbitMqConnection:VirtualHost"],
+                Endpoints = new List<EndPoint>() { resolver.EndPoint }
+            };
+        }
+
+        _streamSystem = StreamSystem.Create(streamSystemConfig, _streamLogger).GetAwaiter().GetResult();
     }
 
     public List<SpanEvent> ReadAllSpanEventsFromStream(string streamName)
