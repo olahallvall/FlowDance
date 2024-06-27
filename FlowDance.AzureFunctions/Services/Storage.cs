@@ -6,6 +6,7 @@ using System.Text;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Configuration;
 using System.Net;
+using RabbitMQ.Client;
 
 namespace FlowDance.AzureFunctions.Services;
 
@@ -32,24 +33,26 @@ public class Storage : IStorage
         // The way to connect comes from this repo -
         // https://github.com/rabbitmq/rabbitmq-stream-dotnet-client/tree/main/docs/ReliableClient
 
+        var connectionFactory = new ConnectionFactory();
+        connectionFactory.Uri = new Uri(_configuration["RabbitMqConnection"]);
+
         var ep = new IPEndPoint(IPAddress.Loopback, 5552);
 
-        var hostName = _configuration["RabbitMqConnection:HostName"];
-        var hostPort = Int32.Parse(_configuration["RabbitMqConnection:HostStreamPort"]);
-        var loadBalancer = bool.Parse(_configuration["RabbitMqConnection:LoadBalancer"]);
+        var streamPort = Int32.Parse(_configuration["RabbitMqStreamSettings:StreamPort"]);
+        var loadBalancer = bool.Parse(_configuration["RabbitMqStreamSettings:LoadBalancer"]);
 
-        if (hostName != "localhost")
+        if (connectionFactory.HostName != "localhost")
         {
-            switch (Uri.CheckHostName(hostName))
+            switch (Uri.CheckHostName(connectionFactory.HostName))
             {
                 case UriHostNameType.IPv4:
-                    if (hostName != null) ep = new IPEndPoint(IPAddress.Parse(hostName), hostPort);
+                    if (connectionFactory.HostName != null) ep = new IPEndPoint(IPAddress.Parse(connectionFactory.HostName), streamPort);
                     break;
                 case UriHostNameType.Dns:
-                    if (hostName != null)
+                    if (connectionFactory.HostName != null)
                     {
-                        var addresses = Dns.GetHostAddresses(hostName);
-                        ep = new IPEndPoint(addresses[0], hostPort);
+                        var addresses = Dns.GetHostAddresses(connectionFactory.HostName);
+                        ep = new IPEndPoint(addresses[0], streamPort);
                     }
                     break;
                 default:
@@ -59,9 +62,9 @@ public class Storage : IStorage
 
         var streamSystemConfig = new StreamSystemConfig()
         {
-            UserName = _configuration["RabbitMqConnection:Username"],
-            Password = _configuration["RabbitMqConnection:Password"],
-            VirtualHost = _configuration["RabbitMqConnection:VirtualHost"],
+            UserName = connectionFactory.UserName,
+            Password = connectionFactory.Password,
+            VirtualHost = connectionFactory.VirtualHost,
             Endpoints = new List<EndPoint>() { ep }
         };
 
@@ -71,9 +74,9 @@ public class Storage : IStorage
             streamSystemConfig = new StreamSystemConfig()
             {
                 AddressResolver = resolver,
-                UserName = _configuration["RabbitMqConnection:Username"],
-                Password = _configuration["RabbitMqConnection:Password"],
-                VirtualHost = _configuration["RabbitMqConnection:VirtualHost"],
+                UserName = connectionFactory.UserName,
+                Password = connectionFactory.Password,
+                VirtualHost = connectionFactory.VirtualHost,
                 Endpoints = new List<EndPoint>() { resolver.EndPoint }
             };
         }
