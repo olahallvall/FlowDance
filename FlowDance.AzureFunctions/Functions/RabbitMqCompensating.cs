@@ -11,8 +11,11 @@ namespace FlowDance.AzureFunctions.Functions
 {
     public class RabbitMqCompensating
     {
-        public RabbitMqCompensating()
+        private readonly IConfiguration _configuration;
+
+        public RabbitMqCompensating(IConfiguration configuration)
         {
+            _configuration = configuration; 
         }
 
         [Function(nameof(RabbitMqCompensate))]
@@ -25,10 +28,9 @@ namespace FlowDance.AzureFunctions.Functions
                 logger.LogError("There no Span data! The function RabbitMqCompensate has nothing to work with and will exit.");
                 throw new HttpRequestException("There no Span data! The function RabbitMqCompensate has nothing to work with and will exit.", null);
             }
-            
-            var config = new ConfigurationBuilder().AddJsonFile($"appsettings.json").Build();
+
             var connectionFactory = new ConnectionFactory();
-            config.GetSection("RabbitMqConnection").Bind(connectionFactory);
+            connectionFactory.Uri = new Uri(_configuration["RabbitMq_Connection"]);
 
             var connection = connectionFactory.CreateConnection();
             var channel = connection.CreateModel();

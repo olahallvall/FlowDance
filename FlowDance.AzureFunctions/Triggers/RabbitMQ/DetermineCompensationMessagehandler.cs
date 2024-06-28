@@ -22,12 +22,12 @@ namespace FlowDance.AzureFunctions.Triggers.RabbitMQ
         public void Run(
                 [RabbitMQTrigger("FlowDance.DetermineCompensation", 
                 ConnectionStringSetting = "RabbitMq_Connection")] string queueItem,
-                [DurableClient] DurableTaskClient orchestrationClient,
+                [DurableClient] DurableTaskClient durableTaskClient,
                 FunctionContext context)
         {
             var determineCompensationCommand = JsonConvert.DeserializeObject<DetermineCompensation>(queueItem);
 
-            _determineCompensationService.DetermineCompensation(determineCompensationCommand.TraceId.ToString(), orchestrationClient);
+            _determineCompensationService.DetermineCompensation(determineCompensationCommand.TraceId.ToString(), durableTaskClient);
 
             _logger.LogInformation($"C# Queue trigger function processed: {queueItem}");
         }

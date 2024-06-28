@@ -2,6 +2,7 @@
 using FlowDance.Common.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System.Text;
 
@@ -9,10 +10,12 @@ namespace FlowDance.AzureFunctions.Functions
 {
     public class HttpCompensating
     {
+        private readonly IConfiguration _configuration;
         private readonly IHttpClientFactory _httpClientFactory;
 
-        public HttpCompensating(IHttpClientFactory httpClientFactory)
+        public HttpCompensating(IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
+            _configuration = configuration;
             _httpClientFactory = httpClientFactory;
         }
 

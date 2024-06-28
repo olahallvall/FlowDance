@@ -1,8 +1,10 @@
 ﻿using FlowDance.Common.Events;
 using FlowDance.Common.Models;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using RabbitMQ.Stream.Client;
 
 namespace FlowDance.AzureFunctions.Services
 {
@@ -17,7 +19,7 @@ namespace FlowDance.AzureFunctions.Services
             _storage = storage;
         }
 
-        public void DetermineCompensation(string streamName, DurableTaskClient orchestrationClient)
+        public void DetermineCompensation(string streamName, DurableTaskClient durableTaskClient)
         {
             // Build a list of Spans from Span events.
             var spanEventList = _storage.ReadAllSpanEventsFromStream(streamName);
@@ -91,10 +93,12 @@ namespace FlowDance.AzureFunctions.Services
 
                 if (startOrchestration)
                 {
-                    var json = JsonConvert.SerializeObject(spanList, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All });
-                     string instanceId = orchestrationClient.ScheduleNewOrchestrationInstanceAsync(nameof(Sagas.CompensatingSaga), json).Result;
+                     var json = JsonConvert.SerializeObject(spanList, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All });
+                     string instanceId = durableTaskClient.ScheduleNewOrchestrationInstanceAsync(nameof(Sagas.CompensatingSaga), json).Result;
 
-                     _logger.LogInformation("Starting CompensatingSaga with instanceId {instanceId} for traceId {traceId}", instanceId , spanList[0].SpanOpened.TraceId);
+                    //var httpResponse = durableTaskClient.CreateCheckStatusResponse()  .CreateCheckStatusResponseAsync(req, instanceId).;
+
+                    _logger.LogInformation("Starting CompensatingSaga with instanceId {instanceId} for traceId {traceId}", instanceId , spanList[0].SpanOpened.TraceId);
                 }
                 else
                     _logger.LogInformation("No CompensatingSaga was needed for traceId {traceId}", spanList[0].SpanOpened.TraceId);
@@ -102,3 +106,4 @@ namespace FlowDance.AzureFunctions.Services
         }
     }
 }
+    

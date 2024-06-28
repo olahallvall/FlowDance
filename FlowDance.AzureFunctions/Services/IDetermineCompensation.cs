@@ -4,6 +4,6 @@ namespace FlowDance.AzureFunctions.Services
 {
     public interface IDetermineCompensation
     {
-        public void DetermineCompensation(string streamName, DurableTaskClient orchestrationClient);
+        public void DetermineCompensation(string streamName, DurableTaskClient durableTaskClient);
     }
 }
