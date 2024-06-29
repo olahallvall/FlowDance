@@ -9,7 +9,7 @@ services:
       dockerfile: FlowDance.AzureFunctions/Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - AzureWebJobsStorage=UseDevelopmentStorage=true;DevelopmentStorageProxyUri=http://host.docker.internal
+      - AzureWebJobsStorage=UseDevelopmentStorage=true;DevelopmentStorageProxyUri=http://host.docker.internal # https://www.connectionstrings.com/windows-azure/
       - DurableDB_Connection=Server=192.168.1.65,1433;Database=DurableDB;User Id=sa;Password=Admin@123;
       - RabbitMq_Connection=amqp://guest:guest@192.168.1.65:5672
       - RabbitMq_StreamSettings__StreamPort=5552

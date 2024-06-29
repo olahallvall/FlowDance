@@ -5,7 +5,9 @@
   "version": "2.0",
   "extensions": {
     "durableTask": {
+      "hubName": "FlowDanceHub",
       "storageProvider": {
+        "taskHubName": "FlowDanceHub",
         "type": "mssql",
         "connectionStringName": "DurableDB_Connection",
         "createDatabaseIfNotExists": true
