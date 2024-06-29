@@ -10,9 +10,9 @@ namespace FlowDance.AzureFunctions.Triggers.RabbitMQ
     public class DetermineCompensationMessagehandler
     {
         private readonly ILogger _logger;
-        private readonly IDetermineCompensation _determineCompensationService;
+        private readonly IDetermineCompensationService _determineCompensationService;
 
-        public DetermineCompensationMessagehandler(ILoggerFactory loggerFactory, IDetermineCompensation determineCompensationService)
+        public DetermineCompensationMessagehandler(ILoggerFactory loggerFactory, IDetermineCompensationService determineCompensationService)
         {
             _logger = loggerFactory.CreateLogger<DetermineCompensationMessagehandler>();
             _determineCompensationService = determineCompensationService;

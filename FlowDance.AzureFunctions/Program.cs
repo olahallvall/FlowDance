@@ -26,7 +26,7 @@ var host = new HostBuilder()
         //    options.AllowSynchronousIO = true;
         //});
 
-        services.AddTransient<IDetermineCompensation, DetermineCompensationService>();
+        services.AddTransient<IDetermineCompensationService, DetermineCompensationService>();
         services.AddTransient<IStorage, Storage>();
 
         services.AddHttpClient();

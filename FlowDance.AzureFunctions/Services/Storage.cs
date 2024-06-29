@@ -10,6 +10,11 @@ using RabbitMQ.Client;
 
 namespace FlowDance.AzureFunctions.Services;
 
+public interface IStorage
+{
+    public List<SpanEvent> ReadAllSpanEventsFromStream(string streamName);
+}
+
 /// <summary>
 ///This class handles the reading and storing of messages to RabbitMQ. 
 /// 

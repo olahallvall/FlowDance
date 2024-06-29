@@ -8,7 +8,12 @@ using RabbitMQ.Stream.Client;
 
 namespace FlowDance.AzureFunctions.Services
 {
-    public class DetermineCompensationService : IDetermineCompensation
+    public interface IDetermineCompensationService
+    {
+        public void DetermineCompensation(string streamName, DurableTaskClient durableTaskClient);
+    }
+
+    public class DetermineCompensationService : IDetermineCompensationService
     {
         private readonly ILogger _logger;
         private readonly IStorage _storage;
