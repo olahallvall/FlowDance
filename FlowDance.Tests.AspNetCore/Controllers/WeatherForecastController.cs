@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using FlowDance.Client;
+using FlowDance.Common.Enums;
 using FlowDance.Client.AspNetCore.ActionFilters;
 
 namespace FlowDance.Tests.AspNetCore.Controllers
@@ -20,7 +21,7 @@ namespace FlowDance.Tests.AspNetCore.Controllers
             _logger = logger;
         }
 
-        [CompensationSpan(CompensatingActionUrl = "http://localhost/TripBookingService/Compensation", CompensationSpanOption = CompensationSpanOption.RequiresNew)]
+        [CompensationSpan(CompensatingActionUrl = "http://localhost/TripBookingService/Compensation", CompensationSpanOption = CompensationSpanOption.RequiresNewBlockingCallChain)]
         [HttpGet(Name = "GetWeatherForecast")]
         public IEnumerable<WeatherForecast> Get()
         {

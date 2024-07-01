@@ -1,11 +1,11 @@
 ﻿using System;
 
-namespace FlowDance.Common.Events
+namespace FlowDance.Common.Commands
 {
     /// <summary>
-    /// Base class for a Span event.  
+    /// Base class for a Span command.  
     /// </summary>
-    public class SpanEvent
+    public class SpanCommand
     {
         public Guid TraceId { get; set; }
 

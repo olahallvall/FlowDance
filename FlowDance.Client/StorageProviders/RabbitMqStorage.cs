@@ -26,11 +26,11 @@ namespace FlowDance.Client.StorageProviders
         }
 
         /// <summary>
-        /// Store a SpanEvent (SpanOpened or SpanClosed) to a stream.
+        /// Store Events to a stream.
         /// </summary>
         /// <param name="spanEvent"></param>
         /// <exception cref="Exception"></exception>
-        public void StoreEvent(SpanEvent spanEvent)
+        public SpanEvent StoreEventInStream(SpanEvent spanEvent)
         {
             try
             {
@@ -93,13 +93,15 @@ namespace FlowDance.Client.StorageProviders
                 _logger.LogError(ex, "Can't store event to a stream. TraceId:{TraceId}", spanEvent.TraceId.ToString());
                 throw;
             }
+
+            return spanEvent;
         }
 
         /// <summary>
-        /// Store the DetermineCompensation command to a queue.
+        /// Store Events to a queue.
         /// </summary>
-        /// <param name="command"></param>
-        public void StoreCommand(DetermineCompensation command)
+        /// <param name="spanEvent"></param>
+        public SpanEvent StoreEventInQueue(SpanEvent spanEvent)
         {
             try
             {
@@ -112,16 +114,16 @@ namespace FlowDance.Client.StorageProviders
 
                 channel.ConfirmSelect();
 
-                channel.QueueDeclare(queue: "FlowDance.DetermineCompensation",
+                channel.QueueDeclare(queue: "FlowDance.SpanEvents",
                     durable: true,
                 exclusive: false,
                 autoDelete: false,
                     arguments: null);
 
-                var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(command));
+                var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(spanEvent));
 
                 channel.BasicPublish(exchange: string.Empty,
-                    routingKey: "FlowDance.DetermineCompensation",
+                    routingKey: "FlowDance.SpanEvents",
                     basicProperties: null,
                     body: body);
 
@@ -132,9 +134,55 @@ namespace FlowDance.Client.StorageProviders
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Can't store DetermineCompensation to a queue. TraceId:{TraceId}", command.TraceId.ToString());
+                _logger.LogError(ex, "Can't store a event to a queue. TraceId:{TraceId}", spanEvent.TraceId.ToString());
                 throw;
             }
+
+            return spanEvent;
+        }
+
+        /// <summary>
+        /// Store commands to a queue.
+        /// </summary>
+        /// <param name="spanCommand"></param>
+        public SpanCommand StoreCommand(SpanCommand spanCommand)
+        {
+            try
+            {
+                var config = new ConfigurationBuilder().AddJsonFile($"appsettings.json").Build();
+                var connectionFactory = new ConnectionFactory();
+                config.GetSection("RabbitMqConnection").Bind(connectionFactory);
+
+                var connection = connectionFactory.CreateConnection();
+                var channel = connection.CreateModel();
+
+                channel.ConfirmSelect();
+
+                channel.QueueDeclare(queue: "FlowDance.SpanCommands",
+                    durable: true,
+                exclusive: false,
+                autoDelete: false,
+                    arguments: null);
+
+                var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(spanCommand));
+
+                channel.BasicPublish(exchange: string.Empty,
+                    routingKey: "FlowDance.SpanCommands",
+                    basicProperties: null,
+                    body: body);
+
+                channel.WaitForConfirmsOrDie(TimeSpan.FromSeconds(5));
+
+                if (connection.IsOpen)
+                    connection.Close();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Can't store command to a queue. TraceId:{TraceId}", spanCommand.TraceId.ToString());
+                throw;
+            }
+
+            return spanCommand;
         }
 
         /// <summary>

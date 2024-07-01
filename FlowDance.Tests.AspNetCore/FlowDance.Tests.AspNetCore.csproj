@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\FlowDance.Client.AspNetCore\FlowDance.Client.AspNetCore.csproj" />
     <ProjectReference Include="..\FlowDance.Client\FlowDance.Client.csproj" />
+    <ProjectReference Include="..\FlowDance.Common\FlowDance.Common.csproj" />
   </ItemGroup>
 
 </Project>

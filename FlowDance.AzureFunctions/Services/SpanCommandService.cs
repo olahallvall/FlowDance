@@ -1,33 +1,48 @@
 ﻿using FlowDance.Common.Events;
 using FlowDance.Common.Models;
-using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask.Client;
+using FlowDance.Common.Commands;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using RabbitMQ.Stream.Client;
 
 namespace FlowDance.AzureFunctions.Services
 {
-    public interface IDetermineCompensationService
+    public interface ISpanCommandService
     {
-        public void DetermineCompensation(string streamName, DurableTaskClient durableTaskClient);
+        public void ExecuteSpanCommand(string message, DurableTaskClient durableTaskClient);
     }
 
-    public class DetermineCompensationService : IDetermineCompensationService
+    public class SpanCommandService : ISpanCommandService
     {
         private readonly ILogger _logger;
-        private readonly IStorage _storage;
+        private readonly IStorageService _storageService;
 
-        public DetermineCompensationService(ILoggerFactory loggerFactory, IStorage storage)
+        public SpanCommandService(ILoggerFactory loggerFactory, IStorageService storage)
         {
-            _logger = loggerFactory.CreateLogger<DetermineCompensationService>();
-            _storage = storage;
+            _logger = loggerFactory.CreateLogger<SpanCommandService>();
+            _storageService = storage;
         }
 
-        public void DetermineCompensation(string streamName, DurableTaskClient durableTaskClient)
+        public void ExecuteSpanCommand(string message, DurableTaskClient durableTaskClient)
+        {
+            var spanCommand = JsonConvert.DeserializeObject(message, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All });
+
+            switch(spanCommand)
+            {
+                case DetermineCompensationCommand determineCompensation:
+                    {
+                        DetermineCompensation(determineCompensation.TraceId.ToString(), durableTaskClient);
+                    }
+                    break;
+                default:
+                    throw new Exception("Missing Command type.");
+            }
+        }
+
+        private void DetermineCompensation(string streamName, DurableTaskClient durableTaskClient)
         {
             // Build a list of Spans from Span events.
-            var spanEventList = _storage.ReadAllSpanEventsFromStream(streamName);
+            var spanEventList = _storageService.ReadAllSpanEventsFromStream(streamName);
             var spanList = new List<Span>();
 
             if (spanEventList.Any())
@@ -85,7 +100,7 @@ namespace FlowDance.AzureFunctions.Services
 
                 // Search for Span where MarkedAsCommitted is false
                 var markedAsCommittedSpans = (from s in spanList
-                    where s.SpanClosed.MarkedAsCommitted == false
+                    where s.SpanClosed.MarkedAsCompleted == false
                     select s).ToList();
 
                 // Search for Span where ExceptionDetected is true

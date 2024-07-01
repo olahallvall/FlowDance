@@ -1,6 +1,7 @@
 using System;
 using FlowDance.Client;
 using FlowDance.Common.CompensatingActions;
+using FlowDance.Common.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -25,7 +26,7 @@ namespace FlowDance.Test.Legacy
         {
             var traceId = Guid.NewGuid();
 
-            using (var compSpan = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation"), traceId, _loggerFactory))
+            using (var compSpan = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation"), traceId, _loggerFactory, CompensationSpanOption.RequiresNewBlockingCallChain))
             {
                 /* Perform transactional work here */
                 // DoSomething()

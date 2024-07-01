@@ -16,12 +16,17 @@ namespace FlowDance.Client.StorageProviders
             _logger = _loggerFactory.CreateLogger<SqlServerStorage>();
         }
 
-        public void StoreCommand(DetermineCompensation command)
+        public SpanCommand StoreCommand(SpanCommand spanCommand)
         {
             throw new System.NotImplementedException();
         }
 
-        public void StoreEvent(SpanEvent spanEvent)
+        public SpanEvent StoreEventInQueue(SpanEvent spanEvent)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public SpanEvent StoreEventInStream(SpanEvent spanEvent)
         {
             throw new System.NotImplementedException();
         }

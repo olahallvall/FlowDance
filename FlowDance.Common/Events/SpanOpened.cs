@@ -1,4 +1,5 @@
 ﻿using FlowDance.Common.CompensatingActions;
+using FlowDance.Common.Enums;
 
 namespace FlowDance.Common.Events
 {
@@ -12,5 +13,7 @@ namespace FlowDance.Common.Events
         public CompensatingAction CompensatingAction { get; set; }
 
         public string CallingFunctionName { get; set; }
+
+        public CompensationSpanOption CompensationSpanOption { get; set; }
     }
 }

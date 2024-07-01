@@ -5,7 +5,8 @@ namespace FlowDance.Common.Interfaces
 {
     public interface IStorageProvider
     {
-        public void StoreEvent(SpanEvent spanEvent);
-        public void StoreCommand(DetermineCompensation command);
+        public SpanEvent StoreEventInStream(SpanEvent spanEvent);
+        public SpanEvent StoreEventInQueue(SpanEvent spanEvent);
+        public SpanCommand StoreCommand(SpanCommand spanCommand);
     }
 }

@@ -1,5 +1,6 @@
 using FlowDance.Client.StorageProviders;
 using FlowDance.Common.CompensatingActions;
+using FlowDance.Common.Enums;
 using FlowDance.Common.Events;
 using FlowDance.Common.Interfaces;
 using Microsoft.Extensions.Configuration;
@@ -31,10 +32,10 @@ namespace FlowDance.Client
         /// <param name="traceId"></param>
         /// <param name="loggerFactory"></param>
         /// <param name="callingFunctionName"></param>
-        public CompensationSpan(HttpCompensatingAction httpAction, Guid traceId, ILoggerFactory loggerFactory, [System.Runtime.CompilerServices.CallerMemberName] string callingFunctionName = "")
+        public CompensationSpan(HttpCompensatingAction httpAction, Guid traceId, ILoggerFactory loggerFactory, CompensationSpanOption compensationSpanOption = 0, [System.Runtime.CompilerServices.CallerMemberName] string callingFunctionName = "")
         {
             ConfigureSpanStorage(loggerFactory);
-            StoreSpanOpened(httpAction, traceId, loggerFactory, callingFunctionName);
+            StoreSpanOpened(httpAction, traceId, loggerFactory, callingFunctionName, compensationSpanOption);
         }
 
         /// <summary>
@@ -44,13 +45,13 @@ namespace FlowDance.Client
         /// <param name="traceId"></param>
         /// <param name="loggerFactory"></param>
         /// <param name="callingFunctionName"></param>
-        public CompensationSpan(AmqpCompensatingAction amqpAction, Guid traceId, ILoggerFactory loggerFactory, [System.Runtime.CompilerServices.CallerMemberName] string callingFunctionName = "")
+        public CompensationSpan(AmqpCompensatingAction amqpAction, Guid traceId, ILoggerFactory loggerFactory, CompensationSpanOption compensationSpanOption = 0, [System.Runtime.CompilerServices.CallerMemberName] string callingFunctionName = "")
         {
             ConfigureSpanStorage(loggerFactory);
-            StoreSpanOpened(amqpAction, traceId, loggerFactory, callingFunctionName);  
+            StoreSpanOpened(amqpAction, traceId, loggerFactory, callingFunctionName, compensationSpanOption);  
         }
 
-        private void StoreSpanOpened(CompensatingAction compensatingAction, Guid traceId, ILoggerFactory loggerFactory, string callingFunctionName)
+        private void StoreSpanOpened(CompensatingAction compensatingAction, Guid traceId, ILoggerFactory loggerFactory, string callingFunctionName, CompensationSpanOption compensationSpanOption)
         {
             _storage = new RabbitMqStorage(loggerFactory);
 
@@ -61,11 +62,19 @@ namespace FlowDance.Client
                 SpanId = Guid.NewGuid(),
                 CompensatingAction = compensatingAction,
                 CallingFunctionName = callingFunctionName,
-                Timestamp = DateTime.Now
+                Timestamp = DateTime.Now,
+                CompensationSpanOption = compensationSpanOption
             };
 
             // Store the SpanEventOpened event
-            _storage.StoreEvent(_spanOpened);
+            _spanOpened = (SpanOpened) _storage.StoreEventInStream(_spanOpened);
+
+            // Validate CompensationSpanOption for this span
+            if (_spanOpened.IsRootSpan)
+            {
+                if (_spanOpened.CompensationSpanOption == CompensationSpanOption.Required)
+                    throw new Exception("You have to set a value other then Required for the CompensationSpanOption in the CompensationSpan constructor for the first Span (RootSpan).");
+            }
         }
 
         private void StoreSpanClosed(Guid traceId, Guid spanId, bool completed)
@@ -75,18 +84,25 @@ namespace FlowDance.Client
             {
                 TraceId = traceId,
                 SpanId = spanId,
-                MarkedAsCommitted = completed,
+                MarkedAsCompleted = completed,
                 Timestamp = DateTime.Now,
                 ExceptionDetected = Marshal.GetExceptionCode() != 0
             };
 
-            // Store the SpanClosed event and calculates IsRootSpan
-            _storage.StoreEvent(_spanClosed);
+            // Store the SpanClosed event
+            _spanClosed = (SpanClosed) _storage.StoreEventInStream(_spanClosed);
 
-            // Check if this is a RootSpan, if so determine compensation.
-            if (_spanOpened.IsRootSpan)
+            // Store the SpanClosedBattered event if needed
+            if(_spanClosed.ExceptionDetected || _spanClosed.MarkedAsCompleted == false)
             {
-                var determineCompensation = new Common.Commands.DetermineCompensation { TraceId = _spanOpened.TraceId };
+                var spanClosedBattered = new SpanClosedBattered();
+                _storage.StoreEventInQueue(spanClosedBattered);
+            }
+
+            // Check if this is a RootSpan and of the typeRequiresNewBlockingCallChain,if so send a command to determine compensation.
+            else if (_spanOpened.IsRootSpan && _spanOpened.CompensationSpanOption == CompensationSpanOption.RequiresNewBlockingCallChain)
+            {
+                var determineCompensation = new Common.Commands.DetermineCompensationCommand { TraceId = _spanOpened.TraceId };
                 _storage.StoreCommand(determineCompensation);
             }
         }
@@ -121,7 +137,7 @@ namespace FlowDance.Client
             };
 
             // Store the SpanCompensationData event 
-            _storage.StoreEvent(spanCompensationData);
+            _storage.StoreEventInStream(spanCompensationData);
         }
 
         /// <summary>

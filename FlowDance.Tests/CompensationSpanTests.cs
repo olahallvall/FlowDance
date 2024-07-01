@@ -1,5 +1,6 @@
 using FlowDance.Client;
 using FlowDance.Common.CompensatingActions;
+using FlowDance.Common.Enums;
 using FlowDance.Tests.RabbitMqHttpApiClient.API;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -30,7 +31,7 @@ public class CompensationSpanTests
     {
         var traceId = Guid.NewGuid();
 
-        using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation"), traceId, _factory))
+        using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation"), traceId, _factory, CompensationSpanOption.RequiresNewBlockingCallChain))
         {
             compSpanRoot.AddCompensationData("SomeDataYouWantToByAbleToRollbackTo", "QC");
 
@@ -44,13 +45,34 @@ public class CompensationSpanTests
 
     [TestMethod]
     [ExpectedException(typeof(Exception))]
+    public void RootCompensationSpanMissingCompensationSpanOption()
+    {
+        var traceId = Guid.NewGuid();
+
+        try
+        {
+            using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation"), traceId, _factory))
+            {
+                /* Perform transactional work here */
+                compSpanRoot.Complete();
+            }
+        }
+        finally
+        {
+            Thread.Sleep(10000);
+            Assert.AreEqual(1, _rabbitMqApi.GetQueueByVhostAndName("/", traceId.ToString()).Result.MessagesReady);
+        }
+    }
+
+    [TestMethod]
+    [ExpectedException(typeof(Exception))]
     public void RootWithInnerCompensationSpan()
     {
         var traceId = Guid.NewGuid();
 
         // The top-most compensation scope is referred to as the root scope.
         // Root scope
-        using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation", new Dictionary<string, string>() { { "KeyB", "656565" } }), traceId, _factory))
+        using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation", new Dictionary<string, string>() { { "KeyB", "656565" } }), traceId, _factory, CompensationSpanOption.RequiresNewBlockingCallChain))
         {
             compSpanRoot.AddCompensationData("SomeDataYouWantToByAbleToRollbackToForTheTrip", "TripBegin");
 
@@ -82,7 +104,7 @@ public class CompensationSpanTests
 
     private void RootMethod(Guid traceId)
     {
-        using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation"), traceId, _factory))
+        using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation"), traceId, _factory, CompensationSpanOption.RequiresNewBlockingCallChain))
         {
             /* Perform transactional work here */
             InnerMethod(traceId);
@@ -104,12 +126,12 @@ public class CompensationSpanTests
 
     [TestMethod]
     [ExpectedException(typeof(Exception))]
-    public void MultipleRootCompensationSpanUsingSameTraceId()
+    public void MultipleCompensationSpanUsingSameTraceId()
     {
         var newGuid = Guid.NewGuid();
 
         // Root
-        using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/HotelService/Compensation"), newGuid, _factory))
+        using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/HotelService/Compensation"), newGuid, _factory, CompensationSpanOption.RequiresNewNonBlockingCallChain))
         {
             /* Perform transactional work here */
             throw new Exception("Something bad has happened!");
@@ -117,7 +139,7 @@ public class CompensationSpanTests
             compSpanRoot.Complete();
         }
 
-        // Root
+        
         using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/CarService/Compensation"), newGuid, _factory))
         {
             /* Perform transactional work here */
@@ -133,7 +155,7 @@ public class CompensationSpanTests
         var traceId = Guid.NewGuid();
 
         // Root
-        using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation"), traceId, _factory))
+        using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation"), traceId, _factory, CompensationSpanOption.RequiresNewBlockingCallChain))
         {
             /* Perform transactional work here */
 
@@ -163,7 +185,7 @@ public class CompensationSpanTests
     {
         var traceId = Guid.NewGuid();
 
-        using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation"), traceId, _factory))
+        using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation"), traceId, _factory, CompensationSpanOption.RequiresNewBlockingCallChain))
         {
             /* Perform transactional work here */
             compSpanRoot.Complete();
