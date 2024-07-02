@@ -70,11 +70,8 @@ namespace FlowDance.Client
             _spanOpened = (SpanOpened) _storage.StoreEventInStream(_spanOpened);
 
             // Validate CompensationSpanOption for this span
-            if (_spanOpened.IsRootSpan)
-            {
-                if (_spanOpened.CompensationSpanOption == CompensationSpanOption.Required)
-                    throw new Exception("You have to set a value other then Required for the CompensationSpanOption in the CompensationSpan constructor for the first Span (RootSpan).");
-            }
+            if (_spanOpened.IsRootSpan && _spanOpened.CompensationSpanOption == CompensationSpanOption.Required)
+                throw new Exception("You have to set a value other then Required for the CompensationSpanOption in the CompensationSpan constructor for the first Span (RootSpan) in a call chain.");
         }
 
         private void StoreSpanClosed(Guid traceId, Guid spanId, bool completed)
@@ -92,18 +89,16 @@ namespace FlowDance.Client
             // Store the SpanClosed event
             _spanClosed = (SpanClosed) _storage.StoreEventInStream(_spanClosed);
 
-            // Store the SpanClosedBattered event if needed
-            if(_spanClosed.ExceptionDetected || _spanClosed.MarkedAsCompleted == false)
-            {
-                var spanClosedBattered = new SpanClosedBattered();
-                _storage.StoreEventInQueue(spanClosedBattered);
-            }
-
-            // Check if this is a RootSpan and of the typeRequiresNewBlockingCallChain,if so send a command to determine compensation.
-            else if (_spanOpened.IsRootSpan && _spanOpened.CompensationSpanOption == CompensationSpanOption.RequiresNewBlockingCallChain)
+            if (_spanOpened.IsRootSpan && _spanOpened.CompensationSpanOption == CompensationSpanOption.RequiresNewBlockingCallChain)
             {
                 var determineCompensation = new Common.Commands.DetermineCompensationCommand { TraceId = _spanOpened.TraceId };
                 _storage.StoreCommand(determineCompensation);
+            }
+            // Store the SpanClosedBattered event if needed
+            else if (_spanClosed.ExceptionDetected || _spanClosed.MarkedAsCompleted == false)
+            {
+                var spanClosedBattered = new SpanClosedBattered();
+                _storage.StoreEventInQueue(spanClosedBattered);
             }
         }
 

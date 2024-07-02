@@ -17,6 +17,7 @@ services:
   mssql:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: mssql-db
+    user: root
     hostname: mssql-db    
     environment:
       ACCEPT_EULA: 'Y'
@@ -36,7 +37,7 @@ services:
     restart: always
     ports:
       - '6379:6379'
-    command: redis-server --save 60 1 --loglevel warning --requirepass <PASSWORD>
+    command: redis-server --save 60 1 --loglevel warning --requirepass Admin@123
     volumes: 
       - ./data:/data
       
