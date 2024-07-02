@@ -4,7 +4,7 @@
     /// The first Span in a call chain (applies for both synchronous and asynchronous call chains) will be, a so called, RootSpan.
     /// A RootSpan are responsible for creation the stream and set the rules for when compensaion action can be exetuted.
     /// 
-    /// BlockingCallChain / NonBlockingCallapplies descibes how Spans are joined together in run-time in a call chain. 
+    /// BlockingCallChain / NonBlockingCallChain descibes how Spans are joined together in run-time in a call chain. 
     /// Spans can either be joined together in a synchronous call chain (blocking architecture) or a asynchronous call chain (non-blocking architecture).
     /// </summary>
     public enum CompensationSpanOption
