@@ -16,7 +16,7 @@ services:
        
   mssql:
     image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: mssql-db
+    container_name: mssql
     user: root
     hostname: mssql-db    
     environment:
@@ -34,6 +34,7 @@ services:
       
   redis:
     image: redis:6.2-alpine
+    container_name: redis
     restart: always
     ports:
       - '6379:6379'

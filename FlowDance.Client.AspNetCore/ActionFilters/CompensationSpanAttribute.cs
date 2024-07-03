@@ -48,7 +48,7 @@ namespace FlowDance.Client.AspNetCore.ActionFilters
             var logger = loggerFactory.CreateLogger<CompensationSpanAttribute>();
 
             // Get traceId
-            Guid traceId = Guid.NewGuid(); 
+            Guid traceId = Guid.Empty; 
             if (CompensationSpanOption == CompensationSpanOption.Required)
             {
                 context.HttpContext.Request.Headers.TryGetValue("x-correlation-id", out var correlationId);

@@ -24,7 +24,7 @@ namespace FlowDance.Test.Legacy
         [TestMethod]
         public void RootCompensationSpan()
         {
-            var traceId = Guid.NewGuid();
+            var traceId = Guid.Empty;
 
             using (var compSpan = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation"), traceId, _loggerFactory, CompensationSpanOption.RequiresNewBlockingCallChain))
             {

@@ -2,6 +2,7 @@ using FlowDance.Client.StorageProviders;
 using FlowDance.Common.CompensatingActions;
 using FlowDance.Common.Enums;
 using FlowDance.Common.Events;
+using FlowDance.Common.Exceptions;
 using FlowDance.Common.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -53,6 +54,20 @@ namespace FlowDance.Client
 
         private void StoreSpanOpened(CompensatingAction compensatingAction, Guid traceId, ILoggerFactory loggerFactory, string callingFunctionName, CompensationSpanOption compensationSpanOption)
         {
+            // Validate traceId and create a new one if needed.
+            if (compensationSpanOption == CompensationSpanOption.Required)
+            {
+                if (traceId == Guid.Empty)
+                    throw new CompensationSpanValidationException("The traceId is an empty Guid. Please use a valid Guid as traceId.");
+            }
+            else // CompensationSpanOption.RequiresNewBlockingCallChain Or CompensationSpanOption.RequiresNewNonBlockingCallChain
+            {
+                if (traceId != Guid.Empty)
+                    throw new CompensationSpanValidationException("The traceId is a already created Guid. Please use an empty Guid (Guid.Empty) as traceId if you have to set CompensationSpanOption as RequiresNewBlockingCallChain or RequiresNewNonBlockingCallChain.");
+                
+                traceId = Guid.NewGuid();
+            }
+  
             _storage = new RabbitMqStorage(loggerFactory);
 
             // Create the event - SpanEventOpened
@@ -69,9 +84,12 @@ namespace FlowDance.Client
             // Store the SpanEventOpened event
             _spanOpened = (SpanOpened) _storage.StoreEventInStream(_spanOpened);
 
-            // Validate CompensationSpanOption for this span
+            // Validate the creation of CompensationSpanOption for this span
             if (_spanOpened.IsRootSpan && _spanOpened.CompensationSpanOption == CompensationSpanOption.Required)
-                throw new Exception("You have to set a value other then Required for the CompensationSpanOption in the CompensationSpan constructor for the first Span (RootSpan) in a call chain.");
+                throw new CompensationSpanCreationException("You have to set a value other then Required for the CompensationSpanOption in the CompensationSpan constructor for the first Span (RootSpan).");
+
+            if (_spanOpened.IsRootSpan == false && (_spanOpened.CompensationSpanOption == CompensationSpanOption.RequiresNewBlockingCallChain || _spanOpened.CompensationSpanOption == CompensationSpanOption.RequiresNewNonBlockingCallChain))
+                throw new CompensationSpanCreationException("You have to set CompensationSpanOption as RequiresNewBlockingCallChain or RequiresNewNonBlockingCallChain but FlowDance can't create the CompensationSpan as a RootSpan. This problem happends if the a stream already exist for the traceId.");
         }
 
         private void StoreSpanClosed(Guid traceId, Guid spanId, bool completed)
@@ -91,13 +109,13 @@ namespace FlowDance.Client
 
             if (_spanOpened.IsRootSpan && _spanOpened.CompensationSpanOption == CompensationSpanOption.RequiresNewBlockingCallChain)
             {
-                var determineCompensation = new Common.Commands.DetermineCompensationCommand { TraceId = _spanOpened.TraceId };
+                var determineCompensation = new Common.Commands.DetermineCompensationCommand { TraceId = _spanClosed.TraceId, SpanId = _spanClosed.SpanId, Timestamp = _spanOpened.Timestamp };
                 _storage.StoreCommand(determineCompensation);
             }
             // Store the SpanClosedBattered event if needed
             else if (_spanClosed.ExceptionDetected || _spanClosed.MarkedAsCompleted == false)
             {
-                var spanClosedBattered = new SpanClosedBattered();
+                var spanClosedBattered = new SpanClosedBattered() { TraceId = _spanClosed.TraceId, SpanId = _spanClosed.SpanId, Timestamp = _spanOpened.Timestamp , ExceptionDetected = _spanClosed.ExceptionDetected , MarkedAsCompleted = _spanClosed.MarkedAsCompleted };
                 _storage.StoreEventInQueue(spanClosedBattered);
             }
         }

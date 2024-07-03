@@ -125,7 +125,7 @@ namespace FlowDance.Client.StorageProviders
                 channel.BasicPublish(exchange: string.Empty,
                     routingKey: "FlowDance.SpanEvents",
                     basicProperties: null,
-                    body: body);
+                    body: Encoding.Default.GetBytes(JsonConvert.SerializeObject(spanEvent, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All })));
 
                 channel.WaitForConfirmsOrDie(TimeSpan.FromSeconds(5));
 
@@ -169,7 +169,7 @@ namespace FlowDance.Client.StorageProviders
                 channel.BasicPublish(exchange: string.Empty,
                     routingKey: "FlowDance.SpanCommands",
                     basicProperties: null,
-                    body: body);
+                    body: Encoding.Default.GetBytes(JsonConvert.SerializeObject(spanCommand, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All })));
 
                 channel.WaitForConfirmsOrDie(TimeSpan.FromSeconds(5));
 
@@ -203,12 +203,12 @@ namespace FlowDance.Client.StorageProviders
                 if (ex.Message.Contains("no queue"))
                     return false;
                 else
-                    throw new Exception("Non suspected exception occurred. See inner exception for more details.", ex);
+                    throw new Exception("A suspected exception occurred. See inner exception for more details.", ex);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "The StreamExistOrQueue function returns error when checking existens of queue:{name}", name);
-                throw new Exception("Non suspected exception occurred. See inner exception for more details.", ex);
+                throw new Exception("A suspected exception occurred. See inner exception for more details.", ex);
             }
 
             return true;
