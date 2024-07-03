@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Title>FlowDance.Client.CLI</Title>
-    <Version>1.0.11-alpha</Version>
+    <Version>1.0.12-alpha</Version>
     <Authors>ola.hallvall</Authors>
     <Company>ola.hallvall</Company>
     <Description>Contains the CLI component of FlowDance.Client.</Description>

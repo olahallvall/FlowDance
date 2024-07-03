@@ -7,7 +7,7 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/olahallvall/FlowDance</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Version>1.0.11-alpha</Version>
+    <Version>1.0.12-alpha</Version>
     <Authors>ola.hallvall</Authors>
     <Company>ola.hallvall</Company>
     <Description>Contains the Client-side component of FlowDance.</Description>
