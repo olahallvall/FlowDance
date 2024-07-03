@@ -1,5 +1,4 @@
 using FlowDance.AzureFunctions.Services;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,17 +15,18 @@ var host = new HostBuilder()
 
         config.AddEnvironmentVariables();
     })
-    .ConfigureServices(services =>
+    .ConfigureServices((hostBuilderContext,  services) =>
     {
         services.AddApplicationInsightsTelemetryWorkerService();
         services.ConfigureFunctionsApplicationInsights();
 
-        //services.Configure<KestrelServerOptions>(options =>
-        //{
-        //    options.AllowSynchronousIO = true;
-        //});
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = hostBuilderContext.Configuration["Redis:Server"];
+        });
 
         services.AddTransient<ISpanCommandService, SpanCommandService>();
+        services.AddTransient<ISpanEventService, SpanEventService>();
         services.AddTransient<IStorageService, StorageService>();
 
         services.AddHttpClient();

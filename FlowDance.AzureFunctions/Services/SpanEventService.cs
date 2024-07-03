@@ -1,6 +1,7 @@
 ﻿using FlowDance.Common.Events;
 using FlowDance.Common.Models;
 using Microsoft.DurableTask.Client;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
@@ -15,8 +16,9 @@ namespace FlowDance.AzureFunctions.Services
     {
         private readonly ILogger _logger;
         private readonly IStorageService _storageService;
+        private readonly IDistributedCache _distributedCache;
 
-        public SpanEventService(ILoggerFactory loggerFactory, IStorageService storage)
+        public SpanEventService(ILoggerFactory loggerFactory, IStorageService storage, IDistributedCache distributedCache)
         {
             _logger = loggerFactory.CreateLogger<SpanEventService>();
             _storageService = storage;
