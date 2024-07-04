@@ -22,13 +22,15 @@ var host = new HostBuilder()
 
         services.AddStackExchangeRedisCache(options =>
         {
-            options.Configuration = hostBuilderContext.Configuration["Redis:Server"];
+            options.Configuration = hostBuilderContext.Configuration["Redis_Connection"];
+            options.InstanceName = "FlowDance";
         });
 
         services.AddTransient<ISpanCommandService, SpanCommandService>();
         services.AddTransient<ISpanEventService, SpanEventService>();
         services.AddTransient<IStorageService, StorageService>();
-
+        services.AddTransient<ISpanEventUtilService, SpanEventUtilService>();
+        
         services.AddHttpClient();
     })
     .Build();

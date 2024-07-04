@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace FlowDance.Common.Models
 {
     /// <summary>
-    /// Represent a Span. Includes both events; SpanOpened and SpanClosed.  
+    /// Represent a Span (CompensationSpan). Includes both events; SpanOpened and SpanClosed.  
     /// </summary>
     public class Span
     {

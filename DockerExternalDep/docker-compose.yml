@@ -37,7 +37,7 @@ services:
     container_name: redis
     restart: always
     ports:
-      - '6379:6379'
+      - "6379:6379"
     command: redis-server --save 60 1 --loglevel warning --requirepass Admin@123
     volumes: 
       - ./data:/data
