@@ -13,7 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		vaules_secrets.json = vaules_secrets.json
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowDance.AzureFunctions", "FlowDance.AzureFunctions\FlowDance.AzureFunctions.csproj", "{8117AA55-88D3-44E9-B205-EEB47C77031C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowDance.Server", "FlowDance.Server\FlowDance.Server.csproj", "{8117AA55-88D3-44E9-B205-EEB47C77031C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowDance.Tests", "FlowDance.Tests\FlowDance.Tests.csproj", "{1DF738A8-B9EA-4BD3-9704-C30F99C9FC19}"
 EndProject

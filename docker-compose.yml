@@ -1,12 +1,12 @@
 version: '3.4'
-name: flowdance-azurefunctions
+name: flowdance-server
 
 services:
-  flowdance.azurefunctions:
-    image: ${DOCKER_REGISTRY-}flowdanceazurefunctions
+  flowdance.server:
+    image: ${DOCKER_REGISTRY-}flowdance-server
     build:
       context: .
-      dockerfile: FlowDance.AzureFunctions/Dockerfile
+      dockerfile: FlowDance.Server/Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - AzureWebJobsStorage=UseDevelopmentStorage=true;DevelopmentStorageProxyUri=http://host.docker.internal # https://www.connectionstrings.com/windows-azure/

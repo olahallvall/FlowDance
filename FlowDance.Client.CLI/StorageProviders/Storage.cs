@@ -99,7 +99,7 @@ namespace FlowDance.Client.CLI.StorageProviders
                         new ConsumerConfig(streamSystem, streamName)
                         {
                             OffsetSpec = new OffsetTypeFirst(),
-                            ClientProvidedName = "FlowDance.AzureFunctions.Consumer",
+                            ClientProvidedName = "FlowDance.Server.Consumer",
                             MessageHandler = async (stream, consumer, context, message) =>
                             {
                                 var messageContent = JsonConvert.DeserializeObject<SpanEvent>(Encoding.UTF8.GetString(message.Data.Contents), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
