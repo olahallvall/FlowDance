@@ -42,8 +42,8 @@ Here are some sample apps [FlowDance.Examples](https://github.com/olahallvall/Fl
 * Wait until both RabbitMQ and SQL Server has started.
 * Run the commands: 
 *  **docker exec rabbitmq rabbitmq-plugins enable rabbitmq_stream**
-*  **docker exec -d mssql-db /opt/mssql-tools/bin/sqlcmd -S . -U SA -P "Admin@123" -Q "CREATE DATABASE [DurableDB] COLLATE Latin1_General_100_BIN2_UTF8"**
-*  **docker exec -it mssql-db /opt/mssql-tools/bin/sqlcmd -S . -U sa -P "Admin@123" -Q "SELECT name FROM sys.databases"**
+*  **docker exec -d mssql /opt/mssql-tools/bin/sqlcmd -S . -U SA -P "Admin@123" -Q "CREATE DATABASE [DurableDB] COLLATE Latin1_General_100_BIN2_UTF8"**
+*  **docker exec -it mssql /opt/mssql-tools/bin/sqlcmd -S . -U sa -P "Admin@123" -Q "SELECT name FROM sys.databases"**
 * 
 * 
 * Download and install [Azure Functions Core Tools](https://go.microsoft.com/fwlink/?linkid=2174087)
