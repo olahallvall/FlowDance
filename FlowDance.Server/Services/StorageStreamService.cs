@@ -10,7 +10,7 @@ using RabbitMQ.Client;
 
 namespace FlowDance.Server.Services;
 
-public interface IStorageService
+public interface IStorageStreamService
 {
     public List<SpanEvent> ReadAllSpanEventsFromStream(string streamName);
 }
@@ -20,7 +20,7 @@ public interface IStorageService
 /// 
 /// Based on code from this site - https://rabbitmq.github.io/rabbitmq-stream-dotnet-client/stable/htmlsingle/index.html
 /// </summary>
-public class StorageService : IStorageService
+public class StorageStreamService : IStorageStreamService
 {
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger<Consumer> _consumerLogger;
@@ -28,7 +28,7 @@ public class StorageService : IStorageService
     private readonly IConfiguration _configuration;
     private StreamSystem? _streamSystem;
 
-    public StorageService(ILoggerFactory loggerFactory, IConfiguration configuration)
+    public StorageStreamService(ILoggerFactory loggerFactory, IConfiguration configuration)
     {
         _configuration = configuration;
         _loggerFactory = loggerFactory;

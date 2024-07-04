@@ -28,7 +28,10 @@ var host = new HostBuilder()
 
         services.AddTransient<ISpanCommandService, SpanCommandService>();
         services.AddTransient<ISpanEventService, SpanEventService>();
-        services.AddTransient<IStorageService, StorageService>();
+
+        services.AddTransient<IStorageStreamService, StorageStreamService>();
+        services.AddTransient<IStorageQueueService, StorageQueueService>();
+
         services.AddTransient<ISpanEventUtilService, SpanEventUtilService>();
         
         services.AddHttpClient();

@@ -15,11 +15,11 @@ namespace FlowDance.Server.Services
     public class SpanCommandService : ISpanCommandService
     {
         private readonly ILogger _logger;
-        private readonly IStorageService _storageService;
+        private readonly IStorageStreamService _storageService;
         private readonly IDistributedCache _distributedCache;
         private readonly ISpanEventUtilService _spanEventUtilService;
          
-        public SpanCommandService(ILoggerFactory loggerFactory, IStorageService storage, IDistributedCache distributedCache, ISpanEventUtilService spanEventUtilService)
+        public SpanCommandService(ILoggerFactory loggerFactory, IStorageStreamService storage, IDistributedCache distributedCache, ISpanEventUtilService spanEventUtilService)
         {
             _logger = loggerFactory.CreateLogger<SpanCommandService>();
             _storageService = storage;
