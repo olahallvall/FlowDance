@@ -106,11 +106,11 @@ public class CompensationSpanTests
 
         try
         {
-            using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation"), traceId, _factory, CompensationSpanOption.RequiresNewBlockingCallChain))
+            using (var compSpanRoot = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService1212/Compensation"), traceId, _factory, CompensationSpanOption.RequiresNewBlockingCallChain))
             {
                 traceId = compSpanRoot.TraceId;
 
-                using (var compSpan = new CompensationSpan(new HttpCompensatingAction("http://localhost/TripBookingService/Compensation"), traceId, _factory, CompensationSpanOption.Required))
+                using (var compSpan = new CompensationSpan(new HttpCompensatingAction("http://localhost/CarBookingService1212/Compensation"), traceId, _factory, CompensationSpanOption.Required))
                 {
                     // No setting Complete makes this Span to be set as SpanClosedBattered
                     // A SpanClosedBattered will be added to the FlowDance.SpanEvents queue.

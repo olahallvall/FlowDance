@@ -1,12 +1,9 @@
 ﻿using FlowDance.Common.Events;
 using FlowDance.Common.Exceptions;
-using FlowDance.Common.Models;
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using RabbitMQ.Client;
 
 namespace FlowDance.Server.Services
 {
