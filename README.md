@@ -38,7 +38,11 @@ Here are some sample apps [FlowDance.Examples](https://github.com/olahallvall/Fl
 
 # Get started
 * Install Docker Desktop and start it up.
-* Open a command prompt in the root folder of the repo/DockerExternalDep (where the docker-compose.yml file is) and run the command: **docker-compose up -d**
+* Open a command prompt in the root folder of the repo/DockerExternalDep (where the docker-compose.yml file is) and run the commands: 
+* 
+* **docker network create --driver bridge FlowDanceNetWork**
+* **docker-compose up -d**
+* 
 * Wait until both RabbitMQ and SQL Server has started.
 * Run the commands: 
 *  **docker exec rabbitmq rabbitmq-plugins enable rabbitmq_stream**
