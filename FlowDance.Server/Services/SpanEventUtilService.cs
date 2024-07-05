@@ -63,16 +63,6 @@ namespace FlowDance.Server.Services
                 }
             }
 
-            // Validate that every Span has a valid SpanOpened and SpanClosed
-            foreach (var span in spanList)
-            {
-                if (span.SpanOpened == null || span.SpanClosed == null)
-                {
-                    _logger.LogError("A Span need a valid SpanOpened and SpanClosed instance. Span with spanId {spanId} for TraceId {traceId} are missing one or both!", span.SpanId, span.TraceId);
-                    throw new SpanListValidationException("A Span need a valid SpanOpened and SpanClosed instance. Span with spanId {spanId} for TraceId {traceId} are missing one or both!");
-                }
-            }
-
             // Get the first Span and check that it's a RootSpan. 
             var rootSpan = spanList[0];
             if (rootSpan.SpanOpened.IsRootSpan == false)

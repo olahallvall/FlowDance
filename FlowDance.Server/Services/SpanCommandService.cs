@@ -56,6 +56,16 @@ namespace FlowDance.Server.Services
                 _logger.LogInformation("Stream has {count} events!", spanEventList.Count);
                 var compensationSpanList = _spanEventUtilService.CreateSpanList(spanEventList);
 
+                // Validate that every Span has a valid SpanOpened and SpanClosed
+                //foreach (var span in compensationSpanList)
+                //{
+                //    if (span.SpanOpened == null || span.SpanClosed == null)
+                //    {
+                //        _logger.LogError("A Span need a valid SpanOpened and SpanClosed instance. Span with spanId {spanId} for TraceId {traceId} are missing one or both!", span.SpanId, span.TraceId);
+                //        throw new SpanListValidationException("A Span need a valid SpanOpened and SpanClosed instance. Span with spanId {spanId} for TraceId {traceId} are missing one or both!");
+                //    }
+                //}
+
                 // Check if we need to start the Orchestration - if things is ok is unnecessary to start an Orchestration...
                 var containsSpanClosedBattered = _spanEventUtilService.SpanListContainsSpanClosedBattered(compensationSpanList);
                 if (containsSpanClosedBattered)
