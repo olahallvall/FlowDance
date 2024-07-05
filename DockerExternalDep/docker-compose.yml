@@ -6,15 +6,13 @@ services:
   rabbitmq:
     hostname: rabbitmq
     image: rabbitmq:3-management
-    #environment:
-    #   RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: -rabbitmq_stream advertised_host 192.168.1.65
     container_name: rabbitmq
     ports:
        - "15672:15672" # Management UI
        - "5672:5672"   # Default RabbitMQ Port
        - "5552:5552"   # Steaming RabbitMQ Port
-    networks:
-       - FDnet
+    # networks:
+    #    - FDnet
        
   mssql:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -33,8 +31,8 @@ services:
       - ./data:/var/opt/mssql/data
       - ./log:/var/opt/mssql/log
       - ./secrets:/var/opt/mssql/secrets
-    networks:
-       - FDnet
+    # networks:
+    #    - FDnet
       
   redis:
     image: redis:6.2-alpine
@@ -45,12 +43,12 @@ services:
     command: redis-server --save 60 1 --loglevel warning --requirepass Admin@123
     volumes: 
       - ./data:/data
-    networks:
-       - FDnet
+    # networks:
+    #    - FDnet
 
-networks:
-  FDnet:
-    name: FlowDanceNetWork
-    external: true
+# networks:
+#   FDnet:
+#     name: FlowDanceNetWork
+#     external: true
       
       

@@ -40,12 +40,15 @@ Here are some sample apps [FlowDance.Examples](https://github.com/olahallvall/Fl
 * Install Docker Desktop and start it up.
 * Open a command prompt in the root folder of the repo/DockerExternalDep (where the docker-compose.yml file is) and run the commands: 
 * 
-* **docker network create --driver bridge FlowDanceNetWork**
+* // Not needed for now **docker network create --driver bridge FlowDanceNetWork**
 * **docker-compose up -d**
 * 
 * Wait until both RabbitMQ and SQL Server has started.
 * Run the commands: 
 *  **docker exec rabbitmq rabbitmq-plugins enable rabbitmq_stream**
+*  **docker exec rabbitmq rabbitmqadmin declare queue --vhost=/ name=FlowDance.SpanCommands durable=true**
+*  **docker exec rabbitmq rabbitmqadmin declare queue --vhost=/ name=FlowDance.SpanEvents durable=true**
+* 
 *  **docker exec -d mssql /opt/mssql-tools/bin/sqlcmd -S . -U SA -P "Admin@123" -Q "CREATE DATABASE [DurableDB] COLLATE Latin1_General_100_BIN2_UTF8"**
 *  **docker exec -it mssql /opt/mssql-tools/bin/sqlcmd -S . -U sa -P "Admin@123" -Q "SELECT name FROM sys.databases"**
 * 

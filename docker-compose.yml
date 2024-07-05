@@ -1,4 +1,4 @@
-version: '3.4'
+version: "3.9"
 name: flowdance-server
 
 services:
@@ -18,10 +18,10 @@ services:
       - WEBSITE_HOSTNAME=localhost:80
     ports:
        - "31344:80" # Management UI
-    networks:
-       - FDnet
+    # networks:
+    #    - FDnet
 
-networks:
-  FDnet:
-    name: FlowDanceNetWork
-    external: true
+# networks:
+#   FDnet:
+#     name: FlowDanceNetWork
+#     external: true
