@@ -1,8 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using RabbitMQ.Client;
-using System;
-using RabbitMQ.Stream.Client;
 using FlowDance.Common.Commands;
 using Newtonsoft.Json;
 using System.Text;
