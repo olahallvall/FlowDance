@@ -71,6 +71,8 @@ namespace FlowDance.Server.Sagas
             // Wait for all to complete.
             await Task.WhenAll(tasks);
 
+
+            //https://medium.com/@kmorpex/async-await-mastery-handling-exceptions-like-a-pro-in-c-300a45b7cdc3
             var pastaTask = CookDishAsync("Pasta", 10);
             var cakeTask = CookDishAsync("Cake", 30);
             
