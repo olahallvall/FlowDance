@@ -1,4 +1,4 @@
-﻿using FlowDance.Server.Functions;
+using FlowDance.Server.Functions;
 using FlowDance.Common.CompensatingActions;
 using FlowDance.Common.Models;
 using Microsoft.Azure.Functions.Worker;
@@ -70,6 +70,19 @@ namespace FlowDance.Server.Sagas
             
             // Wait for all to complete.
             await Task.WhenAll(tasks);
+
+            var pastaTask = CookDishAsync("Pasta", 10);
+            var cakeTask = CookDishAsync("Cake", 30);
+            
+            try
+            {
+                await Task.WhenAll(pastaTask, cakeTask);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception caught: {ex.Message}");
+            }
+
 
             logger.LogInformation("Ending CompensatingSaga for traceId {traceId}", spanList.First().TraceId);
         }
