@@ -73,17 +73,17 @@ namespace FlowDance.Server.Sagas
 
 
             //https://medium.com/@kmorpex/async-await-mastery-handling-exceptions-like-a-pro-in-c-300a45b7cdc3
-            var pastaTask = CookDishAsync("Pasta", 10);
-            var cakeTask = CookDishAsync("Cake", 30);
+            //var pastaTask = CookDishAsync("Pasta", 10);
+            //var cakeTask = CookDishAsync("Cake", 30);
             
-            try
-            {
-                await Task.WhenAll(pastaTask, cakeTask);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Exception caught: {ex.Message}");
-            }
+            //try
+            //{
+            //    await Task.WhenAll(pastaTask, cakeTask);
+            //}
+            //catch (Exception ex)
+            //{
+            //    Console.WriteLine($"Exception caught: {ex.Message}");
+            //}
 
 
             logger.LogInformation("Ending CompensatingSaga for traceId {traceId}", spanList.First().TraceId);
