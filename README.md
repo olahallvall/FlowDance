@@ -28,9 +28,7 @@ For more info please see [FlowDance.Documentation](https://olahallvall.github.io
 Here are some sample apps [FlowDance.Examples](https://github.com/olahallvall/FlowDance.Examples)
 
 # You need
-* Visual Studio 2022 or later
-* Azure Functions Core Tools (Azure Functions Core Tools lets you develop and test your functions on your local computer)
-* RabbitMQ with Streams activted (rabbitmq-plugins enable rabbitmq_stream)
+* Docker Desktop
 
 # Inspiration
 * Compensating Action - https://learn.microsoft.com/en-us/azure/architecture/patterns/compensating-transaction
@@ -38,9 +36,9 @@ Here are some sample apps [FlowDance.Examples](https://github.com/olahallvall/Fl
 
 # Get started
 * Install Docker Desktop and start it up.
-* Open a command prompt in the root folder of the repo/DockerExternalDep (where the docker-compose.yml file is) and run the commands: 
+* Download the file https://github.com/olahallvall/FlowDance/blob/master/DockerExternalDep/docker-compose.yml to local folder
+* Open a command prompt in that folder and run the commands: 
 * 
-* // Not needed for now **docker network create --driver bridge FlowDanceNetWork**
 * **docker-compose up -d**
 * 
 * Wait until both RabbitMQ and SQL Server has started.
@@ -52,5 +50,5 @@ Here are some sample apps [FlowDance.Examples](https://github.com/olahallvall/Fl
 *  **docker exec -d mssql /opt/mssql-tools/bin/sqlcmd -S . -U SA -P "Admin@123" -Q "CREATE DATABASE [DurableDB] COLLATE Latin1_General_100_BIN2_UTF8"**
 *  **docker exec -it mssql /opt/mssql-tools/bin/sqlcmd -S . -U sa -P "Admin@123" -Q "SELECT name FROM sys.databases"**
 * 
+* Restart the container **flowdance** in Docker Desktop. 
 * 
-* Download and install [Azure Functions Core Tools](https://go.microsoft.com/fwlink/?linkid=2174087)

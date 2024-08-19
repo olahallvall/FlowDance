@@ -3,7 +3,7 @@ name: flowdance-server
 
 services:
   flowdance.server:
-    image: ${DOCKER_REGISTRY-}flowdance.server
+    image: ${DOCKER_REGISTRY-}flowdance
     build:
       context: .
       dockerfile: FlowDance.Server/Dockerfile

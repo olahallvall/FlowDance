@@ -12,6 +12,7 @@
     <PackageIcon>flowdance128.png</PackageIcon>
     <PackageProjectUrl>https://github.com/olahallvall/FlowDance</PackageProjectUrl>
     <Copyright>MIT</Copyright>
+    <DockerfileTag>flowdance</DockerfileTag>
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />

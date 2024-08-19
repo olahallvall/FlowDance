@@ -6,6 +6,9 @@
     <DockerPublishLocally>False</DockerPublishLocally>
     <ProjectGuid>b46565ba-c653-4939-89e4-472b64d24340</ProjectGuid>
   </PropertyGroup>
+  <PropertyGroup>
+    <DockerServiceName>flowdance</DockerServiceName>
+  </PropertyGroup>
   <ItemGroup>
     <None Include="docker-compose.override.yml">
       <DependentUpon>docker-compose.yml</DependentUpon>

@@ -1,19 +1,34 @@
 version: "3.9"
-name: flowdance-server-deps
+name: flowdance-server
     
 services:
 
+  flowdance:
+    image: olahallvall/flowdance:1.0
+    container_name: flowdance
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - AzureWebJobsStorage=UseDevelopmentStorage=true;DevelopmentStorageProxyUri=http://host.docker.internal # https://www.connectionstrings.com/windows-azure/
+      - DurableDB_Connection=Server=host.docker.internal,1433;Database=DurableDB;User Id=sa;Password=Admin@123;
+      - Redis_Connection=host.docker.internal:6379,password=Admin@123,ssl=False,abortConnect=False
+      - RabbitMq_Connection=amqp://guest:guest@host.docker.internal:5672
+      - RabbitMq_StreamSettings__StreamPort=5552
+      - RabbitMq_StreamSettings__LoadBalancer=true
+      - WEBSITE_HOSTNAME=localhost:80
+    ports:
+       - "31344:80" # Management UI
+    depends_on:
+      - rabbitmq
+      - mssql
+
   rabbitmq:
-    hostname: rabbitmq
     image: rabbitmq:3-management
     container_name: rabbitmq
     ports:
        - "15672:15672" # Management UI
        - "5672:5672"   # Default RabbitMQ Port
        - "5552:5552"   # Steaming RabbitMQ Port
-    # networks:
-    #    - FDnet
-       
+
   mssql:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: mssql
@@ -31,24 +46,14 @@ services:
       - ./data:/var/opt/mssql/data
       - ./log:/var/opt/mssql/log
       - ./secrets:/var/opt/mssql/secrets
-    # networks:
-    #    - FDnet
       
   redis:
     image: redis:6.2-alpine
     container_name: redis
-    restart: always
     ports:
       - "6379:6379"
     command: redis-server --save 60 1 --loglevel warning --requirepass Admin@123
     volumes: 
       - ./data:/data
-    # networks:
-    #    - FDnet
-
-# networks:
-#   FDnet:
-#     name: FlowDanceNetWork
-#     external: true
       
       
