@@ -36,7 +36,8 @@ Docker Desktop
 
 # Get started
 Install Docker Desktop and start it up.
-Download the file https://github.com/olahallvall/FlowDance/blob/master/DockerExternalDep/docker-compose.yml to local folder
+Download the file https://github.com/olahallvall/FlowDance/blob/master/DockerExternalDep/docker-compose.yml to local folder.
+
 Open a command prompt in that folder and run the commands: 
  
 **docker-compose up -d**
