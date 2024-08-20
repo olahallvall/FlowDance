@@ -44,6 +44,7 @@ Open a command prompt in that folder and run the commands:
 Wait until both RabbitMQ and SQL Server has started.
 
 Run the commands: 
+
 **docker exec rabbitmq rabbitmq-plugins enable rabbitmq_stream**
 
 **docker exec rabbitmq rabbitmqadmin declare queue --vhost=/ name=FlowDance.SpanCommands durable=true**
