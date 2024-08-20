@@ -43,7 +43,7 @@ Open a command prompt in that folder and run the commands:
 
 Wait until both RabbitMQ and SQL Server has started.
 
-Run the commands: 
+Run the commands below in the same command prompt window: 
 
 **docker exec rabbitmq rabbitmq-plugins enable rabbitmq_stream**
 
