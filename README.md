@@ -28,11 +28,11 @@ For more info please see [FlowDance.Documentation](https://olahallvall.github.io
 Here are some sample apps [FlowDance.Examples](https://github.com/olahallvall/FlowDance.Examples)
 
 # You need
-* Docker Desktop
+Docker Desktop
 
 # Inspiration
-* Compensating Action - https://learn.microsoft.com/en-us/azure/architecture/patterns/compensating-transaction
-* Distributed Transactions with the Saga Pattern - https://dev.to/willvelida/the-saga-pattern-3o7p
+- Compensating Action - https://learn.microsoft.com/en-us/azure/architecture/patterns/compensating-transaction
+- Distributed Transactions with the Saga Pattern - https://dev.to/willvelida/the-saga-pattern-3o7p
 
 # Get started
 * Install Docker Desktop and start it up.
@@ -47,10 +47,8 @@ Here are some sample apps [FlowDance.Examples](https://github.com/olahallvall/Fl
 *  **docker exec rabbitmq rabbitmqadmin declare queue --vhost=/ name=FlowDance.SpanCommands durable=true**
 *  **docker exec rabbitmq rabbitmqadmin declare queue --vhost=/ name=FlowDance.SpanEvents durable=true**
 * 
-*  **docker exec -d mssql /opt/mssql-tools/bin/sqlcmd -S . -U SA -P "Admin@123" -Q "CREATE DATABASE [FlowDanceDurableDB] COLLATE Latin1_General_100_BIN2_UTF8"**
-*  
- * Check if database was created!
- * **docker exec -it mssql /opt/mssql-tools/bin/sqlcmd -S . -U sa -P "Admin@123" -Q "SELECT name FROM sys.databases"**
+*  **docker exec -d mssql /opt/mssql-tools/bin/sqlcmd -S . -U SA -P "Admin@123" -Q "CREATE DATABASE [DurableDB] COLLATE Latin1_General_100_BIN2_UTF8"**
+*  **docker exec -it mssql /opt/mssql-tools/bin/sqlcmd -S . -U sa -P "Admin@123" -Q "SELECT name FROM sys.databases"**
 * 
 * Restart the container **flowdance** in Docker Desktop. 
 * 
