@@ -6,6 +6,7 @@ using Microsoft.Extensions.Hosting;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication()
+
     .ConfigureAppConfiguration((hostContext, config) =>
     {
         if (hostContext.HostingEnvironment.IsDevelopment())
@@ -15,15 +16,18 @@ var host = new HostBuilder()
 
         config.AddEnvironmentVariables();
     })
+
     .ConfigureServices((hostBuilderContext,  services) =>
     {
         services.AddApplicationInsightsTelemetryWorkerService();
         services.ConfigureFunctionsApplicationInsights();
 
-        services.AddStackExchangeRedisCache(options =>
+        services.AddDistributedSqlServerCache(options =>
         {
-            options.Configuration = hostBuilderContext.Configuration["Redis_Connection"];
-            options.InstanceName = "FlowDance";
+            options.ConnectionString = hostBuilderContext.Configuration["FlowDanceCacheDB_Connection"];
+
+            options.SchemaName = "dbo";
+            options.TableName = "CacheData";
         });
 
         services.AddTransient<ISpanCommandService, SpanCommandService>();

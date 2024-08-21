@@ -1,4 +1,3 @@
-version: "3.9"
 name: flowdance-server
     
 services:
@@ -9,8 +8,8 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - AzureWebJobsStorage=UseDevelopmentStorage=true;DevelopmentStorageProxyUri=http://host.docker.internal # https://www.connectionstrings.com/windows-azure/
-      - DurableDB_Connection=Server=host.docker.internal,1433;Database=DurableDB;User Id=sa;Password=Admin@123;
-      - Redis_Connection=host.docker.internal:6379,password=Admin@123,ssl=False,abortConnect=False
+      - FlowDanceDurableDB_Connection=Server=host.docker.internal,1433;TrustServerCertificate=True;Database=FlowDanceDurableDB;User Id=sa;Password=Admin@123;
+      - FlowDanceCacheDB_Connection=Server=host.docker.internal,1433;TrustServerCertificate=True;Database=FlowDanceCacheDB;User Id=sa;Password=Admin@123;
       - RabbitMq_Connection=amqp://guest:guest@host.docker.internal:5672
       - RabbitMq_StreamSettings__StreamPort=5552
       - RabbitMq_StreamSettings__LoadBalancer=true
@@ -46,14 +45,5 @@ services:
       - ./data:/var/opt/mssql/data
       - ./log:/var/opt/mssql/log
       - ./secrets:/var/opt/mssql/secrets
-      
-  redis:
-    image: redis:6.2-alpine
-    container_name: redis
-    ports:
-      - "6379:6379"
-    command: redis-server --save 60 1 --loglevel warning --requirepass Admin@123
-    volumes: 
-      - ./data:/data
       
       
