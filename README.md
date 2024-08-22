@@ -36,6 +36,7 @@ Docker Desktop
 
 # Get started
  Install Docker Desktop and start it up.
+ 
  Download the files https://github.com/olahallvall/FlowDance/blob/master/DockerExternalDep/docker-compose.yml and 
  https://github.com/olahallvall/FlowDance/blob/master/DockerExternalDep/db-script.sql to a local folder.
  
