@@ -48,7 +48,9 @@ Docker Desktop
  Run the commands: 
  
  **docker exec rabbitmq rabbitmq-plugins enable rabbitmq_stream**
+ 
  **docker exec rabbitmq rabbitmqadmin declare queue --vhost=/ name=FlowDance.SpanCommands durable=true**
+ 
  **docker exec rabbitmq rabbitmqadmin declare queue --vhost=/ name=FlowDance.SpanEvents durable=true**
  
  **docker exec -d mssql /opt/mssql-tools/bin/sqlcmd -S . -U SA -P "Admin@123" -i db-script.sql**
