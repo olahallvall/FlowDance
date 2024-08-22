@@ -35,20 +35,23 @@ Docker Desktop
 - Distributed Transactions with the Saga Pattern - https://dev.to/willvelida/the-saga-pattern-3o7p
 
 # Get started
-* Install Docker Desktop and start it up.
-* Download the file https://github.com/olahallvall/FlowDance/blob/master/DockerExternalDep/docker-compose.yml to local folder
-* Open a command prompt in that folder and run the commands: 
-* 
-* **docker-compose up -d**
-* 
-* Wait until both RabbitMQ and SQL Server has started.
-* Run the commands: 
-*  **docker exec rabbitmq rabbitmq-plugins enable rabbitmq_stream**
-*  **docker exec rabbitmq rabbitmqadmin declare queue --vhost=/ name=FlowDance.SpanCommands durable=true**
-*  **docker exec rabbitmq rabbitmqadmin declare queue --vhost=/ name=FlowDance.SpanEvents durable=true**
-* 
-*  **docker exec -d mssql /opt/mssql-tools/bin/sqlcmd -S . -U SA -P "Admin@123" -Q "CREATE DATABASE [FlowDanceDurableDB] COLLATE Latin1_General_100_BIN2_UTF8"**
-*  **docker exec -d mssql /opt/mssql-tools/bin/sqlcmd -S . -U SA -P "Admin@123" -Q "CREATE DATABASE [FlowDanceCacheDB] "**
-*  
-* Restart the container **flowdance** in Docker Desktop. 
-* 
+ Install Docker Desktop and start it up.
+ Download the files https://github.com/olahallvall/FlowDance/blob/master/DockerExternalDep/docker-compose.yml and 
+ https://github.com/olahallvall/FlowDance/blob/master/DockerExternalDep/db-script.sql to local folder.
+ 
+ Open a command prompt in that folder and run the commands: 
+ 
+ **docker-compose up -d**
+ 
+ Wait until both RabbitMQ and SQL Server has started.
+ 
+ Run the commands: 
+ 
+ **docker exec rabbitmq rabbitmq-plugins enable rabbitmq_stream**
+ **docker exec rabbitmq rabbitmqadmin declare queue --vhost=/ name=FlowDance.SpanCommands durable=true**
+ **docker exec rabbitmq rabbitmqadmin declare queue --vhost=/ name=FlowDance.SpanEvents durable=true**
+ 
+ **docker exec -d mssql /opt/mssql-tools/bin/sqlcmd -S . -U SA -P "Admin@123" -i db-script.sql**
+  
+ Restart the container **flowdance** in Docker Desktop. 
+ 
