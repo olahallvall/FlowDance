@@ -40,7 +40,7 @@ Docker Desktop
  Download the files https://github.com/olahallvall/FlowDance/blob/master/Setup/docker-compose.yml and 
  https://github.com/olahallvall/FlowDance/blob/master/Setup/db-script.sql to a local folder.
  
- Open a command prompt in that folder and run the commands: 
+ Open a command prompt (not Powershell or Linux) in that folder and run the commands: 
  
  **docker-compose up -d**
  
@@ -54,7 +54,7 @@ Docker Desktop
  
  **docker exec rabbitmq rabbitmqadmin declare queue --vhost=/ name=FlowDance.SpanEvents durable=true**
  
- **docker exec -d mssql /opt/mssql-tools/bin/sqlcmd -S . -U SA -P "Admin@123" -i db-script.sql**
+ **docker exec -i mssql /opt/mssql-tools/bin/sqlcmd -S . -U SA -P "Admin@123" < db-script.sql**
   
  Restart the container **flowdance** in Docker Desktop. 
  
