@@ -1,7 +1,9 @@
 ﻿using FlowDance.Common.Events;
 using FlowDance.Common.Exceptions;
+using FlowDance.Server.Caching.SqlServer;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.SqlServer;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
@@ -71,7 +73,9 @@ namespace FlowDance.Server.Services
 
                 // We assume that the SpanClosedBattered will run successful - if not the key will be removed.
                 var options = new DistributedCacheEntryOptions().SetAbsoluteExpiration(DateTime.Now.AddDays(7));
-                _distributedCache.Set(dempotencyKey, Array.Empty<Byte>(), options);
+                var distributedCacheFlowDance = (IDistributedCacheFlowDance) _distributedCache;
+                var inserted = distributedCacheFlowDance.SetOnce(dempotencyKey, Array.Empty<Byte>(), options);
+                var inserted2 = distributedCacheFlowDance.SetOnce(dempotencyKey, Array.Empty<Byte>(), options);
 
                 _logger.LogInformation("{dempotencyKey} has been saved to cache now.", dempotencyKey);
 
