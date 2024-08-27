@@ -3,7 +3,6 @@ using FlowDance.Common.Exceptions;
 using FlowDance.Server.Caching.SqlServer;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Caching.SqlServer;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
@@ -65,20 +64,14 @@ namespace FlowDance.Server.Services
             // Idempotent check
             var streamName = spanClosedBattered.TraceId.ToString();
             var dempotencyKey = streamName + "_SpanClosedBattered";
-            var hasBeenExecutedBefore = _distributedCache.Get(dempotencyKey);
 
-            if (hasBeenExecutedBefore == null)
+            var options = new DistributedCacheEntryOptions().SetAbsoluteExpiration(DateTime.Now.AddDays(7));
+            var distributedCacheFlowDance = (IDistributedCacheFlowDance)_distributedCache;
+            var inserted = distributedCacheFlowDance.SetOnce(dempotencyKey, Array.Empty<Byte>(), options);
+
+            if (inserted)
             {
-                _logger.LogInformation("{dempotencyKey} get executed for the first time now.", dempotencyKey);
-
-                // We assume that the SpanClosedBattered will run successful - if not the key will be removed.
-                var options = new DistributedCacheEntryOptions().SetAbsoluteExpiration(DateTime.Now.AddDays(7));
-                var distributedCacheFlowDance = (IDistributedCacheFlowDance) _distributedCache;
-                var inserted = distributedCacheFlowDance.SetOnce(dempotencyKey, Array.Empty<Byte>(), options);
-                var inserted2 = distributedCacheFlowDance.SetOnce(dempotencyKey, Array.Empty<Byte>(), options);
-
                 _logger.LogInformation("{dempotencyKey} has been saved to cache now.", dempotencyKey);
-
                 try
                 {
                     var spanEventList = _storageService.ReadAllSpanEventsFromStream(streamName);
@@ -92,10 +85,12 @@ namespace FlowDance.Server.Services
                         if (rootSpan.SpanOpened.CompensationSpanOption == Common.Enums.CompensationSpanOption.RequiresNewNonBlockingCallChain)
                         {
                             // Add a message to FlowDance.SpanCommands queue. 
-                            _logger.LogInformation("TraceId {traceId} has one or more SpanClosedBattered and will need compensation. FlowDance will add a DetermineCompensationCommand to FlowDance.SpanCommands.", streamName);
+                            _logger.LogInformation("TraceId {traceId}, with the type CompensationSpanOption.RequiresNewNonBlockingCallChain, has one or more SpanClosedBattered and will need compensation. FlowDance will add a DetermineCompensationCommand to FlowDance.SpanCommands.", streamName);
                             var determineCompensation = new Common.Commands.DetermineCompensationCommand { TraceId = spanClosedBattered.TraceId, SpanId = spanClosedBattered.SpanId, Timestamp = spanClosedBattered.Timestamp };
                             _storageQueueService.StoreCommand(determineCompensation);
                         }
+                        else
+                            _logger.LogInformation("{dempotencyKey} belongs to a CompensationSpan of type CompensationSpanOption.RequiresNewBlockingCallChain and no DetermineCompensationCommand will be sent.", dempotencyKey);
                     }
                 }
                 catch (Exception ex)

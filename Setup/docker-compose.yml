@@ -3,7 +3,7 @@ name: flowdance-server
 services:
 
   flowdance:
-    image: olahallvall/flowdance:1.0
+    image: olahallvall/flowdance:latest
     container_name: flowdance
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
