@@ -53,7 +53,7 @@ namespace FlowDance.Server.Services
             var spanEventList = _storageService.ReadAllSpanEventsFromStream(streamName);
             if (spanEventList.Any())
             {
-                _logger.LogInformation("Stream has {count} events!", spanEventList.Count);
+                _logger.LogDebug("Stream has {count} events!", spanEventList.Count);
                 var compensationSpanList = _spanEventUtilService.CreateSpanList(spanEventList);
 
                 // Validate that every Span has a valid SpanOpened and SpanClosed
@@ -75,10 +75,10 @@ namespace FlowDance.Server.Services
 
                     //var httpResponse = durableTaskClient.CreateCheckStatusResponse()  .CreateCheckStatusResponseAsync(req, instanceId).;
 
-                    _logger.LogInformation("Starting CompensatingSaga with instanceId {instanceId} for traceId {traceId}", instanceId , compensationSpanList[0].SpanOpened.TraceId);
+                    _logger.LogDebug("Starting CompensatingSaga with instanceId {instanceId} for traceId {traceId}", instanceId , compensationSpanList[0].SpanOpened.TraceId);
                 }
                 else
-                    _logger.LogInformation("No CompensatingSaga was needed for traceId {traceId}", compensationSpanList[0].SpanOpened.TraceId);
+                    _logger.LogDebug("No CompensatingSaga was needed for traceId {traceId}", compensationSpanList[0].SpanOpened.TraceId);
             }
         }
     }

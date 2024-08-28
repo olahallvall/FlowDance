@@ -71,13 +71,13 @@ namespace FlowDance.Server.Services
 
             if (inserted)
             {
-                _logger.LogInformation("{dempotencyKey} has been saved to cache now.", dempotencyKey);
+                _logger.LogDebug("{dempotencyKey} has been saved to cache now.", dempotencyKey);
                 try
                 {
                     var spanEventList = _storageService.ReadAllSpanEventsFromStream(streamName);
                     if (spanEventList.Any())
                     {
-                        _logger.LogInformation("Stream has {count} events!", spanEventList.Count);
+                        _logger.LogDebug("Stream has {count} events!", spanEventList.Count);
                         var compensationSpanList = _spanEventUtilService.CreateSpanList(spanEventList);
 
                         // Get the RootSpan. 
@@ -85,24 +85,24 @@ namespace FlowDance.Server.Services
                         if (rootSpan.SpanOpened.CompensationSpanOption == Common.Enums.CompensationSpanOption.RequiresNewNonBlockingCallChain)
                         {
                             // Add a message to FlowDance.SpanCommands queue. 
-                            _logger.LogInformation("TraceId {traceId}, with the type CompensationSpanOption.RequiresNewNonBlockingCallChain, has one or more SpanClosedBattered and will need compensation. FlowDance will add a DetermineCompensationCommand to FlowDance.SpanCommands.", streamName);
+                            _logger.LogDebug("TraceId {traceId}, with the type CompensationSpanOption.RequiresNewNonBlockingCallChain, has one or more SpanClosedBattered and will need compensation. FlowDance will add a DetermineCompensationCommand to FlowDance.SpanCommands.", streamName);
                             var determineCompensation = new Common.Commands.DetermineCompensationCommand { TraceId = spanClosedBattered.TraceId, SpanId = spanClosedBattered.SpanId, Timestamp = spanClosedBattered.Timestamp };
                             _storageQueueService.StoreCommand(determineCompensation);
                         }
                         else
-                            _logger.LogInformation("{dempotencyKey} belongs to a CompensationSpan of type CompensationSpanOption.RequiresNewBlockingCallChain and no DetermineCompensationCommand will be sent.", dempotencyKey);
+                            _logger.LogDebug("{dempotencyKey} belongs to a CompensationSpan of type CompensationSpanOption.RequiresNewBlockingCallChain and no DetermineCompensationCommand will be sent.", dempotencyKey);
                     }
                 }
                 catch (Exception ex)
                 {
                     // SpanClosedBattered didn't run successful and we remove the Idempotent key.
                     _distributedCache.Remove(dempotencyKey);
-                    _logger.LogInformation("{dempotencyKey} has been removed due to exception.", dempotencyKey);
+                    _logger.LogDebug("{dempotencyKey} has been removed due to exception.", dempotencyKey);
 
                     throw new ExecuteSpanEventException("Someting goes bad when executing SpanClosedBattered(). Please see inner exception.", ex);
                 }
             }
-            _logger.LogInformation("{dempotencyKey} has been executed before! No action will be taken.", dempotencyKey);
+            _logger.LogDebug("{dempotencyKey} has been executed before! No action will be taken.", dempotencyKey);
         }
     }
 }

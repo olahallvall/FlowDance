@@ -67,7 +67,7 @@ namespace FlowDance.Server.Functions
                 // These StatusCode will not be retried.
                 if(response.StatusCode == System.Net.HttpStatusCode.Forbidden || response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
-                    logger.LogInformation("A HTTP POST to {url} returns {statuscode}. No retry will be performed for http codes 403 and 404", compensatingAction.Url, (int)response.StatusCode);
+                    logger.LogWarning("A HTTP POST to {url} returns {statuscode}. No retry will be performed for http codes 403 and 404", compensatingAction.Url, (int)response.StatusCode);
                     return false;
                 }
                     
