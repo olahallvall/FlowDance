@@ -18,14 +18,24 @@ namespace FlowDance.Client.AspNetCore.ActionFilters
     public class CompensationSpanAttribute : ActionFilterAttribute
     {
         /// <summary>
-        /// Use a string to point out url/amqp end point to use when compensating. 
+        /// Use a string to point out the http endpoint to use when compensating. 
         /// <example>
         /// <code>
         /// [CompensationSpan(CompensatingActionUrl = "http://localhost/TripBookingService/Compensation", CompensationSpanOption = CompensationSpanOption.RequiresNewBlockingCalls)]
         /// </code>
         /// </example>
         /// </summary>
-        public required string CompensatingActionUrl { get; set; }
+        public string ?CompensatingActionUrl { get; set; }
+
+        /// <summary>
+        /// Use a string to point out the queue name to use when compensating. 
+        /// <example>
+        /// <code>
+        /// [CompensationSpan(CompensatingActionQueueName = "CarService.CompensatingCommands", CompensationSpanOption = CompensationSpanOption.RequiresNewBlockingCalls)]
+        /// </code>
+        /// </example>
+        /// </summary>
+        public string ?CompensatingActionQueueName { get; set; }
 
         public CompensationSpanOption CompensationSpanOption { get; set; }
 
@@ -58,10 +68,12 @@ namespace FlowDance.Client.AspNetCore.ActionFilters
             }
 
             ICompensationSpan compensationSpan = null;
-            if (CompensatingActionUrl.Contains("http"))
+            if (!String.IsNullOrEmpty(CompensatingActionUrl))
                 compensationSpan = new CompensationSpan(new HttpCompensatingAction(CompensatingActionUrl), traceId, loggerFactory, CompensationSpanOption, callingFunctionName);
-            else if (CompensatingActionUrl.Contains("amqp"))
-                compensationSpan = new CompensationSpan(new AmqpCompensatingAction(CompensatingActionUrl), traceId, loggerFactory, CompensationSpanOption, callingFunctionName);
+            else if (!String.IsNullOrEmpty(CompensatingActionQueueName))
+                compensationSpan = new CompensationSpan(new AmqpCompensatingAction(CompensatingActionQueueName), traceId, loggerFactory, CompensationSpanOption, callingFunctionName);
+            else
+                throw new Exception("Can't create a CompensationSpan. Either CompensatingActionUrl or CompensatingActionQueueName has been set.");
 
             if (compensationSpan == null)
                 throw new Exception("Can't create a CompensationSpan.");
