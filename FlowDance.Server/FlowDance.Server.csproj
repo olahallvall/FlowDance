@@ -20,6 +20,7 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
+    <PackageReference Include="DurableFunctionsMonitor.DotNetIsolated" Version="6.5.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.23.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.DurableTask" Version="1.1.5" />
