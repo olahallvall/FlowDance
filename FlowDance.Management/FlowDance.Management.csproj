@@ -6,6 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UserSecretsId>99e1b877-f2e3-4318-8fc2-10d153e272ea</UserSecretsId>
+    <DockerFastModeProjectMountDirectory>/home/site/wwwroot</DockerFastModeProjectMountDirectory>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerfileTag>flowdance-mgmt</DockerfileTag>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="DurableFunctionsMonitor.DotNetIsolated" Version="6.5.0" />
