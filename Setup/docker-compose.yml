@@ -20,17 +20,15 @@ services:
       - rabbitmq
       - mssql
 
-  flowdance-mgmt:
-    image: olahallvall/flowdance-mgmt:latest
-    container_name: flowdance-mgmt
+  flowdance-monitor:
+    image: scaletone/durablefunctionsmonitor.mssql:6.5
+    container_name: flowdance-monitor
     environment:
-      - AzureWebJobsSecretStorageType=files
       - ASPNETCORE_ENVIRONMENT=Production
       - DFM_SQL_CONNECTION_STRING=Server=host.docker.internal,1433;TrustServerCertificate=True;Database=FlowDanceDurableDB;User Id=sa;Password=Admin@123;
       - DFM_NONCE=i_sure_know_what_i_am_doing
-      - WEBSITE_HOSTNAME=localhost:80
     ports:
-       - "7182:80" # Management UI
+       - "7072:80" # Monitor UI
     depends_on:
       - mssql
 
