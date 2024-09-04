@@ -5,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 using DurableFunctionsMonitor.DotNetIsolated;
 using Microsoft.Data.SqlClient;
 using Microsoft.DurableTask.Client;
+using Microsoft.Extensions.Configuration;
 
 namespace Dfm.DotNetIsolatedMsSql
 {
@@ -28,6 +29,7 @@ namespace Dfm.DotNetIsolatedMsSql
         private static void Main(string[] args)
         {
             var host = new HostBuilder()
+
                 .ConfigureFunctionsWorkerDefaults((hostBuilderContext, workerAppBuilder) =>
                 {
                     workerAppBuilder.UseDurableFunctionsMonitor((settings, extPoints) =>
