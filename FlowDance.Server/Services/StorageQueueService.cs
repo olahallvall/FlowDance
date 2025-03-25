@@ -9,18 +9,25 @@ namespace FlowDance.Server.Services
 {
     public interface IStorageQueueService
     {
-        public SpanCommand StoreCommand(SpanCommand spanCommand);
+        public Task<SpanCommand> StoreCommandAsync(SpanCommand spanCommand);
     }
 
     public class StorageQueueService : IStorageQueueService
     {
         private readonly ILogger<StorageQueueService> _logger;
         private readonly IConfiguration _configuration;
-
+        private readonly CreateChannelOptions _channelOpts;
+        private const ushort MAX_OUTSTANDING_CONFIRMS = 256;
         public StorageQueueService(ILoggerFactory loggerFactory, IConfiguration configuration)
         {
             _logger = loggerFactory.CreateLogger<StorageQueueService>();
             _configuration = configuration;
+
+            _channelOpts = new CreateChannelOptions(
+                    publisherConfirmationsEnabled: true,
+                    publisherConfirmationTrackingEnabled: true,
+                    outstandingPublisherConfirmationsRateLimiter: new ThrottlingRateLimiter(MAX_OUTSTANDING_CONFIRMS)
+             );
         }
 
         /// <summary>
@@ -28,35 +35,32 @@ namespace FlowDance.Server.Services
         /// </summary>
         /// <param name="spanCommand"></param>
         /// <returns></returns>
-        public SpanCommand StoreCommand(SpanCommand spanCommand)
+        public async Task<SpanCommand> StoreCommandAsync(SpanCommand spanCommand)
         {
             try
             {
                 var connectionFactory = new ConnectionFactory();
                 connectionFactory.Uri = new Uri(_configuration["RabbitMq_Connection"]);
 
-                var connection = connectionFactory.CreateConnection();
-                var channel = connection.CreateModel();
+                var connection = await connectionFactory.CreateConnectionAsync();
+                var channel = await connection.CreateChannelAsync(_channelOpts);
 
-                channel.ConfirmSelect();
-
-                channel.QueueDeclare(queue: "FlowDance.SpanCommands",
+                await channel.QueueDeclareAsync(queue: "FlowDance.SpanCommands",
                     durable: true,
-                exclusive: false,
-                autoDelete: false,
+                    exclusive: false,
+                    autoDelete: false,
                     arguments: null);
 
                 var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(spanCommand));
 
-                channel.BasicPublish(exchange: string.Empty,
+                await channel.BasicPublishAsync(exchange: string.Empty,
                     routingKey: "FlowDance.SpanCommands",
-                    basicProperties: null,
+                    mandatory: true,
+                    basicProperties: new BasicProperties { Persistent = true },
                     body: Encoding.Default.GetBytes(JsonConvert.SerializeObject(spanCommand, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All })));
 
-                channel.WaitForConfirmsOrDie(TimeSpan.FromSeconds(5));
-
                 if (connection.IsOpen)
-                    connection.Close();
+                    await connection.CloseAsync();
             }
             catch (Exception ex)
             {

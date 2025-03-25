@@ -12,10 +12,17 @@ namespace FlowDance.Server.Functions
     public class RabbitMqCompensating
     {
         private readonly IConfiguration _configuration;
-
+        private readonly CreateChannelOptions _channelOpts;
+        private const ushort MAX_OUTSTANDING_CONFIRMS = 256;
         public RabbitMqCompensating(IConfiguration configuration)
         {
-            _configuration = configuration; 
+            _configuration = configuration;
+
+            _channelOpts = new CreateChannelOptions(
+                   publisherConfirmationsEnabled: true,
+                   publisherConfirmationTrackingEnabled: true,
+                   outstandingPublisherConfirmationsRateLimiter: new ThrottlingRateLimiter(MAX_OUTSTANDING_CONFIRMS)
+            );
         }
 
         [Function(nameof(RabbitMqCompensate))]
@@ -32,14 +39,14 @@ namespace FlowDance.Server.Functions
             var connectionFactory = new ConnectionFactory();
             connectionFactory.Uri = new Uri(_configuration["RabbitMq_Connection"]);
 
-            var connection = connectionFactory.CreateConnection();
-            var channel = connection.CreateModel();
+            var connection = await connectionFactory.CreateConnectionAsync();
+            var channel = await connection.CreateChannelAsync(_channelOpts);
             var compensatingAction = (AmqpCompensatingAction)span.SpanOpened.CompensatingAction;
 
             if (!span.CompensationData.Any())
                 span.CompensationData.Add(new Common.Events.SpanCompensationData() { CompensationData = span.TraceId.ToString(), Identifier = "default" });
 
-            IBasicProperties props = channel.CreateBasicProperties();
+            var props = new BasicProperties { Persistent = true };
             props.Headers = new Dictionary<string, object>();
             
             // Set headers
@@ -64,17 +71,13 @@ namespace FlowDance.Server.Functions
                 props.Headers.Add("x-calling-function-name", span.SpanOpened.CallingFunctionName);
             }
 
-            // So we can Confirm
-            channel.ConfirmSelect();
-
             // Store the messages
-            channel.BasicPublish(exchange: string.Empty,
+            await channel.BasicPublishAsync(exchange: string.Empty,
                     routingKey: compensatingAction.QueueName,
+                    mandatory: true,
                     basicProperties: props,
                     body: Encoding.Default.GetBytes(JsonConvert.SerializeObject(span.CompensationData)));
-
-            channel.WaitForConfirmsOrDie(TimeSpan.FromSeconds(5));
-         
+            
             return true;
         }
     }

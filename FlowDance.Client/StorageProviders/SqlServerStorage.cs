@@ -2,6 +2,7 @@
 using FlowDance.Common.Events;
 using FlowDance.Common.Interfaces;
 using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
 namespace FlowDance.Client.StorageProviders
 {
@@ -16,17 +17,17 @@ namespace FlowDance.Client.StorageProviders
             _logger = _loggerFactory.CreateLogger<SqlServerStorage>();
         }
 
-        public SpanCommand StoreCommand(SpanCommand spanCommand)
+        public Task<SpanCommand> StoreCommandAsync(SpanCommand spanCommand)
         {
             throw new System.NotImplementedException();
         }
 
-        public SpanEvent StoreEventInQueue(SpanEvent spanEvent)
+        public Task<SpanEvent> StoreEventInQueueAsync(SpanEvent spanEvent)
         {
             throw new System.NotImplementedException();
         }
 
-        public SpanEvent StoreEventInStream(SpanEvent spanEvent)
+        public Task<SpanEvent> StoreEventInStreamAsync(SpanEvent spanEvent)
         {
             throw new System.NotImplementedException();
         }

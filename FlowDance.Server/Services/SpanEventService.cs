@@ -87,7 +87,7 @@ namespace FlowDance.Server.Services
                             // Add a message to FlowDance.SpanCommands queue. 
                             _logger.LogDebug("TraceId {traceId}, with the type CompensationSpanOption.RequiresNewNonBlockingCallChain, has one or more SpanClosedBattered and will need compensation. FlowDance will add a DetermineCompensationCommand to FlowDance.SpanCommands.", streamName);
                             var determineCompensation = new Common.Commands.DetermineCompensationCommand { TraceId = spanClosedBattered.TraceId, SpanId = spanClosedBattered.SpanId, Timestamp = spanClosedBattered.Timestamp };
-                            _storageQueueService.StoreCommand(determineCompensation);
+                            _storageQueueService.StoreCommandAsync(determineCompensation);
                         }
                         else
                             _logger.LogDebug("{dempotencyKey} belongs to a CompensationSpan of type CompensationSpanOption.RequiresNewBlockingCallChain and no DetermineCompensationCommand will be sent.", dempotencyKey);

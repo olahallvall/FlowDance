@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace FlowDance.Client
 {
@@ -36,7 +37,7 @@ namespace FlowDance.Client
         public CompensationSpan(HttpCompensatingAction httpAction, Guid traceId, ILoggerFactory loggerFactory, CompensationSpanOption compensationSpanOption = 0, [System.Runtime.CompilerServices.CallerMemberName] string callingFunctionName = "")
         {
             ConfigureSpanStorage(loggerFactory);
-            StoreSpanOpened(httpAction, traceId, loggerFactory, callingFunctionName, compensationSpanOption);
+            StoreSpanOpenedAsync(httpAction, traceId, loggerFactory, callingFunctionName, compensationSpanOption).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -49,10 +50,10 @@ namespace FlowDance.Client
         public CompensationSpan(AmqpCompensatingAction amqpAction, Guid traceId, ILoggerFactory loggerFactory, CompensationSpanOption compensationSpanOption = 0, [System.Runtime.CompilerServices.CallerMemberName] string callingFunctionName = "")
         {
             ConfigureSpanStorage(loggerFactory);
-            StoreSpanOpened(amqpAction, traceId, loggerFactory, callingFunctionName, compensationSpanOption);  
+            StoreSpanOpenedAsync(amqpAction, traceId, loggerFactory, callingFunctionName, compensationSpanOption).GetAwaiter().GetResult();   
         }
 
-        private void StoreSpanOpened(CompensatingAction compensatingAction, Guid traceId, ILoggerFactory loggerFactory, string callingFunctionName, CompensationSpanOption compensationSpanOption)
+        private async Task StoreSpanOpenedAsync(CompensatingAction compensatingAction, Guid traceId, ILoggerFactory loggerFactory, string callingFunctionName, CompensationSpanOption compensationSpanOption)
         {
             // Validate traceId and create a new one if needed.
             if (compensationSpanOption == CompensationSpanOption.Required)
@@ -82,7 +83,7 @@ namespace FlowDance.Client
             };
 
             // Store the SpanEventOpened event
-            _spanOpened = (SpanOpened) _storage.StoreEventInStream(_spanOpened);
+            _spanOpened = (SpanOpened) await _storage.StoreEventInStreamAsync(_spanOpened);
 
             // Validate the creation of CompensationSpanOption for this span
             if (_spanOpened.IsRootSpan && _spanOpened.CompensationSpanOption == CompensationSpanOption.Required)
@@ -92,7 +93,7 @@ namespace FlowDance.Client
                 throw new CompensationSpanCreationException("You have to set CompensationSpanOption as RequiresNewBlockingCallChain or RequiresNewNonBlockingCallChain but FlowDance can't create the CompensationSpan as a RootSpan. This problem happends if the a stream already exist for the traceId.");
         }
 
-        private void StoreSpanClosed(Guid traceId, Guid spanId, bool completed)
+        private async Task StoreSpanClosedAsync(Guid traceId, Guid spanId, bool completed)
         {
             // Create the event - SpanClosed
             _spanClosed = new SpanClosed()
@@ -105,18 +106,18 @@ namespace FlowDance.Client
             };
 
             // Store the SpanClosed event
-            _spanClosed = (SpanClosed) _storage.StoreEventInStream(_spanClosed);
+            _spanClosed = (SpanClosed) await _storage.StoreEventInStreamAsync(_spanClosed);
 
             if (_spanOpened.IsRootSpan && _spanOpened.CompensationSpanOption == CompensationSpanOption.RequiresNewBlockingCallChain)
             {
                 var determineCompensation = new Common.Commands.DetermineCompensationCommand { TraceId = _spanClosed.TraceId, SpanId = _spanClosed.SpanId, Timestamp = _spanOpened.Timestamp };
-                _storage.StoreCommand(determineCompensation);
+                await _storage.StoreCommandAsync(determineCompensation); 
             }
             // Store the SpanClosedBattered event if needed
             else if (_spanClosed.ExceptionDetected || _spanClosed.MarkedAsCompleted == false)
             {
                 var spanClosedBattered = new SpanClosedBattered() { TraceId = _spanClosed.TraceId, SpanId = _spanClosed.SpanId, Timestamp = _spanOpened.Timestamp , ExceptionDetected = _spanClosed.ExceptionDetected , MarkedAsCompleted = _spanClosed.MarkedAsCompleted };
-                _storage.StoreEventInQueue(spanClosedBattered);
+                await _storage.StoreEventInQueueAsync(spanClosedBattered); 
             }
         }
 
@@ -150,7 +151,7 @@ namespace FlowDance.Client
             };
 
             // Store the SpanCompensationData event 
-            _storage.StoreEventInStream(spanCompensationData);
+            _storage.StoreEventInStreamAsync(spanCompensationData);
         }
 
         /// <summary>
@@ -203,7 +204,7 @@ namespace FlowDance.Client
             {
                 if (disposing)
                 {
-                    StoreSpanClosed(_spanOpened.TraceId, _spanOpened.SpanId, _completed);
+                    StoreSpanClosedAsync(_spanOpened.TraceId, _spanOpened.SpanId, _completed);
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer

@@ -21,7 +21,7 @@ services:
       - mssql
 
   flowdance-monitor:
-    image: scaletone/durablefunctionsmonitor.mssql:6.5
+    image: scaletone/durablefunctionsmonitor.mssql:6.6
     container_name: flowdance-monitor
     environment:
       - ASPNETCORE_ENVIRONMENT=Production

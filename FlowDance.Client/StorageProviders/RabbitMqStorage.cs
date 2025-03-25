@@ -8,6 +8,7 @@ using RabbitMQ.Client;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace FlowDance.Client.StorageProviders
 {
@@ -18,11 +19,21 @@ namespace FlowDance.Client.StorageProviders
     {
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger<RabbitMqStorage> _logger;
-
+        private readonly CreateChannelOptions _channelOpts;
+        private const ushort MAX_OUTSTANDING_CONFIRMS = 256;
+        private readonly IConfigurationRoot _configuration;
         public RabbitMqStorage(ILoggerFactory loggerFactory)
         {
             _loggerFactory = loggerFactory;
             _logger = _loggerFactory.CreateLogger<RabbitMqStorage>();
+
+            _channelOpts = new CreateChannelOptions(
+                    publisherConfirmationsEnabled: true,
+                    publisherConfirmationTrackingEnabled: true,
+                    outstandingPublisherConfirmationsRateLimiter: new ThrottlingRateLimiter(MAX_OUTSTANDING_CONFIRMS)
+             );
+
+            _configuration = new ConfigurationBuilder().AddJsonFile($"appsettings.json").Build();
         }
 
         /// <summary>
@@ -30,36 +41,30 @@ namespace FlowDance.Client.StorageProviders
         /// </summary>
         /// <param name="spanEvent"></param>
         /// <exception cref="Exception"></exception>
-        public SpanEvent StoreEventInStream(SpanEvent spanEvent)
+        public async Task<SpanEvent> StoreEventInStreamAsync(SpanEvent spanEvent)
         {
             try
             {
-                var config = new ConfigurationBuilder().AddJsonFile($"appsettings.json").Build();
                 var connectionFactory = new ConnectionFactory();
-                config.GetSection("RabbitMqConnection").Bind(connectionFactory);
-
-                var connection = connectionFactory.CreateConnection();
-                var channel = connection.CreateModel();
+                _configuration.GetSection("RabbitMqConnection").Bind(connectionFactory);
+                var connection = await connectionFactory.CreateConnectionAsync();
+                var channel = await connection.CreateChannelAsync(_channelOpts);
 
                 var streamName = spanEvent.TraceId.ToString();
 
                 //Check if stream/queue exist. 
-                if (StreamExistOrQueue(streamName, connection))
+                if (await StreamExistOrQueue(streamName, connection))
                 {
                     // Only first spanEvent in stream should be a root spanEvent.
                     if (spanEvent is SpanOpened)
                         ((SpanOpened)spanEvent).IsRootSpan = false;
 
-                    // So we can Confirm
-                    channel.ConfirmSelect();
-
                     // Store the messages
-                    channel.BasicPublish(exchange: string.Empty,
+                    await channel.BasicPublishAsync(exchange: string.Empty,
                             routingKey: streamName,
-                            basicProperties: null,
+                            mandatory: true,
+                            basicProperties: new BasicProperties { Persistent = true },
                             body: Encoding.Default.GetBytes(JsonConvert.SerializeObject(spanEvent, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All })));
-
-                    channel.WaitForConfirmsOrDie(TimeSpan.FromSeconds(5));
                 }
                 else // Stream don´t exists.
                 {
@@ -73,19 +78,15 @@ namespace FlowDance.Client.StorageProviders
                     // Create stream
                     CreateStream(streamName, channel);
 
-                    // So we can Confirm
-                    channel.ConfirmSelect();
-
                     // Store the messages
-                    channel.BasicPublish(exchange: string.Empty,
-                        routingKey: streamName,
-                        basicProperties: null,
-                        body: Encoding.Default.GetBytes(JsonConvert.SerializeObject(spanEvent, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All })));
-
-                    channel.WaitForConfirmsOrDie(TimeSpan.FromSeconds(5));
+                    await channel.BasicPublishAsync(exchange: string.Empty,
+                            routingKey: streamName,
+                            mandatory: true,
+                            basicProperties: new BasicProperties { Persistent = true },
+                            body: Encoding.Default.GetBytes(JsonConvert.SerializeObject(spanEvent, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All })));
 
                     if (connection.IsOpen)
-                        connection.Close();
+                        await connection.CloseAsync();
                 }
             }
             catch (Exception ex)
@@ -101,36 +102,32 @@ namespace FlowDance.Client.StorageProviders
         /// Store Events to a queue.
         /// </summary>
         /// <param name="spanEvent"></param>
-        public SpanEvent StoreEventInQueue(SpanEvent spanEvent)
+        public async Task<SpanEvent> StoreEventInQueueAsync(SpanEvent spanEvent)
         {
             try
             {
-                var config = new ConfigurationBuilder().AddJsonFile($"appsettings.json").Build();
                 var connectionFactory = new ConnectionFactory();
-                config.GetSection("RabbitMqConnection").Bind(connectionFactory);
+                _configuration.GetSection("RabbitMqConnection").Bind(connectionFactory);
+                var connection = await connectionFactory.CreateConnectionAsync();
+                var channel = await connection.CreateChannelAsync(_channelOpts);
 
-                var connection = connectionFactory.CreateConnection();
-                var channel = connection.CreateModel();
-
-                channel.ConfirmSelect();
-
-                channel.QueueDeclare(queue: "FlowDance.SpanEvents",
+                await channel.QueueDeclareAsync(queue: "FlowDance.SpanEvents",
                     durable: true,
-                exclusive: false,
-                autoDelete: false,
+                    exclusive: false,
+                    autoDelete: false,
                     arguments: null);
 
                 var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(spanEvent));
 
-                channel.BasicPublish(exchange: string.Empty,
-                    routingKey: "FlowDance.SpanEvents",
-                    basicProperties: null,
-                    body: Encoding.Default.GetBytes(JsonConvert.SerializeObject(spanEvent, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All })));
-
-                channel.WaitForConfirmsOrDie(TimeSpan.FromSeconds(5));
+                // Store the messages
+                await channel.BasicPublishAsync(exchange: string.Empty,
+                        routingKey: "FlowDance.SpanEvents",
+                        mandatory: true,
+                        basicProperties: new BasicProperties { Persistent = true },
+                        body: Encoding.Default.GetBytes(JsonConvert.SerializeObject(spanEvent, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All })));
 
                 if (connection.IsOpen)
-                    connection.Close();
+                    await connection.CloseAsync();
             }
             catch (Exception ex)
             {
@@ -145,36 +142,34 @@ namespace FlowDance.Client.StorageProviders
         /// Store commands to a queue.
         /// </summary>
         /// <param name="spanCommand"></param>
-        public SpanCommand StoreCommand(SpanCommand spanCommand)
+        public async Task<SpanCommand> StoreCommandAsync(SpanCommand spanCommand)
         {
             try
             {
-                var config = new ConfigurationBuilder().AddJsonFile($"appsettings.json").Build();
                 var connectionFactory = new ConnectionFactory();
-                config.GetSection("RabbitMqConnection").Bind(connectionFactory);
+                _configuration.GetSection("RabbitMqConnection").Bind(connectionFactory);
+                var connection = await connectionFactory.CreateConnectionAsync();
+                var channel = await connection.CreateChannelAsync(_channelOpts);
 
-                var connection = connectionFactory.CreateConnection();
-                var channel = connection.CreateModel();
+                //channel.ConfirmSelect();
 
-                channel.ConfirmSelect();
-
-                channel.QueueDeclare(queue: "FlowDance.SpanCommands",
+                await channel.QueueDeclareAsync(queue: "FlowDance.SpanCommands",
                     durable: true,
-                exclusive: false,
-                autoDelete: false,
+                    exclusive: false,
+                    autoDelete: false,
                     arguments: null);
 
                 var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(spanCommand));
-
-                channel.BasicPublish(exchange: string.Empty,
-                    routingKey: "FlowDance.SpanCommands",
-                    basicProperties: null,
-                    body: Encoding.Default.GetBytes(JsonConvert.SerializeObject(spanCommand, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All })));
-
-                channel.WaitForConfirmsOrDie(TimeSpan.FromSeconds(5));
+   
+                // Store the messages
+                await channel.BasicPublishAsync(exchange: string.Empty,
+                        routingKey: "FlowDance.SpanCommands",
+                        mandatory: true,
+                        basicProperties: new BasicProperties { Persistent = true },
+                        body: Encoding.Default.GetBytes(JsonConvert.SerializeObject(spanCommand, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All })));
 
                 if (connection.IsOpen)
-                    connection.Close();
+                    await connection.CloseAsync();
             }
             catch (Exception ex)
             {
@@ -191,12 +186,12 @@ namespace FlowDance.Client.StorageProviders
         /// <param name="name"></param>
         /// <returns>True if stream exists, else false.</returns>
         /// <exception cref="Exception"></exception>
-        private bool StreamExistOrQueue(string name, IConnection connection)
+        private async Task<bool> StreamExistOrQueue(string name, IConnection connection)
         {
             try
             {
-                var channel = connection.CreateModel();
-                QueueDeclareOk ok = channel.QueueDeclarePassive(name);
+                var channel = await connection.CreateChannelAsync();
+                QueueDeclareOk ok = await channel.QueueDeclarePassiveAsync(name);
             }
             catch (RabbitMQ.Client.Exceptions.OperationInterruptedException ex)
             {
@@ -218,15 +213,15 @@ namespace FlowDance.Client.StorageProviders
         /// Create a stream. 
         /// </summary>
         /// <param name="streamName"></param>
-        private void CreateStream(string streamName, IModel channel)
+        private void CreateStream(string streamName, IChannel channel)
         {
             try
             {
-                channel.QueueDeclare(queue: streamName,
+                channel.QueueDeclareAsync(queue: streamName,
                 durable: true,
                 exclusive: false,
                 autoDelete: false,
-                arguments: new Dictionary<string, object> { { "x-queue-type", "stream" } });
+                arguments: new Dictionary<string, object> { { "x-queue-type", "stream" } }).GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {

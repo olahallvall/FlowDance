@@ -1,12 +1,13 @@
 ﻿using FlowDance.Common.Commands;
 using FlowDance.Common.Events;
+using System.Threading.Tasks;
 
 namespace FlowDance.Common.Interfaces
 {
     public interface IStorageProvider
     {
-        public SpanEvent StoreEventInStream(SpanEvent spanEvent);
-        public SpanEvent StoreEventInQueue(SpanEvent spanEvent);
-        public SpanCommand StoreCommand(SpanCommand spanCommand);
+        public Task<SpanEvent> StoreEventInStreamAsync(SpanEvent spanEvent);
+        public Task<SpanEvent> StoreEventInQueueAsync(SpanEvent spanEvent);
+        public Task<SpanCommand> StoreCommandAsync(SpanCommand spanCommand);
     }
 }
