@@ -151,7 +151,7 @@ namespace FlowDance.Client
             };
 
             // Store the SpanCompensationData event 
-            _storage.StoreEventInStreamAsync(spanCompensationData);
+            _storage.StoreEventInStreamAsync(spanCompensationData).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -204,7 +204,7 @@ namespace FlowDance.Client
             {
                 if (disposing)
                 {
-                    StoreSpanClosedAsync(_spanOpened.TraceId, _spanOpened.SpanId, _completed);
+                    StoreSpanClosedAsync(_spanOpened.TraceId, _spanOpened.SpanId, _completed).GetAwaiter().GetResult();
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer
