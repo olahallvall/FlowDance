@@ -39,12 +39,12 @@ public class StorageStreamService : IStorageStreamService
         // https://github.com/rabbitmq/rabbitmq-stream-dotnet-client/tree/main/docs/ReliableClient
 
         var connectionFactory = new ConnectionFactory();
-        connectionFactory.Uri = new Uri(_configuration["RabbitMq_Connection"]);
+        connectionFactory.Uri = new Uri(_configuration["RabbitMq_Connection"]!);
 
         var ep = new IPEndPoint(IPAddress.Loopback, 5552);
 
-        var streamPort = Int32.Parse(_configuration["RabbitMq_StreamSettings:StreamPort"]);
-        var loadBalancer = bool.Parse(_configuration["RabbitMq_StreamSettings:LoadBalancer"]);
+        var streamPort = Int32.Parse(_configuration["RabbitMq_StreamSettings:StreamPort"]!);
+        var loadBalancer = bool.Parse(_configuration["RabbitMq_StreamSettings:LoadBalancer"]!);
 
         if (connectionFactory.HostName != "localhost")
         {

@@ -40,7 +40,7 @@ namespace FlowDance.Server.Services
             try
             {
                 var connectionFactory = new ConnectionFactory();
-                connectionFactory.Uri = new Uri(_configuration["RabbitMq_Connection"]);
+                connectionFactory.Uri = new Uri(_configuration["RabbitMq_Connection"]!);
 
                 var connection = await connectionFactory.CreateConnectionAsync();
                 var channel = await connection.CreateChannelAsync(_channelOpts);

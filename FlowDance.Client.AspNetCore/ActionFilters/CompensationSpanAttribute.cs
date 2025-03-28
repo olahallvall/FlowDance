@@ -67,7 +67,7 @@ namespace FlowDance.Client.AspNetCore.ActionFilters
                     throw new Exception("CorrelationId/TraceId (" + correlationId + ") are not a valid Guid.");
             }
 
-            ICompensationSpan compensationSpan = null;
+            ICompensationSpan compensationSpan;
             if (!String.IsNullOrEmpty(CompensatingActionUrl))
                 compensationSpan = new CompensationSpan(new HttpCompensatingAction(CompensatingActionUrl), traceId, loggerFactory, CompensationSpanOption, callingFunctionName);
             else if (!String.IsNullOrEmpty(CompensatingActionQueueName))

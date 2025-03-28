@@ -37,7 +37,7 @@ namespace FlowDance.Server.Functions
             }
 
             var connectionFactory = new ConnectionFactory();
-            connectionFactory.Uri = new Uri(_configuration["RabbitMq_Connection"]);
+            connectionFactory.Uri = new Uri(_configuration["RabbitMq_Connection"]!);
 
             var connection = await connectionFactory.CreateConnectionAsync();
             var channel = await connection.CreateChannelAsync(_channelOpts);
@@ -47,7 +47,7 @@ namespace FlowDance.Server.Functions
                 span.CompensationData.Add(new Common.Events.SpanCompensationData() { CompensationData = span.TraceId.ToString(), Identifier = "default" });
 
             var props = new BasicProperties { Persistent = true };
-            props.Headers = new Dictionary<string, object>();
+            props.Headers = new Dictionary<string, object?>();
             
             // Set headers
             // https://stackoverflow.com/questions/69877042/how-should-i-pass-a-string-value-in-a-rabbitmq-header

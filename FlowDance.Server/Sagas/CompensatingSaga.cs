@@ -23,7 +23,7 @@ namespace FlowDance.Server.Sagas
         public async Task RunOrchestrator([OrchestrationTrigger] TaskOrchestrationContext context)
         {
             var logger = context.CreateReplaySafeLogger(nameof(CompensatingSaga));
-            var json = context.GetInput<string>();
+            var json = context.GetInput<string>()!;
 
             var spanList = JsonConvert.DeserializeObject<List<Span>>(json, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
             if (spanList == null || spanList.Count == 0)
